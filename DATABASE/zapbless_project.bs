@@ -1,0 +1,445 @@
+public
+
+    USER_GENDER
+
+        id : STRING | key, unique
+        name : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    LANGUAGE | dropped
+
+        code : STRING | key, unique
+        number : FLOAT64
+        name : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    CONTINENT | dropped
+
+        code : STRING | key, unique
+        name : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    COUNTRY | dropped
+
+        code : STRING | key, unique
+        number : FLOAT64
+        name : STRING
+        fullName : STRING
+        continentCode : CONTINENT.code
+        iconImagePath : STRING = "/image/flag/{{.code}}.svg"
+        phonePrefix : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    CITY
+
+        code : STRING | key, unique
+        countryCode : COUNTRY.code | constrained
+        name : STRING
+        searchName : STRING
+        provinceName : STRING
+        countryName : COUNTRY.fullName
+        communityName : STRING
+        position : GEOMETRY
+
+    CHURCH_STATUS
+
+        id : STRING | key, unique
+        name : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    CHURCH
+
+        id : TUID | key, unique
+        name : STRING
+        statusId : CHURCH_STATUS.id | constrained
+        addressLine1 : STRING
+        addressLine2 : STRING
+        cityCode : CITY.code | constrained
+        cityName : STRING
+        countryCode : COUNTRY.code | constrained
+        languageTag : STRING
+        imagePath : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    USER_STATUS
+
+        id : STRING | key, unique
+        name : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    PROFILE | dropped
+
+        id : UUID | key, unique
+        churchId : CHURCH.id | constrained
+        statusId : USER_STATUS.id | constrained
+        firstName : STRING
+        lastName : STRING
+        legalName : STRING
+        birthDate : DATETIME
+        genderId : USER_GENDER.id | constrained
+        email : STRING
+        phonePrefix : STRING
+        phoneNumber : STRING
+        countryCode : COUNTRY.code | constrained
+        imagePath : STRING
+        aboutDescription : STRING
+        userId : UUID | linked auth.users
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    CURRENCY
+
+        code : STRING | key, unique
+        pluralName : STRING
+        singularName : STRING
+        symbol : STRING
+
+    PLAN
+
+        id : STRING | key, unique
+        name : STRING
+        description : STRING
+        monthlyPrice : FLOAT64
+        annualPrice : FLOAT64
+        isActive : BOOL
+        currencyCode : CURRENCY.code | constrained
+        whatsappLimit : FLOAT64
+        userLimit : FLOAT64
+        ministryLimit : FLOAT64
+        featureArray : LIST[]
+
+    SUBSCRIPTION_TYPE
+
+        id : STRING | key, unique
+        name: STRING
+        number : FLOAT64
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    SUBSCRIPTION_PERIOD
+
+        id : STRING | key, unique
+        name : STRING
+        number : FLOAT64
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    SUBSCRIPTION_STATUS
+
+        id : STRING | key, unique
+        name : STRING
+        number : FLOAT64
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    SUBSCRIPTION_METHOD
+
+        id : STRING | key, unique
+        name : STRING
+        number : FLOAT64
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    SUBSCRIPTION
+
+        id : TUID | key, unique
+        churchId : CHURCH.id | constrained
+        planId : PLAN.id | constrained
+        typeId : SUBSCRIPTION_TYPE.id | constrained
+        statusId : SUBSCRIPTION_STATUS.id | constrained
+        periodId : SUBSCRIPTION_PERIOD | constrained
+        startAtDateTimestamp : DATETIME
+        expiresAtDateTimestamp : DATETIME
+        paymentGatewayId : STRING
+        paymentMethodId : STRING
+        chargeInfo : MAP[]
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    VALIDATION_STATUS
+
+        id : STRING | key, unique
+        name : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    MINISTRY
+
+        id : TUID | key, unique
+        churchId : CHURCH.id | constrained
+        name : STRING
+        description : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    CONTACT
+
+        id : TUID | key, unique
+        churchId : CHURCH.id | constrained
+        firstName : STRING
+        lastName : STRING
+        legalName : STRING
+        email : STRING
+        phonePrefix : STRING
+        phoneNumber : STRING
+        phoneNumberValidationStatusId : VALIDATION_STATUS.id | constrained
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    EVENT_STATUS
+
+        id : STRING | key, unique
+        name : STRING
+        description : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    EVENT_TYPE
+
+        id : STRING | key, unique
+        name : STRING
+        description : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+
+    PERMISSION
+
+        id : STRING | key, unique
+        slug : STRING
+        name : STRING
+        description : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    ROLE
+
+        slug : STRING = "{{name:slug_case}}" | key, unique
+        name : STRING
+        description : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    ROLE_PERMISSION
+
+        roleId : ROLE.slug | constrained
+        permissionId : PERMISSION.id | constrained
+
+    USER_CHURCH_ROLE
+
+        profileId : PROFILE.id | constrained
+        churchId : CHURCH.id | constrained
+        roleSlug : ROLE.slug | constrained
+
+    EVENT
+
+        id : TUID | key, unique
+        churchId : CHURCH.id | constrained
+        ministryId : MINISTRY.id | constrained
+        title : STRING
+        description : STRING
+        location : GEOMETRY
+        statusId : EVENT_STATUS.id | constrained
+        typeId :  EVENT_TYPE | constrained
+        startAtTimestamp : DATETIME
+        endAtTimestamp : DATETIME
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    SCHEDULE_STATUS
+
+        id : STRING | key, unique
+        name : STRING
+        description : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    SCHEDULE_CONTACT
+
+        id : TUID | key, unique
+        scheduleId : SCHEDULE.id | constrained
+        contactId : CONTACT.id | constrained
+
+    SCHEDULE_MINISTRY
+
+        id : TUID | key, unique
+        scheduleId : SCHEDULE.id | constrained
+        ministryId : MINISTRY.id | constrained
+
+    SCHEDULE
+
+        id : TUID | key, unique
+        churchId : CHURCH.id | constrained
+        notificationTypeId : NOTIFICATION_TYPE.id | constrained
+        notificationMediumId : NOTIFICATION_MEDIUM| constrained
+        scheduleAtTimestamp : DATETIME
+        eventId : EVENT | constrained
+        payload : TUPLE[]
+        statusId : SCHEDULE_STATUS.id | constrained
+        reccurenceId : RECURRENCE_ID | constrained
+        errorMessage : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    RECURRENCE_TYPE
+
+        id : STRING | key, unique
+        name : STRING
+        description : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    RECURRENCE
+
+        id : TUID | key, unique
+        typeId : RECURRENCE_TYPE.id | constrained
+        interval : FLOAT64
+        dayOfWeekArray : LIST[]
+        dayOfMonthArray : LIST[]
+        timeOfDayTimestamp : DATETIME
+        endAtTimestamp : DATETIME
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    NOTIFICATION_TYPE
+
+        id : STRING | key, unique
+        name : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    NOTIFICATION_MEDIUM
+
+        id : STRING | key, unique
+        name : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    NOTIFICATION_PERMISSION
+
+        id : STRING | key, unique
+        contactId : CONTACT.id | constrained
+        notificationTypeId : NOTIFICATION_TYPE.id | constrained
+        notificationMediumId : NOTIFICATION_MEDIUM.id | constrained
+        isGranted : BOOL
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    NOTIFICATION_CENTER_SEVERITY
+
+        id : STRING | key, unique
+        name : STRING
+        description : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    NOTIFICATION_CENTER
+
+        id : TUID | key, unique
+        notificationTypeId : NOTIFICATION_TYPE.id | constrained
+        message : STRING
+        churchId : CHURCH.id | constrained
+        isReaded : BOOL
+        source : STRING
+        severityId : NOTIFICATION_CENTER_SEVERITY.id | constrained
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    PRESENCE_STATUS
+
+        id : STRING | key, unique
+        name : STRING
+        description : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    EVENT_PARTICIPATION
+
+        id : TUID | key, unique
+        contactId : CONTACT.id | constrained
+        eventId : EVENT.id | constrained
+        presenceStatusId : PRESENCE_STATUS.id | constrained
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    AUDIT_LOG
+
+        id : TUID | key, unique
+        profileId : PROFILE.id | constrained
+        action : STRING
+        entity : STRINNG
+        entityId : STRING
+        differenceJson :  TUPLE[]
+        creationTimestamp : TIMESTAMP | generated
+
+    WHATSAPP_SESSION_STATUS
+
+        id : STRING | key, unique
+        name : STRING
+        description : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    WHATSAPP_SESSION
+
+        id : TUID | key, unique
+        churchId : CHURCH.id | constrained
+        sessionId : STRING
+        statusId : WHATSAPP_SESSION_STATUS.id | constrained
+        phonePrefix : STRING
+        phoneNumber : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    MEDIA_STORAGE_TYPE
+
+        id : STRING | key, unique
+        name : STRING
+        description : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    MEDIA_STORAGE
+
+        id : STRING | key, unique
+        churchId : CHURCH.id | constrained
+        path : STRING
+        typeId : MEDIA_STORAGE_TYPE.id | constrained
+        label : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    TAG
+
+        id : STRING | key, unique
+        churchId : CHURCH.id | constrained
+        name : STRING
+        typeId : TAG_TYPE.id | constrained
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    TAG_TYPE
+
+        id : STRING | key, unique
+        name : STRING
+        description : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    CONTACT_TAG
+
+        contactId : CONTACT.id | constrained
+        tagId : TAG_TYPE.id | constrained
+
+    PLAN_NOTIFICATION_CHANNEL
+
+        id : TUID | key, unique
+        planId : PLAN.id | constrained
+        notificationMediumId : NOTIFICATION_MEDIUM.id | constrained

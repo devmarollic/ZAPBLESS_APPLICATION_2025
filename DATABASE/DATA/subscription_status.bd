@@ -1,0 +1,19 @@
+SUBSCRIPTION_STATUS
+
+    id name number
+
+        paid
+            ~ Pago
+            ~ 1
+
+        pending
+            ~ Pendente
+            ~ 2
+
+        canceled
+            ~ Cancelado
+            ~ 3
+
+        refused
+            ~ Recusado
+            ~ 4

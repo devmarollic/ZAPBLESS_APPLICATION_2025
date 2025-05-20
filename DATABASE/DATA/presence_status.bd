@@ -1,0 +1,9 @@
+PRESENCE_STATUS
+
+    id name
+
+        confirmed
+            ~ Confirmado
+        
+        absent
+            ~ Ausente

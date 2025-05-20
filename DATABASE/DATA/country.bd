@@ -1,0 +1,1251 @@
+COUNTRY
+
+    code name phonePrefix continentCode
+
+        AD
+            ~ Andorra¨fr:Andorre
+            ~ +376
+            ~ EU
+
+        AE
+            ~ United Arab Emirates¨fr:Émirats arabes unis
+            ~ +971
+            ~ AS
+
+        AF
+            ~ Afghanistan¨fr:Afghanistan
+            ~ +93
+            ~ AS
+
+        AG
+            ~ Antigua and Barbuda¨fr:Antigua et Barbuda
+            ~ +1-268
+            ~ NA
+
+        AI
+            ~ Anguilla¨fr:Anguilla
+            ~ +1-264
+            ~ NA
+
+        AL
+            ~ Albania¨fr:Albanie
+            ~ +355
+            ~ EU
+
+        AM
+            ~ Armenia¨fr:Arménie
+            ~ +374
+            ~ AS
+
+        AO
+            ~ Angola¨fr:Angola
+            ~ +244
+            ~ AF
+
+        AQ
+            ~ Antarctica¨fr:Antarctique
+            ~ +672
+            ~ AN
+
+        AR
+            ~ Argentina¨fr:Argentine
+            ~ +54
+            ~ SA
+
+        AS
+            ~ American Samoa¨fr:Samoa américaines
+            ~ +1-684
+            ~ OC
+
+        AT
+            ~ Austria¨fr:Autriche
+            ~ +43
+            ~ EU
+
+        AU
+            ~ Australia¨fr:Australie
+            ~ +61
+            ~ OC
+
+        AW
+            ~ Aruba¨fr:Aruba
+            ~ +297
+            ~ NA
+
+        AX
+            ~ Åland Islands¨fr:Îles Åland
+            ~ +358
+            ~ EU
+
+        AZ
+            ~ Azerbaijan¨fr:Azerbaïdjan
+            ~ +994
+            ~ AS
+
+        BA
+            ~ Bosnia and Herzegovina¨fr:Bosnie-Herzégovine
+            ~ +387
+            ~ EU
+
+        BB
+            ~ Barbados¨fr:Barbade
+            ~ +1-246
+            ~ NA
+
+        BD
+            ~ Bangladesh¨fr:Bangladesh
+            ~ +880
+            ~ AS
+
+        BE
+            ~ Belgium¨fr:Belgique
+            ~ +32
+            ~ EU
+
+        BF
+            ~ Burkina Faso¨fr:Burkina Faso
+            ~ +226
+            ~ AF
+
+        BG
+            ~ Bulgaria¨fr:Bulgarie
+            ~ +359
+            ~ EU
+
+        BH
+            ~ Bahrain¨fr:Bahreïn
+            ~ +973
+            ~ AS
+
+        BI
+            ~ Burundi¨fr:Burundi
+            ~ +257
+            ~ AF
+
+        BJ
+            ~ Benin¨fr:Bénin
+            ~ +229
+            ~ AF
+
+        BL
+            ~ Saint Barthelemy¨fr:Saint Barthélemy
+            ~ +590
+            ~ NA
+
+        BM
+            ~ Bermuda¨fr:Bermudes
+            ~ +1-441
+            ~ NA
+
+        BN
+            ~ Brunei¨fr:Brunei
+            ~ +673
+            ~ AS
+
+        BO
+            ~ Bolivia¨fr:Bolivie
+            ~ +591
+            ~ SA
+
+        BQ
+            ~ Caribbean Netherlands¨fr:Antilles néerlandaises
+            ~ +599
+            ~ NA
+
+        BR
+            ~ Brasil¨en:Brazil¨fr:Brésil
+            ~ +55
+            ~ SA    
+
+        BS
+            ~ Bahamas¨fr:Bahamas
+            ~ +1-242
+            ~ NA
+
+        BT
+            ~ Bhutan¨fr:Bhoutan
+            ~ +975
+            ~ AS
+
+        BV
+            ~ Bouvet Island¨fr:L'Île Bouvet
+            ~ +47
+            ~ AN
+
+        BW
+            ~ Botswana¨fr:Botswana
+            ~ +267
+            ~ AF
+
+        BY
+            ~ Belarus¨fr:Bélarus
+            ~ +375
+            ~ EU
+
+        BZ
+            ~ Belize¨fr:Belize
+            ~ +501
+            ~ NA
+
+        CA
+            ~ Canada¨fr:Canada
+            ~ +1
+            ~ NA
+
+        CC
+            ~ Cocos Islands¨fr:Îles Cocos
+            ~ +61
+            ~ AS
+
+        CD
+            ~ Democratic Republic of the Congo¨fr:République démocratique du Congo
+            ~ +243
+            ~ AF
+
+        CF
+            ~ Central African Republic¨fr:République centrafricaine
+            ~ +236
+            ~ AF
+
+        CG
+            ~ Republic of the Congo¨fr:République du Congo
+            ~ +242
+            ~ AF
+
+        CH
+            ~ Switzerland¨fr:Suisse
+            ~ +41
+            ~ EU
+
+        CI
+            ~ Ivory Coast¨fr:Côte d'Ivoire
+            ~ +225
+            ~ AF
+
+        CK
+            ~ Cook Islands¨fr:Cook Islands
+            ~ +682
+            ~ OC
+
+        CL
+            ~ Chile¨fr:Chili
+            ~ +56
+            ~ SA
+
+        CM
+            ~ Cameroon¨fr:Cameroun
+            ~ +237
+            ~ AF
+
+        CN
+            ~ China¨fr:Chine
+            ~ +86
+            ~ AS
+
+        CO
+            ~ Colombia¨fr:Colombie
+            ~ +57
+            ~ SA
+
+        CR
+            ~ Costa Rica¨fr:Costa Rica
+            ~ +506
+            ~ NA
+
+        CU
+            ~ Cuba¨fr:Cuba
+            ~ +53
+            ~ NA
+
+        CV
+            ~ Cape Verde¨fr:Cap-Vert
+            ~ +238
+            ~ AF
+
+        CW
+            ~ Curacao¨fr:Curaçao
+            ~ +599
+            ~ NA
+
+        CX
+            ~ Christmas Island¨fr:Île Christmas
+            ~ +61
+            ~ AS
+
+        CY
+            ~ Cyprus¨fr:Chypre
+            ~ +357
+            ~ AS
+
+        CZ
+            ~ Czech Republic¨fr:République tchèque
+            ~ +420
+            ~ EU
+
+        DE
+            ~ Germany¨fr:Allemagne
+            ~ +49
+            ~ EU
+
+        DJ
+            ~ Djibouti¨fr:Djibouti
+            ~ +253
+            ~ AF
+
+        DK
+            ~ Denmark¨fr:Danemark
+            ~ +45
+            ~ EU
+
+        DM
+            ~ Dominica¨fr:Dominique
+            ~ +1-767
+            ~ NA
+
+        DO
+            ~ Dominican Republic¨fr:République dominicaine
+            ~ +1-809,+1-829,+1-849
+            ~ NA
+
+        DZ
+            ~ Algeria¨fr:Algérie
+            ~ +213
+            ~ AF
+
+        EC
+            ~ Ecuador¨fr:Equateur
+            ~ +593
+            ~ SA
+
+        EE
+            ~ Estonia¨fr:Estonie
+            ~ +372
+            ~ EU
+
+        EG
+            ~ Egypt¨fr:Égypte
+            ~ +20
+            ~ AF
+
+        EH
+            ~ Western Sahara¨fr:Sahara occidental
+            ~ +212
+            ~ AF
+
+        ER
+            ~ Eritrea¨fr:Erythrée
+            ~ +291
+            ~ AF
+
+        ES
+            ~ Spain¨fr:Espagne
+            ~ +34
+            ~ EU
+
+        ET
+            ~ Ethiopia¨fr:Ethiopie
+            ~ +251
+            ~ AF
+
+        FI
+            ~ Finland¨fr:Finlande
+            ~ +358
+            ~ EU
+
+        FJ
+            ~ Fiji¨fr:Fidji
+            ~ +679
+            ~ OC
+
+        FK
+            ~ Falkland Islands¨fr:Falkland (îles)
+            ~ +500
+            ~ SA
+
+        FM
+            ~ Micronesia¨fr:Micronésie
+            ~ +691
+            ~ OC
+
+        FO
+            ~ Faroe Islands¨fr:Îles Féroé
+            ~ +298
+            ~ EU
+
+        FR
+            ~ France¨fr:France
+            ~ +33
+            ~ EU
+
+        GA
+            ~ Gabon¨fr:Gabon
+            ~ +241
+            ~ AF
+
+        GB
+            ~ United Kingdom¨fr:Royaume-Uni
+            ~ +44
+            ~ EU
+
+        GD
+            ~ Grenada¨fr:Grenade
+            ~ +1-473
+            ~ NA
+
+        GE
+            ~ Georgia¨fr:Géorgie
+            ~ +995
+            ~ AS
+        *GF
+            ~ French Guiana
+            ~ French Guiana
+            ~ SA
+
+        GG
+            ~ Guernsey¨fr:Guernesey
+            ~ +44-1481
+            ~ EU
+
+        GH
+            ~ Ghana¨fr:Ghana
+            ~ +233
+            ~ AF
+
+        GI
+            ~ Gibraltar¨fr:Gibraltar
+            ~ +350
+            ~ EU
+
+        GL
+            ~ Greenland¨fr:Groenland
+            ~ +299
+            ~ NA
+
+        GM
+            ~ Gambia¨fr:Gambie
+            ~ +220
+            ~ AF
+
+        GN
+            ~ Guinea¨fr:Guinée
+            ~ +224
+            ~ AF
+
+        GP
+            ~ Guadeloupe¨fr:Guadeloupe
+            ~ +590
+            ~ NA
+
+        GQ
+            ~ Equatorial Guinea¨fr:Guinée équatoriale
+            ~ +240
+            ~ AF
+
+        GR
+            ~ Greece¨fr:Grèce
+            ~ +30
+            ~ EU
+
+        GS
+            ~ South Georgia and South Sandwich Islands¨fr:Géorgie du Sud et les Îles Sandwich du Sud
+            ~ +44
+            ~ AN
+
+        GT
+            ~ Guatemala¨fr:Guatemala
+            ~ +502
+            ~ NA
+
+        GU
+            ~ Guam¨fr:Guam
+            ~ +1-671
+            ~ OC
+
+        GW
+            ~ Guinea-Bissau¨fr:Guinée-Bissau
+            ~ +245
+            ~ AF
+
+        GY
+            ~ Guyana¨fr:Guyane
+            ~ +592
+            ~ SA
+
+        HK
+            ~ Hong Kong¨fr:Hong Kong
+            ~ +852
+            ~ AS
+
+        HM
+            ~ Heard and McDonald Islands¨fr:Ïle Heard et les Îles McDonald
+            ~ +61
+            ~ AN
+
+        HN
+            ~ Honduras¨fr:Honduras
+            ~ +504
+            ~ NA
+
+        HR
+            ~ Croatia¨fr:Croatie
+            ~ +385
+            ~ EU
+
+        HT
+            ~ Haiti¨fr:Haïti
+            ~ +509
+            ~ NA
+
+        HU
+            ~ Hungary¨fr:Hongrie
+            ~ +36
+            ~ EU
+
+        ID
+            ~ Indonesia¨fr:Indonésie
+            ~ +62
+            ~ AS
+
+        IE
+            ~ Ireland¨fr:Irlande
+            ~ +353
+            ~ EU
+
+        IL
+            ~ Israel¨fr:Israël
+            ~ +972
+            ~ AS
+
+        IM
+            ~ Isle of Man¨fr:Île de Man
+            ~ +44-1624
+            ~ EU
+
+        IN
+            ~ India¨fr:Inde
+            ~ +91
+            ~ AS
+
+        IO
+            ~ British Indian Ocean Territory¨fr:Territoire britannique de l'océan Indien
+            ~ +246
+            ~ AS
+
+        IQ
+            ~ Iraq¨fr:Irak
+            ~ +964
+            ~ AS
+
+        IR
+            ~ Iran¨fr:Iran
+            ~ +98
+            ~ AS
+
+        IS
+            ~ Iceland¨fr:Islande
+            ~ +354
+            ~ EU
+
+        IT
+            ~ Italy¨fr:Italie
+            ~ +39
+            ~ EU
+
+        JE
+            ~ Jersey¨fr:Jersey
+            ~ +44-1534
+            ~ EU
+
+        JM
+            ~ Jamaica¨fr:Jamaïque
+            ~ +1-876
+            ~ NA
+
+        JO
+            ~ Jordan¨fr:Jordanie
+            ~ +962
+            ~ AS
+
+        JP
+            ~ Japan¨fr:Japon
+            ~ +81
+            ~ AS
+
+        KE
+            ~ Kenya¨fr:Kenya
+            ~ +254
+            ~ AF
+
+        KG
+            ~ Kyrgyzstan¨fr:Kirghizistan
+            ~ +996
+            ~ AS
+
+        KH
+            ~ Cambodia¨fr:Cambodge
+            ~ +855
+            ~ AS
+
+        KI
+            ~ Kiribati¨fr:Kiribati
+            ~ +686
+            ~ OC
+
+        KM
+            ~ Comoros¨fr:Comores
+            ~ +269
+            ~ AF
+
+        KN
+            ~ Saint Kitts and Nevis¨fr:Saint-Kitts-et-Nevis
+            ~ +1-869
+            ~ NA
+
+        KP
+            ~ North Korea¨fr:Corée du Nord
+            ~ +850
+            ~ AS
+
+        KR
+            ~ South Korea¨fr:Corée du Sud
+            ~ +82
+            ~ AS
+
+        KW
+            ~ Kuwait¨fr:Koweït
+            ~ +965
+            ~ AS
+
+        KY
+            ~ Cayman Islands¨fr:Îles Caïmans
+            ~ +1-345
+            ~ NA
+
+        KZ
+            ~ Kazakhstan¨fr:Kazakhstan
+            ~ +7
+            ~ AS
+
+        LA
+            ~ Laos¨fr:Laos
+            ~ +856
+            ~ AS
+
+        LB
+            ~ Lebanon¨fr:Liban
+            ~ +961
+            ~ AS
+
+        LC
+            ~ Saint Lucia¨fr:Sainte-Lucie
+            ~ +1-758
+            ~ NA
+
+        LI
+            ~ Liechtenstein¨fr:Liechtenstein
+            ~ +423
+            ~ EU
+
+        LK
+            ~ Sri Lanka¨fr:Sri Lanka
+            ~ +94
+            ~ AS
+
+        LR
+            ~ Liberia¨fr:Liberia
+            ~ +231
+            ~ AF
+
+        LS
+            ~ Lesotho¨fr:Lesotho
+            ~ +266
+            ~ AF
+
+        LT
+            ~ Lithuania¨fr:Lituanie
+            ~ +370
+            ~ EU
+
+        LU
+            ~ Luxembourg¨fr:Luxembourg
+            ~ +352
+            ~ EU
+
+        LV
+            ~ Latvia¨fr:Lettonie
+            ~ +371
+            ~ EU
+
+        LY
+            ~ Libya¨fr:Libye
+            ~ +218
+            ~ AF
+
+        MA
+            ~ Morocco¨fr:Maroc
+            ~ +212
+            ~ AF
+
+        MC
+            ~ Monaco¨fr:Monaco
+            ~ +377
+            ~ EU
+
+        MD
+            ~ Moldova¨fr:Moldavie
+            ~ +373
+            ~ EU
+
+        ME
+            ~ Montenegro¨fr:Monténégro
+            ~ +382
+            ~ EU
+
+        MF
+            ~ Saint Martin¨fr:Saint Martin
+            ~ +590
+            ~ NA
+
+        MG
+            ~ Madagascar¨fr:Madagascar
+            ~ +261
+            ~ AF
+
+        MH
+            ~ Marshall Islands¨fr:Marshall Islands
+            ~ +692
+            ~ OC
+
+        MK
+            ~ Macedonia¨fr:Macédoine
+            ~ +389
+            ~ EU
+
+        ML
+            ~ Mali¨fr:Mali
+            ~ +223
+            ~ AF
+
+        MM
+            ~ Myanmar¨fr:Myanmar
+            ~ +95
+            ~ AS
+
+        MN
+            ~ Mongolia¨fr:Mongolie
+            ~ +976
+            ~ AS
+
+        MO
+            ~ Macau¨fr:Macao
+            ~ +853
+            ~ AS
+
+        MP
+            ~ Northern Mariana Islands¨fr:Mariannes du Nord (îles)
+            ~ +1-670
+            ~ OC
+
+        MQ
+            ~ Martinique¨fr:Martinique
+            ~ +596
+            ~ NA
+
+        MR
+            ~ Mauritania¨fr:Mauritanie
+            ~ +222
+            ~ AF
+
+        MS
+            ~ Montserrat¨fr:Montserrat
+            ~ +1-664
+            ~ NA
+
+        MT
+            ~ Malta¨fr:Malte
+            ~ +356
+            ~ EU
+
+        MU
+            ~ Mauritius¨fr:Maurice
+            ~ +230
+            ~ AF
+
+        MV
+            ~ Maldives¨fr:Maldives
+            ~ +960
+            ~ AS
+
+        MW
+            ~ Malawi¨fr:Malawi
+            ~ +265
+            ~ AF
+
+        MX
+            ~ Mexico¨fr:Mexique
+            ~ +52
+            ~ NA
+
+        MY
+            ~ Malaysia¨fr:Malaisie
+            ~ +60
+            ~ AS
+
+        MZ
+            ~ Mozambique¨fr:Mozambique
+            ~ +258
+            ~ AF
+
+        NA
+            ~ Namibia¨fr:Namibie
+            ~ +264
+            ~ AF
+
+        NC
+            ~ New Caledonia¨fr:Nouvelle-Calédonie
+            ~ +687
+            ~ OC
+
+        NE
+            ~ Niger¨fr:Niger
+            ~ +227
+            ~ AF
+        *NF
+            ~ Norfolk Island
+            ~ Norfolk Island
+            ~ OC
+
+        NG
+            ~ Nigeria¨fr:Nigeria
+            ~ +234
+            ~ AF
+
+        NI
+            ~ Nicaragua¨fr:Nicaragua
+            ~ +505
+            ~ NA
+
+        NL
+            ~ Netherlands¨fr:Pays-Bas
+            ~ +31
+            ~ EU
+
+        NO
+            ~ Norway¨fr:Norvège
+            ~ +47
+            ~ EU
+
+        NP
+            ~ Nepal¨fr:Népal
+            ~ +977
+            ~ AS
+
+        NR
+            ~ Nauru¨fr:Nauru
+            ~ +674
+            ~ OC
+
+        NU
+            ~ Niue¨fr:Niue
+            ~ +683
+            ~ OC
+
+        NZ
+            ~ New Zealand¨fr:Nouvelle-Zélande
+            ~ +64
+            ~ OC
+
+        OM
+            ~ Oman¨fr:Oman
+            ~ +968
+            ~ AS
+
+        PA
+            ~ Panama¨fr:Panama
+            ~ +507
+            ~ NA
+
+        PE
+            ~ Peru¨fr:Pérou
+            ~ +51
+            ~ SA
+
+        PF
+            ~ French Polynesia¨fr:Polynésie française
+            ~ +689
+            ~ OC
+
+        PG
+            ~ Papua New Guinea¨fr:Papouasie-Nouvelle-Guinée
+            ~ +675
+            ~ OC
+
+        PH
+            ~ Philippines¨fr:Philippines
+            ~ +63
+            ~ AS
+
+        PK
+            ~ Pakistan¨fr:Pakistan
+            ~ +92
+            ~ AS
+
+        PL
+            ~ Poland¨fr:Pologne
+            ~ +48
+            ~ EU
+
+        PM
+            ~ Saint Pierre and Miquelon¨fr:Saint Pierre et Miquelon
+            ~ +508
+            ~ NA
+
+        PN
+            ~ Pitcairn¨fr:Pitcairn
+            ~ +64
+            ~ OC
+
+        PR
+            ~ Puerto Rico¨fr:Porto Rico
+            ~ +1-787,+1-939
+            ~ NA
+
+        PS
+            ~ Palestine¨fr:Palestine
+            ~ +970
+            ~ AS
+
+        PT
+            ~ Portugal¨fr:Portugal
+            ~ +351
+            ~ EU
+
+        PW
+            ~ Palau¨fr:Palau
+            ~ +680
+            ~ OC
+
+        PY
+            ~ Paraguay¨fr:Paraguay
+            ~ +595
+            ~ SA
+
+        QA
+            ~ Qatar¨fr:Qatar
+            ~ +974
+            ~ AS
+
+        RE
+            ~ Reunion¨fr:Réunion
+            ~ +262
+            ~ AF
+
+        RO
+            ~ Romania¨fr:Roumanie
+            ~ +40
+            ~ EU
+
+        RS
+            ~ Serbia¨fr:Serbie
+            ~ +381
+            ~ EU
+
+        RU
+            ~ Russia¨fr:Russie
+            ~ +7
+            ~ EU
+
+        RW
+            ~ Rwanda¨fr:Rwanda
+            ~ +250
+            ~ AF
+
+        SA
+            ~ Saudi Arabia¨fr:Arabie Saoudite
+            ~ +966
+            ~ AS
+
+        SB
+            ~ Solomon Islands¨fr:Îles Salomon
+            ~ +677
+            ~ OC
+
+        SC
+            ~ Seychelles¨fr:Seychelles
+            ~ +248
+            ~ AF
+
+        SD
+            ~ Sudan¨fr:Soudan
+            ~ +249
+            ~ AF
+
+        SE
+            ~ Sweden¨fr:Suède
+            ~ +46
+            ~ EU
+
+        SG
+            ~ Singapore¨fr:Singapour
+            ~ +65
+            ~ AS
+
+        SH
+            ~ Saint Helena¨fr:Sainte-Hélène
+            ~ +290
+            ~ AF
+
+        SI
+            ~ Slovenia¨fr:Slovénie
+            ~ +386
+            ~ EU
+
+        SJ
+            ~ Svalbard and Jan Mayen¨fr:Svalbard et Jan Mayen
+            ~ +47
+            ~ EU
+
+        SK
+            ~ Slovakia¨fr:Slovaquie
+            ~ +421
+            ~ EU
+
+        SL
+            ~ Sierra Leone¨fr:Sierra Leone
+            ~ +232
+            ~ AF
+
+        SM
+            ~ San Marino¨fr:Saint-Marin
+            ~ +378
+            ~ EU
+
+        SN
+            ~ Senegal¨fr:Sénégal
+            ~ +221
+            ~ AF
+
+        SO
+            ~ Somalia¨fr:Somalie
+            ~ +252
+            ~ AF
+
+        SR
+            ~ Suriname¨fr:Suriname
+            ~ +597
+            ~ SA
+
+        SS
+            ~ South Sudan¨fr:Soudan du Sud
+            ~ +211
+            ~ AF
+
+        ST
+            ~ Sao Tome and Principe¨fr:Sao Tome et Principe
+            ~ +239
+            ~ AF
+
+        SV
+            ~ El Salvador¨fr:El Salvador
+            ~ +503
+            ~ NA
+
+        SX
+            ~ Sint Maarten¨fr:Sint Maarten
+            ~ +1-721
+            ~ NA
+
+        SY
+            ~ Syria¨fr:Syrie
+            ~ +963
+            ~ AS
+
+        SZ
+            ~ Swaziland¨fr:Swaziland
+            ~ +268
+            ~ AF
+
+        TC
+            ~ Turks and Caicos Islands¨fr:Turks et Caicos (îles)
+            ~ +1-649
+            ~ NA
+
+        TD
+            ~ Chad¨fr:Tchad
+            ~ +235
+            ~ AF
+
+        TF
+            ~ French Southern Lands¨fr:Terres australes françaises
+            ~ +33
+            ~ AN
+
+        TG
+            ~ Togo¨fr:Togo
+            ~ +228
+            ~ AF
+
+        TH
+            ~ Thailand¨fr:Thaïlande
+            ~ +66
+            ~ AS
+
+        TJ
+            ~ Tajikistan¨fr:Tadjikistan
+            ~ +992
+            ~ AS
+
+        TK
+            ~ Tokelau¨fr:Tokelau
+            ~ +690
+            ~ OC
+
+        TL
+            ~ East Timor¨fr:Timor oriental
+            ~ +670
+            ~ AS
+
+        TM
+            ~ Turkmenistan¨fr:Turkménistan
+            ~ +993
+            ~ AS
+
+        TN
+            ~ Tunisia¨fr:Tunisie
+            ~ +216
+            ~ AF
+
+        TO
+            ~ Tonga¨fr:Tonga
+            ~ +676
+            ~ OC
+
+        TR
+            ~ Turkey¨fr:Turquie
+            ~ +90
+            ~ AS
+
+        TT
+            ~ Trinidad and Tobago¨fr:Trinité-et-Tobago
+            ~ +1-868
+            ~ NA
+
+        TV
+            ~ Tuvalu¨fr:Tuvalu
+            ~ +688
+            ~ OC
+
+        TW
+            ~ Taiwan¨fr:Taiwan
+            ~ +886
+            ~ AS
+
+        TZ
+            ~ Tanzania¨fr:Tanzanie
+            ~ +255
+            ~ AF
+
+        UA
+            ~ Ukraine¨fr:Ukraine
+            ~ +380
+            ~ EU
+
+        UG
+            ~ Uganda¨fr:Ouganda
+            ~ +256
+            ~ AF
+
+        UM
+            ~ United States Minor Outlying Islands¨fr:Îles mineures éloignées des États-Unis
+            ~ +1
+            ~ OC
+
+        US
+            ~ United States¨fr:États-Unis
+            ~ +1
+            ~ NA
+
+        UY
+            ~ Uruguay¨fr:Uruguay
+            ~ +598
+            ~ SA
+
+        UZ
+            ~ Uzbekistan¨fr:Ouzbékistan
+            ~ +998
+            ~ AS
+
+        VA
+            ~ Vatican¨fr:Vatican
+            ~ +379
+            ~ EU
+
+        VC
+            ~ Saint Vincent and the Grenadines¨fr:Saint Vincent et les Grenadines
+            ~ +1-784
+            ~ NA
+
+        VE
+            ~ Venezuela¨fr:Venezuela
+            ~ +58
+            ~ SA
+
+        VG
+            ~ British Virgin Islands¨fr:Îles Vierges britanniques
+            ~ +1-284
+            ~ NA
+
+        VI
+            ~ U.S. Virgin Islands¨fr:Îles Vierges américaines
+            ~ +1-340
+            ~ NA
+
+        VN
+            ~ Vietnam¨fr:Vietnam
+            ~ +84
+            ~ AS
+
+        VU
+            ~ Vanuatu¨fr:Vanuatu
+            ~ +678
+            ~ OC
+
+        WF
+            ~ Wallis and Futuna¨fr:Wallis et Futuna
+            ~ +681
+            ~ OC
+
+        WS
+            ~ Samoa¨fr:Samoa
+            ~ +685
+            ~ OC
+
+        XK
+            ~ Kosovo¨fr:Kosovo
+            ~ +383
+            ~ EU
+
+        YE
+            ~ Yemen¨fr:Yémen
+            ~ +967
+            ~ AS
+
+        YT
+            ~ Mayotte¨fr:Mayotte
+            ~ +262
+            ~ AF
+
+        ZA
+            ~ South Africa¨fr:Afrique du Sud
+            ~ +27
+            ~ AF
+
+        ZM
+            ~ Zambia¨fr:Zambie
+            ~ +260
+            ~ AF
+
+        ZW
+            ~ Zimbabwe¨fr:Zimbabwe
+            ~ +263
+            ~ AF

@@ -1,0 +1,24 @@
+// -- IMPORTS
+
+import { ProfileController } from '../controller/profile_controller';
+
+// -- CONSTANTS
+
+const profileController = new ProfileController();
+
+// -- FUNCTIONS
+
+export async function profileRoutes(
+    fastify,
+    options,
+    done
+    )
+{
+    fastify.post(
+        '/add',
+        ( request, reply ) => profileController.handle( request, reply )
+        );
+
+    done();
+}
+

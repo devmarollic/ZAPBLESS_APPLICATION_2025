@@ -1,0 +1,4 @@
+default-surface-ratio 16_9
+default-sizes 480,640,1280,1920,3840
+default-qualities 50,90,80,70,60
+default-commands a

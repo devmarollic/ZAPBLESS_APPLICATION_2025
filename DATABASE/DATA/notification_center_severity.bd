@@ -1,0 +1,15 @@
+NOTIFICATION_CENTER_SEVERITY
+
+    id name
+
+        info
+            ~ Informativo
+
+        warning
+            ~ Alerta
+
+        error
+            ~ Erro
+
+        success
+            ~ Sucesso

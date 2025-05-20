@@ -1,0 +1,12 @@
+VALIDATION_STATUS
+
+    id name
+
+        approved
+            ~ Aprovado
+
+        pending
+            ~ Pendente
+
+        rejected
+            ~ Rejeitado

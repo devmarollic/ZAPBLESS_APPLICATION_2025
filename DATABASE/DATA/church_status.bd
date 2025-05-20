@@ -1,0 +1,12 @@
+CHURCH_STATUS
+
+    id name
+
+        active
+            ~ Ativo
+        
+        inactive
+            ~ Inativo
+        
+        suspended
+            ~ Suspenso

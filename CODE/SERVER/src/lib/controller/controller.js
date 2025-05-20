@@ -1,0 +1,5 @@
+// -- TYPES
+
+export class Controller
+{
+}

@@ -1,0 +1,9 @@
+NOTIFICATION_TYPE
+
+    id name
+
+        notification
+            ~ Notificação
+
+        reminder
+            ~ Lembrete

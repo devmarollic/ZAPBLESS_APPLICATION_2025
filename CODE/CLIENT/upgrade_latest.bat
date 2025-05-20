@@ -1,0 +1,2 @@
+yarn upgrade --latest
+pause

@@ -1,0 +1,19 @@
+SUBSCRIPTION_TYPE
+
+    id name number
+
+        active
+            ~  Ativo
+            ~ 1
+
+        inactive
+            ~ Inativo
+            ~ 2
+
+        trial
+            ~ Período gratuíto
+            ~ 3
+
+        cancelled
+            ~ Cancelado
+            ~ 4

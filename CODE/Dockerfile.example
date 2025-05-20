@@ -1,0 +1,32 @@
+FROM node:lts-alpine as builder
+
+WORKDIR /app
+COPY . .
+
+WORKDIR /app/SERVER
+RUN yarn install && yarn run build && rm -rf node_modules
+
+WORKDIR /app/CLIENT
+RUN yarn install && yarn run build && rm -rf node_modules
+
+FROM node:lts-alpine
+
+WORKDIR /app
+
+COPY --from=builder /app/SERVER/dist .
+COPY --from=builder /app/CLIENT/dist ./public
+
+ENV HOST 0.0.0.0
+ENV PORT 8000
+ENV FUSION_PROJECT_SUPABASE_DATABASE_HOST=db.xxx.supabase.co
+ENV FUSION_PROJECT_SUPABASE_DATABASE_PASSWORD=xxx
+ENV FUSION_PROJECT_SUPABASE_DATABASE_URL=https://xxx.supabase.co
+ENV FUSION_PROJECT_SUPABASE_DATABASE_KEY=xxx.xxx.xxx
+ENV FUSION_PROJECT_SUPABASE_STORAGE_URL=https://xxx.supabase.co/storage/v1/object/public
+ENV FUSION_PROJECT_BUNNY_STORAGE_URL=
+ENV FUSION_PROJECT_BUNNY_STORAGE_ZONE_NAME=
+ENV FUSION_PROJECT_BUNNY_STORAGE_API_KEY=
+
+EXPOSE 8000
+
+CMD ["node", "index.js"]

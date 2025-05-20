@@ -1,0 +1,15 @@
+EVENT_TYPE
+
+    id name
+
+        worship
+            ~ Adoração
+        
+        bible-study
+            ~ Estudo bíblico
+        
+        prayer-meeting
+            ~ Reunião de oração
+        
+        other
+            ~ Outros

@@ -1,0 +1,15 @@
+RECURRENCE_TYPE
+
+    id name
+
+        daily
+            ~ Diariamente
+
+        weekly
+            ~ Semanalmente
+
+        monthly
+            ~ Mensalmente
+
+        yearly
+            ~ Anualmente

@@ -1,0 +1,15 @@
+TAG_TYPE
+
+    id name
+
+        event
+            ~ Evento
+
+        contact
+            ~ Contato
+
+        ministry
+            ~ Ministério
+
+        user
+            ~ Usuário

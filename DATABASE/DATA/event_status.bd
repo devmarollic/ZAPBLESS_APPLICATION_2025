@@ -1,0 +1,16 @@
+
+EVENT_STATUS
+
+    id name
+
+        is-coming
+            ~ Está por vir
+
+        has-passed
+            ~ Já aconteceu
+
+        cancelled
+            ~ Cancelado
+
+        is-happening
+            ~ Está acontecendo

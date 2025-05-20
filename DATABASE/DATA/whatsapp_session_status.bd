@@ -1,0 +1,12 @@
+WHATSAPP_SESSION_STATUS
+
+    id name
+
+        pending
+            ~ Pendente
+
+        sent
+            ~ Enviado
+
+        failed
+            ~ Falhou

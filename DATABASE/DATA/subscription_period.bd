@@ -1,0 +1,11 @@
+SUBSCRIPTION_PERIOD
+
+    id name number
+
+        monthly
+            ~ Mensal
+            ~ 1
+
+        annual
+            ~ Anual
+            ~ 2

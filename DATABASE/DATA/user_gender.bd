@@ -1,0 +1,9 @@
+USER_GENDER
+
+    id name
+
+        male
+            ~ Masculino
+
+        female
+            ~ Feminino

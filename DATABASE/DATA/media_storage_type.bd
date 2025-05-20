@@ -1,0 +1,15 @@
+MEDIA_STORAGE_TYPE
+
+    id name
+
+        image
+            ~ Imagem
+
+        video
+            ~ Video
+
+        audio
+            ~ Audio
+
+        document
+            ~ Documento

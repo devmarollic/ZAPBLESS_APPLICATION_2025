@@ -1,0 +1,15 @@
+NOTIFICATION_MEDIUM
+
+    id name
+
+        email
+            ~ Email
+
+        sms
+            ~ SMS
+
+        whatsapp
+            ~ WhatsAPP
+
+        push
+            ~ Push

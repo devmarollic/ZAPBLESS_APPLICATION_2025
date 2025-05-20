@@ -1,0 +1,8 @@
+CURRENCY
+
+    code pluralName singularName symbol
+
+        BRL
+            ~ Reais
+            ~ Real
+            ~ R$

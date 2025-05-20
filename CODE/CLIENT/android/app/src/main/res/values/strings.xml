@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Fusion Project</string>
+    <string name="title_activity_main">Fusion Project</string>
+    <string name="package_name">be.senselogic.fusionproject</string>
+    <string name="custom_url_scheme">be.senselogic.fusionproject</string>
+</resources>

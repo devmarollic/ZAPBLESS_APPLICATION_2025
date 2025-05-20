@@ -1,0 +1,11 @@
+LANGUAGE
+
+    code number name
+
+        pt
+            ~ 1
+            ~ Português
+
+        en
+            ~ 2
+            ~ English
