@@ -10,15 +10,12 @@ const profileController = new ProfileController();
 
 export async function profileRoutes(
     fastify,
-    options,
-    done
+    options
     )
 {
     fastify.post(
         '/add',
         ( request, reply ) => profileController.handle( request, reply )
         );
-
-    done();
 }
 

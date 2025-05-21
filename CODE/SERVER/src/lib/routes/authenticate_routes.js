@@ -10,15 +10,12 @@ const authenticateController = new AuthenticateController();
 
 export async function authenticateRoutes(
     fastify,
-    options,
-    done
+    options
     )
 {
     fastify.post(
         '/',
         ( request, response ) => authenticateController.handle( request, response )
         );
-
-    done();
 }
 

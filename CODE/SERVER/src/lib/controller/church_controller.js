@@ -4,11 +4,11 @@ import { pagarmeService } from '../service/pagarme_service';
 import { createChurchUseCase } from '../use_case/create_church_use_case';
 import { createProfileUseCase } from '../use_case/create_profile_use_case';
 import { createSubscriptionUseCase } from '../use_case/create_subscription_use_case';
-import { PageController } from './page_controller';
+import { Controller } from './controller';
 
 // -- TYPES
 
-export class ChurchController extends PageController
+export class ChurchController extends Controller
 {
     // -- OPERATIONS
 

@@ -16,6 +16,66 @@ class SupabaseService
 
     // -- OPERATIONS
 
+    createClient(
+        request,
+        reply
+        )
+    {
+        return createServerClient(
+            process.env.ZAPBLESS_PROJECT_SUPABASE_DATABASE_URL,
+            process.env.ZAPBLESS_PROJECT_SUPABASE_DATABASE_KEY,
+            {
+                cookies:
+                {
+                    get:
+                        ( key ) =>
+                        {
+                            if ( request
+                                    && request.cookies )
+                            {
+                                return decodeURIComponent( request.cookies[ key ] ?? '' )
+                            }
+                            else
+                            {
+                                return '';
+                            }
+                        },
+                    set:
+                        ( key, value, options ) =>
+                        {
+                            if ( reply )
+                            {
+                                reply.cookie(
+                                    key,
+                                    encodeURIComponent( value ),
+                                    {
+                                        ...options,
+                                        sameSite: 'Lax',
+                                        httpOnly: true
+                                    }
+                                    );
+                            }
+                        },
+                    remove:
+                        ( key, options ) =>
+                        {
+                            if ( reply )
+                            {
+                                reply.cookie(
+                                    key,
+                                    '',
+                                    {
+                                        ...options,
+                                        httpOnly: true
+                                    }
+                                    );
+                            }
+                        }
+                }
+            }
+            );
+    }
+
     getClient(
         request,
         reply
@@ -23,60 +83,7 @@ class SupabaseService
     {
         if ( this.client === null )
         {
-            this.client =
-                createServerClient(
-                    process.env.ZAPBLESS_PROJECT_SUPABASE_DATABASE_URL,
-                    process.env.ZAPBLESS_PROJECT_SUPABASE_DATABASE_KEY,
-                    {
-                        cookies:
-                        {
-                            get:
-                                ( key ) =>
-                                {
-                                    if ( request
-                                            && request.cookies )
-                                    {
-                                        return decodeURIComponent( request.cookies[ key ] ?? '' )
-                                    }
-                                    else
-                                    {
-                                        return '';
-                                    }
-                                },
-                            set:
-                                ( key, value, options ) =>
-                                {
-                                    if ( reply )
-                                    {
-                                        reply.cookie(
-                                            key,
-                                            encodeURIComponent( value ),
-                                            {
-                                                ...options,
-                                                sameSite: 'Lax',
-                                                httpOnly: true
-                                            }
-                                            );
-                                    }
-                                },
-                            remove:
-                                ( key, options ) =>
-                                {
-                                    if ( reply )
-                                    {
-                                        reply.cookie(
-                                            key,
-                                            '',
-                                            {
-                                                ...options,
-                                                httpOnly: true
-                                            }
-                                            );
-                                    }
-                                }
-                        }
-                    }
-                    );
+            this.client = this.createClient( request, reply );
         }
 
         return this.client;

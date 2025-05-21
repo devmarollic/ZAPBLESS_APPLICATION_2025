@@ -4,7 +4,8 @@ import { getFloorInteger, getMapByCode, getRandomInteger, logError } from 'sense
 import { databaseService } from './database_service';
 import { getIO } from '../../socket';
 import { AppError } from '../errors/app_error';
-
+import { initWbot } from '../../whatsapp_bot';
+import { whatsappService } from './whatsapp_service';
 // -- FUNCTIONS
 
 class WhatsappBotService
@@ -58,7 +59,7 @@ class WhatsappBotService
         whatsapp
         )
     {
-        await whatsapp.update( { status: 'OPENING' } );
+        whatsapp = await whatsappService.setWhatsappById( { status: 'OPENING' }, whatsapp.id );
 
         let io = getIO();
 
@@ -104,7 +105,7 @@ class WhatsappBotService
 
                     try
                     {
-                        await whatsapp.update( { status: newState } );
+                        await whatsappService.setWhatsappById( { status: newState }, whatsapp.id );
                     }
                     catch ( error )
                     {
@@ -125,14 +126,14 @@ class WhatsappBotService
                 'change_battery',
                 async ( batteryInfo ) =>
                 {
-                    let { battery, plugged } = batteryInfo;
+                    let { battery, isPlugged } = batteryInfo;
                     console.log(
-                        `Battery session: ${ sessionName } ${ battery }% - Charging? ${ plugged }`
+                        `Battery session: ${ sessionName } ${ battery }% - Charging? ${ isPlugged }`
                         );
                     
                     try
                     {
-                        await whatsapp.update( { battery, plugged } );
+                        await whatsappService.setWhatsappById( { battery, isPlugged }, whatsapp.id );
                     }
                     catch ( error )
                     {
@@ -157,7 +158,7 @@ class WhatsappBotService
 
                     try
                     {
-                        await whatsapp.update( { status: 'OPENING', session: '' } );
+                        await whatsappService.setWhatsappById( { status: 'OPENING', session: '' }, whatsapp.id );
                     }
                     catch ( error )
                     {
@@ -286,7 +287,7 @@ class WhatsappBotService
 
     // ~~
 
-    async verifyMessag(
+    async verifyMessage(
         message,
         ticket,
         contact
@@ -409,7 +410,7 @@ class WhatsappBotService
       
     // ~~
 
-    isValidMsg(
+    isValidMessage(
         message
         )
     {
@@ -438,7 +439,7 @@ class WhatsappBotService
         whatsappBot
         )
     {
-        if ( !this.isValidMsg( message ) )
+        if ( !this.isValidMessage( message ) )
         {
             return;
         }

@@ -10,18 +10,18 @@ import { HomePageController } from './lib/controller/home_page_controller';
 import { PropertiesPageController } from './lib/controller/properties_page_controller';
 import { PropertyPageController } from './lib/controller/property_page_controller';
 import { supabaseService } from './lib/service/supabase_service';
-import { churchRoutes, profileRoutes } from './lib/routes';
-import { planRoutes } from './lib/routes/plan_routes';
-import { authenticateRoutes } from './lib/routes/authenticate_routes';
+import { churchRoutes, profileRoutes, whatsappRoutes, authenticateRoutes, planRoutes } from './lib/routes';
 import { initIO } from './socket';
+import mongoose from 'mongoose';
+import { authMiddleware } from './middleware/auth_middleware';
 
 // -- STATEMENTS
 
 dotenv.config(
     {
         path: process.env.NODE_ENV === 'production'
-            ? path.resolve( __dirname, '.env' )
-            : path.resolve( __dirname, '.env.development' )
+            ? '.env'
+            : '.env.development'
     }
     );
 
@@ -30,7 +30,8 @@ let fastify = Fastify( { logger: true } );
 fastify.register(
     fastifyCors,
     {
-        origin: '*'
+        origin: process.env.FRONTEND_URL,
+        credentials: true
     }
     );
 
@@ -55,10 +56,14 @@ let homePageController = new HomePageController();
 let propertiesPageController = new PropertiesPageController();
 let propertyPageController = new PropertyPageController();
 
+fastify.addHook( 'onRequest', authMiddleware );
+
 fastify.register( churchRoutes, { prefix: '/church' } );
 fastify.register( profileRoutes, { prefix: '/profile' } );
 fastify.register( planRoutes, { prefix: '/plan' } );
 fastify.register( authenticateRoutes, { prefix: '/login' } );
+fastify.register( whatsappRoutes, { prefix: '/whatsapp' } );
+
 fastify.post(
     '/api/page/home',
     async ( request, reply ) =>
@@ -109,6 +114,7 @@ let start =
     async () =>
     {
         supabaseService.getClient();
+        await mongoose.connect( 'mongodb://root:example@localhost:27017/whatsapp?authSource=admin' );
 
         try
         {

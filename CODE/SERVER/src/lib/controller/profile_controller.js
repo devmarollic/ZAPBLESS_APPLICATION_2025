@@ -1,11 +1,11 @@
 // -- IMPORTS
 
 import { createProfileUseCase } from '../use_case/create_profile_use_case';
-import { PageController } from './page_controller';
+import { Controller } from './controller';
 
 // -- TYPES
 
-export class ProfileController extends PageController
+export class ProfileController extends Controller
 {
     // -- OPERATIONS
 

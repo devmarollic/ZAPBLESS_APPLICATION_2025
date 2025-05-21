@@ -10,15 +10,12 @@ const churchController = new ChurchController();
 
 export async function churchRoutes(
     fastify,
-    options,
-    done
+    options
     )
 {
     fastify.post(
         '/add',
         ( request, response ) => churchController.handle( request, response )
         );
-
-    done();
 }
 

@@ -4,6 +4,7 @@ import { Server as SocketIO } from 'socket.io';
 import { verify } from 'jsonwebtoken';
 import { AppError } from './lib/errors/app_error';
 import { getJsonText, logError } from 'senselogic-gist';
+import { supabaseService } from './lib/service/supabase_service';
 
 // -- VARIABLES
 
@@ -27,7 +28,7 @@ export function initIO(
 
     io.on(
         'connection',
-        ( socket ) =>
+        async ( socket ) =>
         {
             let { token } = socket.handshake.query;
             let tokenData = null;
@@ -35,23 +36,19 @@ export function initIO(
             try
             {
                 tokenData = verify( token, process.env.ZAPBLESS_PROJECT_SUPABASE_JWT_SECRET );
-                console.log( getJsonText( tokenData ), 'io-onConnection: tokenData' );
+                socket.userId = tokenData.sub;
             }
             catch ( error )
             {
-                logError( getJsonText( error ), 'Error decoding token' );
                 socket.disconnect();
 
                 return io;
             }
 
-            console.log( 'Client Connected' );
-
             socket.on(
                 'joinChatBox',
                 ( ticketId ) =>
                 {
-                    console.log( 'A client joined a ticket channel' );
                     socket.join( ticketId );
                 }
                 );
@@ -60,7 +57,6 @@ export function initIO(
                 'joinNotification',
                 () =>
                 {
-                    console.log( 'A client joined notification channel' );
                     socket.join( 'notification' );
                 }
                 );
@@ -69,7 +65,6 @@ export function initIO(
                 'joinTickets',
                 ( status ) =>
                 {
-                    console.log( `A client joined to ${ status } tickets channel.` );
                     socket.join( status );
                 }
                 );

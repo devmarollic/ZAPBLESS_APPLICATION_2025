@@ -2,11 +2,11 @@
 
 import { StatusCodes } from 'http-status-codes';
 import { authentificationService } from '../service/authentification_service';
-import { PageController } from './page_controller';
+import { Controller } from './controller';
 
 // -- TYPES
 
-export class AuthenticateController extends PageController
+export class AuthenticateController extends Controller
 {
     // -- OPERATIONS
 

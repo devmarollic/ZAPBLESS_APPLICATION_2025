@@ -1,11 +1,11 @@
 // -- IMPORTS
 
 import { StatusCodes } from 'http-status-codes';
-import { PageController } from './page_controller';
+import { Controller } from './controller';
 
 // -- TYPES
 
-export class CreateCheckoutController extends PageController
+export class CreateCheckoutController extends Controller
 {
     // -- OPERATIONS
 

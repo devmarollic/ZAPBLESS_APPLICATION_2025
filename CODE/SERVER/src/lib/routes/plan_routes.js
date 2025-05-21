@@ -10,15 +10,12 @@ const listPlansController = new ListPlansController();
 
 export async function planRoutes(
     fastify,
-    options,
-    done
+    options
     )
 {
     fastify.get(
         '/list',
         ( request, response ) => listPlansController.handle( request, response )
         );
-
-    done();
 }
 

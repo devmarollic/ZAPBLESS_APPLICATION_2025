@@ -5,7 +5,7 @@ import { Client, LocalAuth } from 'whatsapp-web.js';
 import { getIO } from './socket';
 import Whatsapp from '../models/Whatsapp';
 import AppError from '../errors/app_error';
-import { handleMessage } from './lib/service/whatsapp_bot_service';
+import { whatsappBotService } from './lib/service/whatsapp_bot_service';
 import { getJsonObject } from 'senselogic-gist';
 
 // -- CONSTANTS
@@ -32,7 +32,7 @@ async function syncUnreadMessages(
 
             for ( let message of unreadMessages )
             {
-                await handleMessage( message, whatsappBot );
+                await whatsappBotService.handleMessage( message, whatsappBot );
             }
 
             await chat.sendSeen();
@@ -89,7 +89,7 @@ export async function initWbot(
 
                         if ( sessionIndex === -1 )
                         {
-                            wbot.id = whatsapp.id;
+                            whatsappBot.id = whatsapp.id;
                             sessionArray.push( whatsappBot );
                         }
 
@@ -179,9 +179,9 @@ export async function initWbot(
                         }
 
                         whatsappBot.sendPresenceAvailable();
-                        await syncUnreadMessages(whatsappBot);
+                        await syncUnreadMessages( whatsappBot );
 
-                        resolve(wbot);
+                        resolve( whatsappBot );
                     }
                     );
             }
@@ -206,7 +206,7 @@ export function getWbot(
         throw new AppError( 'ERR_WAPP_NOT_INITIALIZED' );
     }
 
-    return sessions[ sessionIndex ];
+    return sessionArray[ sessionIndex ];
 };
 
 // ~~
@@ -221,8 +221,8 @@ export function removeWbot(
 
         if ( sessionIndex !== -1 )
         {
-            sessions[ sessionIndex ].destroy();
-            sessions.splice( sessionIndex, 1 );
+            sessionArray[ sessionIndex ].destroy();
+            sessionArray.splice( sessionIndex, 1 );
         }
     }
     catch ( error )

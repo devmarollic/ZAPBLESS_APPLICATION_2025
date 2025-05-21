@@ -1,11 +1,11 @@
 // -- IMPORTS
 
 import { listPlansUseCase } from '../use_case/list_plans_use_case';
-import { PageController } from './page_controller';
+import { Controller } from './controller';
 
 // -- TYPES
 
-export class ListPlansController extends PageController
+export class ListPlansController extends Controller
 {
     // -- OPERATIONS
 
