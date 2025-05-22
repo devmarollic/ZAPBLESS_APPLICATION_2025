@@ -1,10 +1,11 @@
 PLAN
 
-    id name description monthlyPrice annualPrice isActive currencyCode whatsappLimit userLimit ministryLimit
+    id name description number annualPrice monthlyPrice isActive currencyCode whatsappLimit userLimit ministryLimit featureArray
 
         basic
             ~ Iniciante
             ~ Perfeito para igrejas pequenas
+            ~ 1
             ~ 85
             ~ 99.9
             ~ true
@@ -12,10 +13,12 @@ PLAN
             ~ -1
             ~ 50
             ~ 2
+            ~ {}
 
         growth
             ~ Crescimento
             ~ Ideal para igrejas em expansão
+            ~ 2
             ~ 127.5
             ~ 149.9
             ~ true
@@ -23,10 +26,12 @@ PLAN
             ~ -1
             ~ 100
             ~ 10
+            ~ {}
 
         community
             ~ Comunidade
             ~ Para igrejas grandes e estabelecidas
+            ~ 3
             ~ 170
             ~ 199.9
             ~ true
@@ -34,3 +39,4 @@ PLAN
             ~ -1
             ~ -1
             ~ -1
+            ~ {}

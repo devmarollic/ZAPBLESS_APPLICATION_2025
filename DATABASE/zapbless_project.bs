@@ -1,6 +1,6 @@
 public
 
-    USER_GENDER
+    USER_GENDER | dropped
 
         id : STRING | key, unique
         name : STRING
@@ -34,7 +34,7 @@ public
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
-    CITY
+    CITY | dropped
 
         code : STRING | key, unique
         countryCode : COUNTRY.code | constrained
@@ -45,14 +45,14 @@ public
         communityName : STRING
         position : GEOMETRY
 
-    CHURCH_STATUS
+    CHURCH_STATUS | dropped
 
         id : STRING | key, unique
         name : STRING
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
-    CHURCH
+    CHURCH | dropped
 
         id : TUID | key, unique
         name : STRING
@@ -67,7 +67,7 @@ public
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
-    USER_STATUS
+    USER_STATUS | dropped
 
         id : STRING | key, unique
         name : STRING
@@ -94,17 +94,18 @@ public
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
-    CURRENCY
+    CURRENCY | dropped
 
         code : STRING | key, unique
         pluralName : STRING
         singularName : STRING
         symbol : STRING
 
-    PLAN
+    PLAN | dropped
 
         id : STRING | key, unique
         name : STRING
+        number : FLOAT64
         description : STRING
         monthlyPrice : FLOAT64
         annualPrice : FLOAT64
@@ -115,7 +116,7 @@ public
         ministryLimit : FLOAT64
         featureArray : LIST[]
 
-    SUBSCRIPTION_TYPE
+    SUBSCRIPTION_TYPE | dropped
 
         id : STRING | key, unique
         name: STRING
@@ -123,7 +124,7 @@ public
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
-    SUBSCRIPTION_PERIOD
+    SUBSCRIPTION_PERIOD | dropped
 
         id : STRING | key, unique
         name : STRING
@@ -131,7 +132,7 @@ public
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
-    SUBSCRIPTION_STATUS
+    SUBSCRIPTION_STATUS | dropped
 
         id : STRING | key, unique
         name : STRING
@@ -147,7 +148,7 @@ public
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
-    SUBSCRIPTION
+    SUBSCRIPTION | dropped
 
         id : TUID | key, unique
         churchId : CHURCH.id | constrained
@@ -163,14 +164,14 @@ public
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
-    VALIDATION_STATUS
+    VALIDATION_STATUS | dropped
 
         id : STRING | key, unique
         name : STRING
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
-    MINISTRY
+    MINISTRY | dropped
 
         id : TUID | key, unique
         churchId : CHURCH.id | constrained
@@ -179,21 +180,34 @@ public
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
-    CONTACT
+    CONTACT | dropped
 
         id : TUID | key, unique
         churchId : CHURCH.id | constrained
-        firstName : STRING
-        lastName : STRING
-        legalName : STRING
         email : STRING
-        phonePrefix : STRING
-        phoneNumber : STRING
-        phoneNumberValidationStatusId : VALIDATION_STATUS.id | constrained
+        number : string
+        isBusiness : BOOL
+        isEnterprise : BOOL
+        labels : STRING
+        name : STRING
+        pushname : STRING
+        sectionHeader : STRING
+        shorName : STRING
+        statusMute : STRING
+        type : STRING
+        verifiedLevel : STRING
+        verifiedName : STRING
+        isMe : BOOL
+        isUser : BOOL
+        isGroup : BOOL
+        isWAContact : BOOL
+        isMyContact : BOOL
+        isBlocked : BOOL
+        aboutDescription : TEXT
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
-    EVENT_STATUS
+    EVENT_STATUS | dropped
 
         id : STRING | key, unique
         name : STRING
@@ -201,7 +215,7 @@ public
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
-    EVENT_TYPE
+    EVENT_TYPE | dropped
 
         id : STRING | key, unique
         name : STRING
@@ -210,7 +224,7 @@ public
         updateTimestamp : TIMESTAMP | generated, updated
 
 
-    PERMISSION
+    PERMISSION | dropped
 
         id : STRING | key, unique
         slug : STRING
@@ -219,7 +233,7 @@ public
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
-    ROLE
+    ROLE | dropped
 
         slug : STRING = "{{name:slug_case}}" | key, unique
         name : STRING
@@ -227,18 +241,18 @@ public
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
-    ROLE_PERMISSION
+    ROLE_PERMISSION | dropped
 
         roleId : ROLE.slug | constrained
         permissionId : PERMISSION.id | constrained
 
-    USER_CHURCH_ROLE
+    USER_CHURCH_ROLE | dropped
 
         profileId : PROFILE.id | constrained
         churchId : CHURCH.id | constrained
         roleSlug : ROLE.slug | constrained
 
-    EVENT
+    EVENT | dropped
 
         id : TUID | key, unique
         churchId : CHURCH.id | constrained
@@ -253,7 +267,7 @@ public
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
-    SCHEDULE_STATUS
+    SCHEDULE_STATUS | dropped
 
         id : STRING | key, unique
         name : STRING
@@ -261,19 +275,41 @@ public
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
-    SCHEDULE_CONTACT
+    RECURRENCE_TYPE | dropped
+
+        id : STRING | key, unique
+        name : STRING
+        description : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    RECURRENCE | dropped
 
         id : TUID | key, unique
-        scheduleId : SCHEDULE.id | constrained
-        contactId : CONTACT.id | constrained
+        typeId : RECURRENCE_TYPE.id | constrained
+        interval : FLOAT64
+        dayOfWeekArray : LIST[]
+        dayOfMonthArray : LIST[]
+        timeOfDayTimestamp : DATETIME
+        endAtTimestamp : DATETIME
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
 
-    SCHEDULE_MINISTRY
+    NOTIFICATION_TYPE | dropped
 
-        id : TUID | key, unique
-        scheduleId : SCHEDULE.id | constrained
-        ministryId : MINISTRY.id | constrained
+        id : STRING | key, unique
+        name : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
 
-    SCHEDULE
+    NOTIFICATION_MEDIUM | dropped
+
+        id : STRING | key, unique
+        name : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    SCHEDULE | dropped
 
         id : TUID | key, unique
         churchId : CHURCH.id | constrained
@@ -288,41 +324,19 @@ public
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
-    RECURRENCE_TYPE
-
-        id : STRING | key, unique
-        name : STRING
-        description : STRING
-        creationTimestamp : TIMESTAMP | generated
-        updateTimestamp : TIMESTAMP | generated, updated
-
-    RECURRENCE
+    SCHEDULE_MINISTRY | dropped
 
         id : TUID | key, unique
-        typeId : RECURRENCE_TYPE.id | constrained
-        interval : FLOAT64
-        dayOfWeekArray : LIST[]
-        dayOfMonthArray : LIST[]
-        timeOfDayTimestamp : DATETIME
-        endAtTimestamp : DATETIME
-        creationTimestamp : TIMESTAMP | generated
-        updateTimestamp : TIMESTAMP | generated, updated
+        scheduleId : SCHEDULE.id | constrained
+        ministryId : MINISTRY.id | constrained
 
-    NOTIFICATION_TYPE
+    SCHEDULE_CONTACT | dropped
 
-        id : STRING | key, unique
-        name : STRING
-        creationTimestamp : TIMESTAMP | generated
-        updateTimestamp : TIMESTAMP | generated, updated
+        id : TUID | key, unique
+        scheduleId : SCHEDULE.id | constrained
+        contactId : CONTACT.id | constrained
 
-    NOTIFICATION_MEDIUM
-
-        id : STRING | key, unique
-        name : STRING
-        creationTimestamp : TIMESTAMP | generated
-        updateTimestamp : TIMESTAMP | generated, updated
-
-    NOTIFICATION_PERMISSION
+    NOTIFICATION_PERMISSION | dropped
 
         id : STRING | key, unique
         contactId : CONTACT.id | constrained
@@ -332,7 +346,7 @@ public
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
-    NOTIFICATION_CENTER_SEVERITY
+    NOTIFICATION_CENTER_SEVERITY | dropped
 
         id : STRING | key, unique
         name : STRING
@@ -340,7 +354,7 @@ public
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
-    NOTIFICATION_CENTER
+    NOTIFICATION_CENTER | dropped
 
         id : TUID | key, unique
         notificationTypeId : NOTIFICATION_TYPE.id | constrained
@@ -352,7 +366,7 @@ public
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
-    PRESENCE_STATUS
+    PRESENCE_STATUS | dropped
 
         id : STRING | key, unique
         name : STRING
@@ -360,7 +374,7 @@ public
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
-    EVENT_PARTICIPATION
+    EVENT_PARTICIPATION | dropped
 
         id : TUID | key, unique
         contactId : CONTACT.id | constrained
@@ -369,7 +383,7 @@ public
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
-    AUDIT_LOG
+    AUDIT_LOG | dropped
 
         id : TUID | key, unique
         profileId : PROFILE.id | constrained
@@ -379,7 +393,7 @@ public
         differenceJson :  TUPLE[]
         creationTimestamp : TIMESTAMP | generated
 
-    WHATSAPP_SESSION_STATUS
+    WHATSAPP_SESSION_STATUS | dropped
 
         id : STRING | key, unique
         name : STRING
@@ -387,7 +401,7 @@ public
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
-    WHATSAPP_SESSION
+    WHATSAPP_SESSION | dropped
 
         id : TUID | key, unique
         churchId : CHURCH.id | constrained
@@ -395,10 +409,12 @@ public
         statusId : WHATSAPP_SESSION_STATUS.id | constrained
         phonePrefix : STRING
         phoneNumber : STRING
+        clientId : STRING
+        sessionData : MAP[]
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
-    MEDIA_STORAGE_TYPE
+    MEDIA_STORAGE_TYPE | dropped
 
         id : STRING | key, unique
         name : STRING
@@ -406,7 +422,7 @@ public
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
-    MEDIA_STORAGE
+    MEDIA_STORAGE | dropped
 
         id : STRING | key, unique
         churchId : CHURCH.id | constrained
@@ -416,7 +432,15 @@ public
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
-    TAG
+    TAG_TYPE | dropped
+
+        id : STRING | key, unique
+        name : STRING
+        description : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    TAG | dropped
 
         id : STRING | key, unique
         churchId : CHURCH.id | constrained
@@ -425,20 +449,12 @@ public
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
-    TAG_TYPE
-
-        id : STRING | key, unique
-        name : STRING
-        description : STRING
-        creationTimestamp : TIMESTAMP | generated
-        updateTimestamp : TIMESTAMP | generated, updated
-
-    CONTACT_TAG
+    CONTACT_TAG | dropped
 
         contactId : CONTACT.id | constrained
         tagId : TAG_TYPE.id | constrained
 
-    PLAN_NOTIFICATION_CHANNEL
+    PLAN_NOTIFICATION_CHANNEL | dropped
 
         id : TUID | key, unique
         planId : PLAN.id | constrained

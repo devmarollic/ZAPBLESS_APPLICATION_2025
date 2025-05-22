@@ -3,3 +3,4 @@ CODE/Dockerfile
 CODE/SERVER/.env
 DATABASE/*.sql
 Thumbs.db
+CODE/SERVER/.wwebjs_auth
