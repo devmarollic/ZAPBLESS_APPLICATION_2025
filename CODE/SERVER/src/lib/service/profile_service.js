@@ -56,6 +56,27 @@ class ProfileService
 
         return data;
     }
+
+    // ~~
+
+    async getProfileById(
+        id
+        )
+    {
+        let { data, error } = await databaseService.getClient()
+            .from( 'PROFILE' )
+            .select()
+            .eq( 'id', id )
+            .single();
+
+        if ( error !== null )
+        {
+            logError( error );
+        }
+
+        return data;
+    }
+
 }
 
 // -- VARIABLES

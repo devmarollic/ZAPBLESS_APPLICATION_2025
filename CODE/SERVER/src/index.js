@@ -12,7 +12,6 @@ import { PropertyPageController } from './lib/controller/property_page_controlle
 import { supabaseService } from './lib/service/supabase_service';
 import { churchRoutes, profileRoutes, whatsappRoutes, authenticateRoutes, planRoutes } from './lib/routes';
 import { initIO } from './socket';
-import mongoose from 'mongoose';
 import { authMiddleware } from './middleware/auth_middleware';
 
 // -- STATEMENTS
@@ -114,7 +113,6 @@ let start =
     async () =>
     {
         supabaseService.getClient();
-        await mongoose.connect( 'mongodb://root:example@localhost:27017/whatsapp?authSource=admin' );
 
         try
         {

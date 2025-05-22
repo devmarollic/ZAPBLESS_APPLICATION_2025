@@ -93,13 +93,15 @@ export async function initWbot(
                             sessionArray.push( whatsappBot );
                         }
 
-                        io.emit(
-                            'whatsappSession',
-                            {
-                                action: 'update',
-                                session: whatsapp
-                            }
-                            );
+                        io
+                            .to( 'church_' + whatsapp.churchId )
+                            .emit(
+                                'whatsappSession',
+                                {
+                                    action: 'update',
+                                    session: whatsapp
+                                }
+                                );
                     }
                     );
 
@@ -136,13 +138,15 @@ export async function initWbot(
                             }
                             );
 
-                        io.emit(
-                            'whatsappSession',
-                            {
-                                action: 'update',
-                                session: whatsapp
-                            }
-                            );
+                        io
+                            .to( 'church_' + whatsapp.churchId )
+                            .emit(
+                                'whatsappSession',
+                                {
+                                    action: 'update',
+                                    session: whatsapp
+                                }
+                                );
 
                         reject( new Error( 'Error starting whatsapp session.' ) );
                     }
@@ -162,13 +166,15 @@ export async function initWbot(
                             }
                             );
 
-                        io.emit(
-                            'whatsappSession',
-                            {
-                                action: 'update',
-                                session: whatsapp
-                            }
-                            );
+                        io
+                            .to( 'church_' + whatsapp.churchId )
+                            .emit(
+                                'whatsappSession',
+                                {
+                                    action: 'update',
+                                    session: whatsapp
+                                }
+                                );
 
                         let sessionIndex = sessionArray.findIndex( session => session.id === whatsapp.id );
 
@@ -221,7 +227,7 @@ export function removeWbot(
 
         if ( sessionIndex !== -1 )
         {
-            sessionArray[ sessionIndex ].destroy();
+            sessionArray[ sessionIndex ]._client.destroy();
             sessionArray.splice( sessionIndex, 1 );
         }
     }

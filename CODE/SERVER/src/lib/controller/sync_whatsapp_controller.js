@@ -3,9 +3,10 @@
 import { getRandomTuid } from 'senselogic-gist';
 import { getIO } from '../../socket';
 import { Client, RemoteAuth } from 'whatsapp-web.js';
-import { MongoStore } from 'wwebjs-mongo';
-import mongoose from 'mongoose';
 import { Controller } from './controller';
+import { SupabaseStoreService } from '../service/supabase_store_service';
+import { churchService } from '../service/church_service';
+import { profileService } from '../service/profile_service';
 
 // -- CONSTANTS
 
@@ -28,19 +29,21 @@ export class SyncWhatsappController extends Controller
         }
 
         let userId = request.profileLogged.id;
+        let profile = await profileService.getProfileById( userId );
+        console.log( 'CHURCH ID: ', profile.churchId );
         let io = getIO();
-        let store = new MongoStore(
-            {
-                mongoose,
-                collectionName: 'sessions_' + userId
-            }
-            );
 
         let whatsappBot = new Client(
             {
                 authStrategy: new RemoteAuth(
                     {
-                        store,
+                        sessionName: 'church_' + profile.churchId,
+                        clientId: userId,
+                        store: new SupabaseStoreService(
+                            {
+                                churchId: profile.churchId
+                            }
+                            ),
                         backupSyncIntervalMs: 300000
                     }
                     ),
@@ -154,6 +157,8 @@ export class SyncWhatsappController extends Controller
             {
                 console.log( `Session: ${ whatsapp.session } READY` );
 
+                console.log( whatsappBot );
+
                 whatsapp.status = 'CONNECTED',
                 whatsapp.qrcode = '';
                 whatsapp.retries = 0;
@@ -177,6 +182,9 @@ export class SyncWhatsappController extends Controller
                 // resolve( whatsappBot );
             }
             );
+        whatsappBot.on('remote_session_saved', ( data ) => {
+            console.log( 'SESSÃO SALVA COM SUCESSO ', data );
+        }); 
 
         return (
             {

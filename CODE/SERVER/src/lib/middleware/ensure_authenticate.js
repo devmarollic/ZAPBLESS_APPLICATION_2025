@@ -9,26 +9,20 @@ import { authentificationService } from '../service/authentification_service';
 export async function authMiddleware(request, reply) {
     try
     {
-        const authHeader = request.headers.authorization;
+        let authHeader = request.headers.authorization;
 
         if ( !authHeader )
         {
             throw new AppError( 'Token não fornecido', 401 );
         }
 
-        const token = authHeader.replace( 'Bearer ', '' );
-        const tokenData = await authentificationService.getUserByToken( token );
+        let token = authHeader.replace( 'Bearer ', '' );
+        let tokenData = await authentificationService.getUserByToken( token );
+        let user = null;
 
-        if ( !tokenData || !tokenData.sub )
+        if ( tokenData || !okenData.sub )
         {
-            throw new AppError( 'Token inválido', 401 );
-        }
-
-        const user = await authentificationService.getUserByToken( token );
-
-        if ( !user )
-        {
-            throw new AppError( 'Usuário não encontrado', 401 );
+            user = await authentificationService.getUserByToken( token );
         }
 
         request.profileLogged = user;

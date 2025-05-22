@@ -46,6 +46,14 @@ export function initIO(
             }
 
             socket.on(
+                'joinChurch',
+                ( churchId ) =>
+                {
+                    socket.join( 'church_' + churchId );
+                }
+                );
+
+            socket.on(
                 'joinChatBox',
                 ( ticketId ) =>
                 {
@@ -55,9 +63,9 @@ export function initIO(
 
             socket.on(
                 'joinNotification',
-                () =>
+                ( sessionId ) =>
                 {
-                    socket.join( 'notification' );
+                    socket.join( 'notification_' + sessionId );
                 }
                 );
 

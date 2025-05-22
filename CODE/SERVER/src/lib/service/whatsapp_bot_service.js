@@ -63,7 +63,9 @@ class WhatsappBotService
 
         let io = getIO();
 
-        io.emit(
+        io
+            .to( 'church_' + whatsapp.churchId )
+            .emit(
             'whatsappSession',
             {
                 action: 'update',
