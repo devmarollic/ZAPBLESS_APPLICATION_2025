@@ -10,7 +10,7 @@ import { HomePageController } from './lib/controller/home_page_controller';
 import { PropertiesPageController } from './lib/controller/properties_page_controller';
 import { PropertyPageController } from './lib/controller/property_page_controller';
 import { supabaseService } from './lib/service/supabase_service';
-import { churchRoutes, profileRoutes, whatsappRoutes, authenticateRoutes, planRoutes } from './lib/routes';
+import { churchRoutes, profileRoutes, whatsappRoutes, authenticateRoutes, planRoutes, ministryRoutes } from './lib/routes';
 import { initIO } from './socket';
 import { authMiddleware } from './middleware/auth_middleware';
 
@@ -62,6 +62,7 @@ fastify.register( profileRoutes, { prefix: '/profile' } );
 fastify.register( planRoutes, { prefix: '/plan' } );
 fastify.register( authenticateRoutes, { prefix: '/login' } );
 fastify.register( whatsappRoutes, { prefix: '/whatsapp' } );
+fastify.register( ministryRoutes, { prefix: '/ministry' } );
 
 fastify.post(
     '/api/page/home',
