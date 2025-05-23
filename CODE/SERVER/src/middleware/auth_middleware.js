@@ -22,11 +22,6 @@ export async function authMiddleware(
         let client = supabaseService.getClient();
         let { data, error } = await client.auth.getUser( token );
     
-        if ( error !== null )
-        {
-            logError( error );
-        }
-
         request.profileLogged = data.user;
     }
     catch

@@ -3,6 +3,7 @@
 import { logError } from 'senselogic-gist';
 import { supabaseService } from './supabase_service';
 import { UnauthenticatedError } from '../errors/unauthenticated_error';
+import { AppError } from '../errors/app_error';
 
 // -- TYPES
 
@@ -64,15 +65,8 @@ class AuthentificationService
         {
             logError( error );
 
-            throw new UnauthenticatedError();
+            throw new AppError( error.code, error.status );
         }
-
-        // await supabaseService.getClient().auth.setSession(
-        //     {
-        //         access_token: user.access_token,
-        //         refresh_token: user.refresh_token
-        //     }
-        //     );
 
         return data;
     }

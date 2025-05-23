@@ -17,7 +17,7 @@ export class AuthenticateController extends Controller
     {
         let { body } = request;
 
-        let { user, session } = await authentificationService.signInUser(
+        let { user, session, error } = await authentificationService.signInUser(
             body.email,
             body.password
             );

@@ -76,7 +76,7 @@ public
 
     PROFILE | dropped
 
-        id : UUID | key, unique
+        id : UUID | key, unique, linked auth.users
         churchId : CHURCH.id | constrained
         statusId : USER_STATUS.id | constrained
         firstName : STRING
@@ -90,7 +90,6 @@ public
         countryCode : COUNTRY.code | constrained
         imagePath : STRING
         aboutDescription : STRING
-        userId : UUID | linked auth.users
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
@@ -110,6 +109,8 @@ public
         monthlyPrice : FLOAT64
         annualPrice : FLOAT64
         isActive : BOOL
+        isPromoted : BOOL
+        color : STRING
         currencyCode : CURRENCY.code | constrained
         whatsappLimit : FLOAT64
         userLimit : FLOAT64

@@ -20,6 +20,7 @@ export class ChurchController extends Controller
         let { body } = request;
 
         let church = await createChurchUseCase.execute( body.churchInfo );
+
         let profile = await createProfileUseCase.execute(
             {
                 ...body.adminInfo,

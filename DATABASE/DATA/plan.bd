@@ -1,6 +1,6 @@
 PLAN
 
-    id name description number annualPrice monthlyPrice isActive currencyCode whatsappLimit userLimit ministryLimit featureArray
+    id name description number annualPrice monthlyPrice isActive isPromoted currencyCode whatsappLimit userLimit ministryLimit featureArray color
 
         basic
             ~ Iniciante
@@ -9,11 +9,13 @@ PLAN
             ~ 85
             ~ 99.9
             ~ true
+            ~ false
             ~ BRL
             ~ -1
             ~ 50
             ~ 2
-            ~ {}
+            ~ { Até 100 membros ~ Mensagens ilimitadas ~ 2 ministérios ~ Notificações de eventos ~ Suporte por email }
+            ~ border-2 border-zapBlue-200 hover:border-zapBlue-400
 
         growth
             ~ Crescimento
@@ -22,11 +24,13 @@ PLAN
             ~ 127.5
             ~ 149.9
             ~ true
+            ~ true
             ~ BRL
             ~ -1
             ~ 100
             ~ 10
-            ~ {}
+            ~ { Até 500 membros ~ Mensagens ilimitadas ~ 10 ministérios ~ Notificações de eventos ~ Mensagens personalizadas ~ Automações básicas ~ Suporte prioritário }
+            ~ border-zapPurple-300 hover:border-zapPurple-500
 
         community
             ~ Comunidade
@@ -35,8 +39,10 @@ PLAN
             ~ 170
             ~ 199.9
             ~ true
+            ~ false
             ~ BRL
             ~ -1
             ~ -1
             ~ -1
-            ~ {}
+            ~ { Membros ilimitados ~ Mensagens ilimitadas ~ Ministérios ilimitados ~ Todas as funcionalidades ~ Automações avançadas ~ Relatórios avançados ~ API personalizada ~ Gerente de sucesso dedicado }
+            ~ border-zapGold-200 hover:border-zapGold-400

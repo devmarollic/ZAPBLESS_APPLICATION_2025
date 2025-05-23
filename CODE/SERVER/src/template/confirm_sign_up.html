@@ -1,0 +1,177 @@
+<!DOCTYPE html
+    PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Confirme seu email</title>
+    <style type="text/css">
+        /* Base styles */
+        body,
+        p,
+        div,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-family: 'Inter', Arial, sans-serif;
+            line-height: 1.5;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+
+        table {
+            border-collapse: separate;
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+            width: 100%;
+        }
+
+        table td {
+            vertical-align: top;
+        }
+
+        /* Container styles */
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Button styles */
+        .button {
+            background: #9b87f5;
+            border: 1px solid #9b87f5;
+            border-radius: 4px;
+            color: #ffffff;
+            display: inline-block;
+            font-size: 14px;
+            font-weight: bold;
+            margin: 0;
+            padding: 12px 24px;
+            text-decoration: none;
+            text-transform: capitalize;
+        }
+
+        /* Other styles */
+        .logo {
+            height: auto;
+            max-width: 150px;
+        }
+
+        .header {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+
+        .footer {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            padding: 20px;
+            font-size: 12px;
+        }
+
+        .content {
+            background-color: #ffffff;
+            padding: 40px 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+            <td align="center">
+                <table role="presentation" class="email-container" border="0" cellpadding="0" cellspacing="0"
+                    width="100%">
+                    <!-- Email Header -->
+                    <tr>
+                        <td class="header" align="center">
+                            <!--<img src="https://zapbless.com.br/images/icon/logo.svg" alt="ZapBless" class="logo" /> -->
+
+                            <a href="https://zapbless.com.br"
+                                style="text-decoration: none; font-weight: 700; display: flex; justify-content: center; align-items: center; gap: 0.5rem; font-size: 1.5rem; line-height: 2rem;">
+                                <span style="color: rgb(124 58 237);">Zap</span>
+                                <span style="color: rgb(37 99 235);">Bless</span>
+                            </a>
+                        </td>
+                    </tr>
+
+                    <!-- Email Content -->
+                    <tr>
+                        <td class="content">
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                                <tr>
+                                    <td>
+                                        <h1
+                                            style="margin: 0 0 20px 0; font-size: 25px; line-height: 30px; color: #333333; font-weight: normal;">
+                                            Olá {{ .Data.first_name }},
+                                        </h1>
+                                        <p
+                                            style="margin: 0 0 20px 0; font-size: 16px; line-height: 24px; color: #333333;">
+                                            Obrigado por se cadastrar no ZapBless! Para concluir seu registro e começar
+                                            a usar nossa plataforma,
+                                            precisamos que você confirme seu endereço de email.
+                                        </p>
+                                        <table role="presentation" border="0" cellpadding="0" cellspacing="0"
+                                            width="100%">
+                                            <tr>
+                                                <td align="center" style="padding: 20px 0;">
+                                                    <a href="{{ .ConfirmationURL }}" class="button" target="_blank">
+                                                        Confirmar Email
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        <p
+                                            style="margin: 0 0 20px 0; font-size: 16px; line-height: 24px; color: #333333;">
+                                            Se você não conseguir clicar no botão acima, copie e cole o link abaixo no
+                                            seu navegador:
+                                        </p>
+                                        <p
+                                            style="margin: 0 0 20px 0; font-size: 14px; line-height: 24px; color: #666666; word-break: break-all;">
+                                            {{ .ConfirmationURL }}
+                                        </p>
+                                        <p
+                                            style="margin: 0 0 10px 0; font-size: 16px; line-height: 24px; color: #333333;">
+                                            Se você não solicitou esta confirmação, por favor ignore este email ou entre
+                                            em contato com nosso suporte.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Email Footer -->
+                    <tr>
+                        <td class="footer">
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                                <tr>
+                                    <td align="center">
+                                        <p style="margin: 0 0 10px 0;">
+                                            &copy; 2025 ZapBless. Todos os direitos reservados.
+                                        </p>
+                                        <p style="margin: 0;">
+                                            Precisa de ajuda? Entre em contato: <a href="mailto:contato@zapbless.com.br"
+                                                style="color: #9b87f5;">contato@zapbless.com.br</a>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

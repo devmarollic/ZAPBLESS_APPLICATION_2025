@@ -21,3 +21,4 @@
 @include DATA/tag_type.bd
 @include DATA/subscription_period.bd
 @include DATA/subscription_status.bd
+@include DATA/role.bd
