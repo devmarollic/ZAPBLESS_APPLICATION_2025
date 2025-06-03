@@ -6,6 +6,7 @@ import { getIO } from '../../socket';
 import { AppError } from '../errors/app_error';
 import { initWbot } from '../../whatsapp_bot';
 import { whatsappService } from './whatsapp_service';
+
 // -- FUNCTIONS
 
 class WhatsappBotService
@@ -63,9 +64,7 @@ class WhatsappBotService
 
         let io = getIO();
 
-        io
-            .to( 'church_' + whatsapp.churchId )
-            .emit(
+        io.emit(
             'whatsappSession',
             {
                 action: 'update',
@@ -128,14 +127,14 @@ class WhatsappBotService
                 'change_battery',
                 async ( batteryInfo ) =>
                 {
-                    let { battery, isPlugged } = batteryInfo;
+                    let { battery, plugged } = batteryInfo;
                     console.log(
-                        `Battery session: ${ sessionName } ${ battery }% - Charging? ${ isPlugged }`
+                        `Battery session: ${ sessionName } ${ battery }% - Charging? ${ plugged }`
                         );
                     
                     try
                     {
-                        await whatsappService.setWhatsappById( { battery, isPlugged }, whatsapp.id );
+                        await whatsappService.setWhatsappById( { battery, isPlugged: plugged }, whatsapp.id );
                     }
                     catch ( error )
                     {

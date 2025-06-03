@@ -1,12 +1,12 @@
 // -- IMPORTS
 
-import { createMinistryUseCase } from '../use_case/create_ministry_use_case';
+import { getEventsByChurchUseCase } from '../use_case/get_events_by_church_use_case';
 import { Controller } from './controller';
 import { UnauthenticatedError } from '../errors/unauthenticated_error';
 
 // -- TYPES
 
-export class AddMinistryController extends Controller
+export class GetEventsByChurchController extends Controller
 {
     // -- OPERATIONS
 
@@ -20,13 +20,10 @@ export class AddMinistryController extends Controller
             throw new UnauthenticatedError();
         }
 
-        let { body } = request;
-
-        let ministry = await createMinistryUseCase.execute(
-            body,
+        let events = await getEventsByChurchUseCase.execute(
             request.profileLogged.id
             );
 
-        return ministry;
+        return events;
     }
 } 

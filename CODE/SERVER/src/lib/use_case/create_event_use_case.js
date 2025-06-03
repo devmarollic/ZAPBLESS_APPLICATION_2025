@@ -1,14 +1,14 @@
 // -- IMPORTS
 
 import { getRandomTuid } from 'senselogic-gist';
-import { ministrySchema } from '../model/ministry';
-import { ministryService } from '../service/ministry_service';
+import { eventSchema } from '../model/event';
+import { eventService } from '../service/event_service';
 import { profileService } from '../service/profile_service';
 import { AppError } from '../errors/app_error';
 
 // -- TYPES
 
-class CreateMinistryUseCase
+class CreateEventUseCase
 {
     // -- OPERATIONS
 
@@ -17,7 +17,7 @@ class CreateMinistryUseCase
         userId
         )
     {
-        let { success, error, data } = ministrySchema.safeParse( input );
+        let { success, error, data } = eventSchema.safeParse( input );
 
         if ( !success )
         {
@@ -31,7 +31,7 @@ class CreateMinistryUseCase
             throw new AppError( 'Profile not found', 404 );
         }
 
-        let ministry = await ministryService.addMinistry(
+        let event = await eventService.addEvent(
             {
                 id: getRandomTuid(),
                 churchId: profile.churchId,
@@ -39,8 +39,8 @@ class CreateMinistryUseCase
             }
             );
 
-        return ministry;
+        return event;
     }
 }
 
-export const createMinistryUseCase = new CreateMinistryUseCase(); 
+export const createEventUseCase = new CreateEventUseCase();

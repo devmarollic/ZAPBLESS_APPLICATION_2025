@@ -10,17 +10,17 @@ import { HomePageController } from './lib/controller/home_page_controller';
 import { PropertiesPageController } from './lib/controller/properties_page_controller';
 import { PropertyPageController } from './lib/controller/property_page_controller';
 import { supabaseService } from './lib/service/supabase_service';
-import { churchRoutes, profileRoutes, whatsappRoutes, authenticateRoutes, planRoutes, ministryRoutes } from './lib/routes';
+import { churchRoutes, profileRoutes, whatsappRoutes, authenticateRoutes, planRoutes, ministryRoutes, eventRoutes, dashboardRoutes } from './lib/routes';
 import { initIO } from './socket';
 import { authMiddleware } from './middleware/auth_middleware';
+import { errorMiddleware } from './middleware/error_middleware';
+import { whatsappBotManager } from './lib/service/whatsapp_bot_manager';
 
 // -- STATEMENTS
 
 dotenv.config(
     {
-        path: process.env.NODE_ENV === 'production'
-            ? '.env'
-            : '.env.development'
+        path: '.env'
     }
     );
 
@@ -56,6 +56,7 @@ let propertiesPageController = new PropertiesPageController();
 let propertyPageController = new PropertyPageController();
 
 fastify.addHook( 'onRequest', authMiddleware );
+fastify.setErrorHandler( errorMiddleware );
 
 fastify.register( churchRoutes, { prefix: '/church' } );
 fastify.register( profileRoutes, { prefix: '/profile' } );
@@ -63,6 +64,8 @@ fastify.register( planRoutes, { prefix: '/plan' } );
 fastify.register( authenticateRoutes, { prefix: '/login' } );
 fastify.register( whatsappRoutes, { prefix: '/whatsapp' } );
 fastify.register( ministryRoutes, { prefix: '/ministry' } );
+fastify.register( eventRoutes, { prefix: '/event' } );
+fastify.register( dashboardRoutes, { prefix: '/dashboard' } );
 
 fastify.post(
     '/api/page/home',
@@ -117,6 +120,8 @@ let start =
 
         try
         {
+            whatsappBotManager.initializeAllSessions();
+            
             await fastify.listen( { port : 8000, host : '0.0.0.0' } );
         }
         catch ( error )
@@ -140,4 +145,5 @@ fastify.ready(
         }
     }
     );
+
 initIO( fastify.server );

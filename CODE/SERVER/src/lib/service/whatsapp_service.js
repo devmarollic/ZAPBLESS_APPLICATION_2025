@@ -3,7 +3,7 @@
 import { getMapById, logError } from 'senselogic-gist';
 import { databaseService } from './database_service';
 
-// -- FUNCTIONS
+// -- TYPES
 
 class WhatsappService
 {
@@ -26,10 +26,36 @@ class WhatsappService
             await databaseService.getClient()
                 .from( 'WHATSAPP' )
                 .select()
-                .eq( 'id', whatsappId );
+                .eq( 'id', whatsappId )
+                .single();
 
         if ( error !== null )
         {
+            logError( error );
+        }
+
+        return data;
+    }
+
+    // ~~
+
+    async getWhatsappByChurchId(
+        churchId
+        )
+    {
+        let { data, error } =
+            await databaseService.getClient()
+                .from( 'WHATSAPP' )
+                .select()
+                .eq( 'churchId', churchId )
+                .single();
+
+        if ( error !== null )
+        {
+            if ( error.code === 'PGRST116' )
+            {
+                return null;
+            }
             logError( error );
         }
 
@@ -68,8 +94,6 @@ class WhatsappService
         whatsapp
         )
     {
-        this.clearCache();
-
         let { data, error } =
             await databaseService.getClient()
                 .from( 'WHATSAPP' )
@@ -92,8 +116,6 @@ class WhatsappService
         id
         )
     {
-        this.clearCache();
-
         let { data, error } =
             await databaseService.getClient()
                 .from( 'WHATSAPP' )
@@ -116,9 +138,7 @@ class WhatsappService
         id
         )
     {
-        this.clearCache();
-
-        let { data, error } =
+        let { error } =
             await databaseService.getClient()
                 .from( 'WHATSAPP' )
                 .delete()
@@ -128,8 +148,6 @@ class WhatsappService
         {
             logError( error );
         }
-
-        return data;
     }
 }
 

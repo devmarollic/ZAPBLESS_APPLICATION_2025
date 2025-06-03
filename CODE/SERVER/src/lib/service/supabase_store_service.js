@@ -1,92 +1,130 @@
-import fs from 'fs';
-import { supabaseService } from './supabase_service';
+// -- IMPORTS
 
-export class SupabaseStoreService {
-    constructor({ churchId }) {
-        if (!churchId) throw new Error('churchId is required for SupabaseStore.');
+import { getJsonObject, getJsonText, logError } from 'senselogic-gist';
+import { databaseService } from './database_service';
+import { whatsappService } from './whatsapp_service';
+
+// -- TYPES
+
+export class SupabaseStoreService
+{
+    // -- CONSTRUCTORS
+
+    constructor(
+        {
+            churchId
+        }
+        )
+    {
         this.churchId = churchId;
-        this.table = 'WHATSAPP_SESSION';
+        this.sessionData = null;
     }
 
-    async sessionExists(options) {
-        const { session } = options;
+    // -- OPERATIONS
 
-        const { data, error } = await supabaseService
-            .getClient()
-            .from(this.table)
-            .select('id')
-            .eq('clientId', session)
-            .single();
-
-        return !!data && !error;
-    }
-
-    async save(options) {
-        const { session } = options;
-
-        // Lê o .zip local e transforma em base64
-        const zipBuffer = fs.readFileSync(`${session}.zip`);
-        const base64Zip = zipBuffer.toString('base64');
-
-        const { data: existing } = await supabaseService
-            .getClient()
-            .from(this.table)
-            .select('id')
-            .eq('clientId', session)
-            .single();
-
-        if (existing) {
-            await supabaseService
+    async sessionExists(
+        options
+        )
+    {
+        try {
+            let { data, error } = await databaseService
                 .getClient()
-                .from(this.table)
-                .update({
-                    sessionData: { base64: base64Zip },
-                    updateTimestamp: new Date()
-                })
-                .eq('clientId', session);
-        } else {
-            await supabaseService
-                .getClient()
-                .from(this.table)
-                .insert({
-                    churchId: this.churchId,
-                    clientId: session,
-                    sessionData: { base64: base64Zip }
-                });
+                .from( 'WHATSAPP' )
+                .select( 'session' )
+                .eq( 'churchId', this.churchId )
+                .single();
+
+            if ( error !== null )
+            {
+                return false;
+            }
+
+            this.sessionData = data?.session;
+            return data && data.session !== null;
+        } catch (error) {
+            logError(error);
+            return false;
         }
     }
 
-    async extract(options) {
-        const { session, path } = options;
+    // ~~
 
-        const { data, error } = await supabaseService
-            .getClient()
-            .from(this.table)
-            .select('sessionData')
-            .eq('clientId', session)
-            .single();
+    async save(
+        options
+        )
+    {
+        try {
+            let { session } = options;
+            
+            if ( !session )
+            {
+                return false;
+            }
 
-        if (error || !data || !data.sessionData) {
-            throw new Error(`Session not found for extract: ${session}`);
+            const sessionData = typeof session === 'string' ? session : getJsonText(session);
+            this.sessionData = sessionData;
+            
+            await databaseService
+                .getClient()
+                .from( 'WHATSAPP' )
+                .update( { session: sessionData } )
+                .eq( 'churchId', this.churchId );
+
+            return true;
+        } catch (error) {
+            logError(error);
+            return false;
         }
-
-        const base64Zip = data.sessionData.base64;
-        const zipBuffer = Buffer.from(base64Zip, 'base64');
-
-        fs.writeFileSync(path, zipBuffer);
     }
 
-    async delete(options) {
-        const { session } = options;
+    // ~~
 
-        const { error } = await supabaseService
-            .getClient()
-            .from(this.table)
-            .delete()
-            .eq('clientId', session);
+    async extract(
+        options
+        )
+    {
+        try {
+            if (this.sessionData) {
+                return typeof this.sessionData === 'string' ? 
+                    getJsonObject(this.sessionData) : 
+                    this.sessionData;
+            }
 
-        if (error) {
-            console.error('SupabaseStore delete error:', error);
+            let whatsapp = await whatsappService.getWhatsappByChurchId( this.churchId );
+
+            if ( !whatsapp || !whatsapp.session )
+            {
+                return null;
+            }
+
+            this.sessionData = whatsapp.session;
+            return typeof whatsapp.session === 'string' ? 
+                getJsonObject(whatsapp.session) : 
+                whatsapp.session;
+        } catch (error) {
+            logError(error);
+            return null;
+        }
+    }
+
+    // ~~
+
+    async delete(
+        options
+        )
+    {
+        try {
+            this.sessionData = null;
+            await databaseService
+                .getClient()
+                .from( 'WHATSAPP' )
+                .update( { session: null } )
+                .eq( 'churchId', this.churchId );
+
+            return true;
+        } catch (error) {
+            logError(error);
+            return false;
         }
     }
 }

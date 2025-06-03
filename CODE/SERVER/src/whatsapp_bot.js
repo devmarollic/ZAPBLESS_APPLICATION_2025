@@ -1,12 +1,18 @@
 // -- IMPORTS
 
 import qrCode from 'qrcode-terminal';
-import { Client, LocalAuth } from 'whatsapp-web.js';
+import { Client, RemoteAuth } from 'whatsapp-web.js';
 import { getIO } from './socket';
-import Whatsapp from '../models/Whatsapp';
-import AppError from '../errors/app_error';
 import { whatsappBotService } from './lib/service/whatsapp_bot_service';
-import { getJsonObject } from 'senselogic-gist';
+import { getJsonObject, getRandomTuid, logError } from 'senselogic-gist';
+import { AppError } from './lib/errors/app_error';
+import { SupabaseStoreService } from './lib/service/supabase_store_service';
+import { databaseService } from './lib/service/database_service';
+import { whatsappBotManager } from './lib/service/whatsapp_bot_manager';
+import { whatsappService } from './lib/service/whatsapp_service';
+import { whatsappSessionService } from './lib/service/whatsapp_session_service';
+import path from 'path';
+import fs from 'fs';
 
 // -- CONSTANTS
 
@@ -47,44 +53,64 @@ export async function initWbot(
     )
 {
     return new Promise(
-        ( resolve, reject ) =>
+        async ( resolve, reject ) =>
         {
             try
             {
                 let io = getIO();
+                let store = new SupabaseStoreService( { churchId: whatsapp.churchId } );
+
                 let sessionName = whatsapp.name;
-                let sessionCfg;
+                let session;
 
                 if ( whatsapp && whatsapp.session )
                 {
-                    sessionCfg = getJsonObject( whatsapp.session );
+                    session = getJsonObject( whatsapp.session );
                 }
-
-                let argumentArray = process.env.CHROME_ARGS || '';
 
                 let whatsappBot = new Client(
                     {
-                        session: sessionCfg,
-                        authStrategy: new LocalAuth( { clientId: 'bd_' + whatsapp.id } ),
+                        session: session,
+                        authStrategy: new RemoteAuth(
+                            {
+                                clientId: whatsapp.id,
+                                store,
+                                backupSyncIntervalMs: 300000,
+                                storeOptions: {
+                                    useLocalStorage: false,
+                                    useMemoryStorage: true
+                                }
+                            }
+                            ),
                         puppeteer:
                             {
-                                executablePath: process.env.CHROME_BIN || undefined,
-                                browserWSEndpoint: process.env.CHROME_WS || undefined,
-                                args: argumentArray.split( '  ' )
+                                headless: true,
+                                args: [ '--no-sandbox', '--disable-setuid-sandbox' ]
                             }
                     }
                     );
 
-                whatsappBot.initialize();
+                // Initialize the client with error handling
+                try {
+                    await whatsappBot.initialize();
+                } catch (error) {
+                    console.error('Error initializing WhatsApp client:', error);
+                    reject(error);
+                    return;
+                }
 
                 whatsappBot.on(
                     'qr',
                     async ( qr ) =>
                     {
-                        console.log( 'Session:', sessionName );
                         qrCode.generate( qr, { small: true } );
-                        await whatsapp.update( { qrcode: qr, status: 'qrcode', retries: 0 } );
+                        
+                        whatsapp.qrcode = qr;
+                        whatsapp.status = 'qrcode';
+                        whatsapp.retries = 0;
 
+                        await whatsappService.setWhatsappById( whatsapp, whatsapp.id );
+                        
                         let sessionIndex = sessionArray.findIndex( session => session.id === whatsapp.id );
 
                         if ( sessionIndex === -1 )
@@ -93,21 +119,19 @@ export async function initWbot(
                             sessionArray.push( whatsappBot );
                         }
 
-                        io
-                            .to( 'church_' + whatsapp.churchId )
-                            .emit(
-                                'whatsappSession',
-                                {
-                                    action: 'update',
-                                    session: whatsapp
-                                }
-                                );
+                        io.emit(
+                            'whatsappSession',
+                            {
+                                action: 'update',
+                                session: whatsapp
+                            }
+                            );
                     }
                     );
 
                 whatsappBot.on(
                     'authenticated',
-                    async ( session ) =>
+                    async () =>
                     {
                         console.log( `Session: ${ sessionName } AUTHENTICATED` );
                     }
@@ -121,32 +145,22 @@ export async function initWbot(
 
                         if ( whatsapp.retries > 1 ) 
                         {
-                            await whatsapp.update(
-                                {
-                                    session: '',
-                                    retries: 0
-                                }
-                                );
+                            whatsapp.session = '';
+                            whatsapp.retries = 0;
                         }
 
-                        let retry = whatsapp.retries;
+                        whatsapp.status = 'DISCONNECTED';
+                        whatsapp.retries += 1;
 
-                        await whatsapp.update(
+                        await whatsappService.setWhatsappById( whatsapp, whatsapp.id );
+
+                        io.emit(
+                            'whatsappSession',
                             {
-                                status: 'DISCONNECTED',
-                                retries: retry + 1
+                                action: 'update',
+                                session: whatsapp
                             }
                             );
-
-                        io
-                            .to( 'church_' + whatsapp.churchId )
-                            .emit(
-                                'whatsappSession',
-                                {
-                                    action: 'update',
-                                    session: whatsapp
-                                }
-                                );
 
                         reject( new Error( 'Error starting whatsapp session.' ) );
                     }
@@ -158,23 +172,19 @@ export async function initWbot(
                     {
                         console.log( `Session: ${ sessionName } READY` );
 
-                        await whatsapp.update(
+                        whatsapp.status = 'CONNECTED';
+                        whatsapp.qrcode = '';
+                        whatsapp.retries = 0;
+
+                        await whatsappService.setWhatsappById( whatsapp, whatsapp.id );
+
+                        io.emit(
+                            'whatsappSession',
                             {
-                                status: 'CONNECTED',
-                                qrcode: '',
-                                retries: 0
+                                action: 'update',
+                                session: whatsapp
                             }
                             );
-
-                        io
-                            .to( 'church_' + whatsapp.churchId )
-                            .emit(
-                                'whatsappSession',
-                                {
-                                    action: 'update',
-                                    session: whatsapp
-                                }
-                                );
 
                         let sessionIndex = sessionArray.findIndex( session => session.id === whatsapp.id );
 
@@ -190,10 +200,35 @@ export async function initWbot(
                         resolve( whatsappBot );
                     }
                     );
+
+                whatsappBot.on(
+                    'remote_session_saved',
+                    async () =>
+                    {
+                        console.log( `Session: ${ whatsappBot.authStrategy.sessionName } SAVED TO SUPABASE` );
+                        
+                        const session = await store.extract( { session: whatsappBot.authStrategy.sessionName } );
+
+                        if ( session )
+                        {
+                            console.log( { session } );
+                            
+                            await databaseService
+                                .getClient()
+                                .from( 'WHATSAPP' )
+                                .update( { session: session } )
+                                .eq( 'id', whatsapp.id );
+                        }
+                        else
+                        {
+                            console.error( 'Failed to extract session data' );
+                        }
+                    }
+                    );
             }
             catch ( error )
             {
-                console.error( error );
+                logError( error );
             }
         }
         );
@@ -201,18 +236,13 @@ export async function initWbot(
 
 // ~~
 
-export function getWbot(
-    whatsappId
+export async function getWbot(
+    whatsapp
     )
 {
-    let sessionIndex = sessionArray.findIndex( session => session.id === whatsappId );
+    let bot = await whatsappBotManager.getBotInstance( whatsapp.churchId );
 
-    if ( sessionIndex === -1 )
-    {
-        throw new AppError( 'ERR_WAPP_NOT_INITIALIZED' );
-    }
-
-    return sessionArray[ sessionIndex ];
+    return bot;
 };
 
 // ~~

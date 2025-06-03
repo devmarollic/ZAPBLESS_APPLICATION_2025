@@ -9,11 +9,13 @@ export class AppError extends Error
     // -- CONSTRUCTORS
 
     constructor(
-        message = 'bad-request-error-message',
-        statusCode = StatusCodes.BAD_REQUEST
+        code,
+        statusCode = 400
         )
     {
-        super( message );
+        super( code );
+
+        this.code = code;
         this.statusCode = statusCode;
     }
 }
