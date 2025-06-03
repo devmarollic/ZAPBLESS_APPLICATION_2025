@@ -10,6 +10,7 @@
 
     let favoritePropertyArray = [];
     let isLoading = true;
+    let whatsapp = null;
 
     // -- STATEMENTS
 
@@ -20,6 +21,7 @@
             {
                 let response = await axios.post( '/api/page/home' );
                 favoritePropertyArray = response.data.favoritePropertyArray;
+                whatsapp = response.data.whatsapp;
             }
             catch ( error )
             {
@@ -41,12 +43,51 @@
     .property
     {
     }
+
+    .whatsapp-status
+    {
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 4px;
+    }
+
+    .status-connected
+    {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    .status-disconnected
+    {
+        background-color: #f44336;
+        color: white;
+    }
+
+    .status-qrcode
+    {
+        background-color: #2196F3;
+        color: white;
+    }
+
+    .status-opening
+    {
+        background-color: #FFC107;
+        color: black;
+    }
 </style>
 
 {#if isLoading }
     <div class="hourglass">Loading...</div>
 {:else}
     <div>
+        {#if whatsapp}
+            <div class="whatsapp-status status-{whatsapp.status.toLowerCase()}">
+                WhatsApp Status: {whatsapp.status}
+                {#if whatsapp.status === 'qrcode'}
+                    <img src={whatsapp.qrcode} alt="QR Code" />
+                {/if}
+            </div>
+        {/if}
         <h1>Favorite Properties</h1>
         {#each favoritePropertyArray as property }
             <Link to={ '/property/' + property.id }>

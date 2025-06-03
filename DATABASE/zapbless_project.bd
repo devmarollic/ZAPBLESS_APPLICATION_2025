@@ -14,7 +14,6 @@
 @include DATA/notification_center_severity.bd
 @include DATA/notification_medium.bd
 @include DATA/notification_type.bd
-@include DATA/whatsapp_session_status.bd
 @include DATA/media_storage_type.bd
 @include DATA/presence_status.bd
 @include DATA/recurrence_type.bd

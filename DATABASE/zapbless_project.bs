@@ -394,27 +394,6 @@ public
         differenceJson :  TUPLE[]
         creationTimestamp : TIMESTAMP | generated
 
-    WHATSAPP_SESSION_STATUS | dropped
-
-        id : STRING | key, unique
-        name : STRING
-        description : STRING
-        creationTimestamp : TIMESTAMP | generated
-        updateTimestamp : TIMESTAMP | generated, updated
-
-    WHATSAPP_SESSION | dropped
-
-        id : TUID | key, unique
-        churchId : CHURCH.id | constrained
-        sessionId : STRING
-        statusId : WHATSAPP_SESSION_STATUS.id | constrained
-        phonePrefix : STRING
-        phoneNumber : STRING
-        clientId : STRING
-        sessionData : MAP[]
-        creationTimestamp : TIMESTAMP | generated
-        updateTimestamp : TIMESTAMP | generated, updated
-
     MEDIA_STORAGE_TYPE | dropped
 
         id : STRING | key, unique
@@ -460,3 +439,19 @@ public
         id : TUID | key, unique
         planId : PLAN.id | constrained
         notificationMediumId : NOTIFICATION_MEDIUM.id | constrained
+
+    WHATSAPP
+
+        id : TUID | key, unique
+        churchId : CHURCH.id | constrained
+        name : STRING
+        status : STRING
+        qrcode : STRING
+        retries : FLOAT64
+        battery : FLOAT64
+        isPlugged : BOOL
+        greetingMessage : STRING
+        farewellsMessage : STRING
+        isDefault : BOOL
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
