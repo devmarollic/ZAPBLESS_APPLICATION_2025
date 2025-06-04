@@ -15,6 +15,8 @@ import { initIO } from './socket';
 import { authMiddleware } from './middleware/auth_middleware';
 import { errorMiddleware } from './middleware/error_middleware';
 import { whatsappBotManager } from './lib/service/whatsapp_bot_manager';
+import { scheduleWorker } from './lib/worker/schedule_worker';
+import { logError } from 'senselogic-gist';
 
 // -- STATEMENTS
 
@@ -147,3 +149,11 @@ fastify.ready(
     );
 
 initIO( fastify.server );
+
+scheduleWorker.start().catch(
+    ( error ) =>
+    {
+        logError( error );
+        process.exit( 1 );
+    }
+    );

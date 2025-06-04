@@ -110,7 +110,7 @@ class WhatsappBotService
                     }
                     catch ( error )
                     {
-                        console.error( error );
+                        logError( error );
                     }
   
                     io.emit(
@@ -138,7 +138,7 @@ class WhatsappBotService
                     }
                     catch ( error )
                     {
-                        console.error( error );
+                        logError( error );
                     }
   
                     io.emit(
@@ -180,7 +180,7 @@ class WhatsappBotService
         }
         catch ( error )
         {
-            console.error( error );
+            logError( error );
         }
     }
 

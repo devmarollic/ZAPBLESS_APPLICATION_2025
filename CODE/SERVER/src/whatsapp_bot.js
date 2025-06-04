@@ -1,7 +1,7 @@
 // -- IMPORTS
 
 import qrCode from 'qrcode-terminal';
-import { Client, RemoteAuth } from 'whatsapp-web.js';
+import { Client, RemoteAuth, LocalAuth } from 'whatsapp-web.js';
 import { getIO } from './socket';
 import { whatsappBotService } from './lib/service/whatsapp_bot_service';
 import { getJsonObject, getRandomTuid, logError } from 'senselogic-gist';
@@ -71,17 +71,18 @@ export async function initWbot(
                 let whatsappBot = new Client(
                     {
                         session: session,
-                        authStrategy: new RemoteAuth(
-                            {
-                                clientId: whatsapp.id,
-                                store,
-                                backupSyncIntervalMs: 300000,
-                                storeOptions: {
-                                    useLocalStorage: false,
-                                    useMemoryStorage: true
-                                }
-                            }
-                            ),
+                        authStrategy: new LocalAuth( { clientId: 'bd_' + whatsapp.id } ),
+                        // authStrategy: new RemoteAuth(
+                        //     {
+                        //         clientId: whatsapp.id,
+                        //         store,
+                        //         backupSyncIntervalMs: 300000,
+                        //         storeOptions: {
+                        //             useLocalStorage: false,
+                        //             useMemoryStorage: true
+                        //         }
+                        //     }
+                        //     ),
                         puppeteer:
                             {
                                 headless: true,
@@ -90,14 +91,7 @@ export async function initWbot(
                     }
                     );
 
-                // Initialize the client with error handling
-                try {
-                    await whatsappBot.initialize();
-                } catch (error) {
-                    console.error('Error initializing WhatsApp client:', error);
-                    reject(error);
-                    return;
-                }
+                await whatsappBot.initialize();
 
                 whatsappBot.on(
                     'qr',
@@ -207,7 +201,7 @@ export async function initWbot(
                     {
                         console.log( `Session: ${ whatsappBot.authStrategy.sessionName } SAVED TO SUPABASE` );
                         
-                        const session = await store.extract( { session: whatsappBot.authStrategy.sessionName } );
+                        let session = await store.extract( { session: whatsappBot.authStrategy.sessionName } );
 
                         if ( session )
                         {

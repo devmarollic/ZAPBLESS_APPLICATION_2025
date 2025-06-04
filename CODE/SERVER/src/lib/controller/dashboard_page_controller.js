@@ -27,7 +27,20 @@ export class DashboardPageController extends PageController
             throw new UnauthenticatedError();
         }
 
-        // let profile = await profileService.getProfileById( request.profileLogged.id );
+        let profile = await profileService.getProfileById( request.profileLogged.id );
+        let whatsapp = await whatsappBotManager.getBotInstance( profile.churchId );
+
+        let io = getIO();
+
+        io.emit(
+            'whatsappSession',
+            {
+                action: 'update',
+                session: whatsapp
+            }
+            );
+
+        return reply.status( StatusCodes.NO_CONTENT ).send();
 
         // const { data: whatsapp, error: fetchError } = await databaseService
         //     .getClient()
@@ -42,6 +55,10 @@ export class DashboardPageController extends PageController
         // }
 
 
-        return reply.status( StatusCodes.NO_CONTENT ).send();
+        return (
+            {
+                whatsapp
+            }
+            );
     }
 }

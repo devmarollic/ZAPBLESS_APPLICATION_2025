@@ -1,11 +1,73 @@
 // -- IMPORTS
 
+import { logError } from 'senselogic-gist';
 import { supabaseService } from '../service/supabase_service';
 
 // -- TYPES
 
 class EventService
 {
+     // -- INQUIRIES
+
+     async getEventById(
+        id
+        )
+    {
+        const { data, error } = await supabaseService
+            .getClient()
+            .from( 'EVENT' )
+            .select()
+            .eq( 'id', id  )
+            .single();
+
+        if ( error !== null )
+        {
+            logError( error );
+        }
+
+        return data;
+    }
+
+    // ~~
+
+    async getEventArrayByChurchId(
+        churchId
+        )
+    {
+        const { data, error } = await supabaseService
+            .getClient()
+            .from( 'EVENT' )
+            .select()
+            .eq( 'churchId', churchId );
+
+        if ( error !== null )
+        {
+            logError( error );
+        }
+
+        return data;
+    }
+
+    // ~~
+
+    async getEventArrayByMinistryId(
+        ministryId
+        )
+    {
+        const { data, error } = await supabaseService
+            .getClient()
+            .from( 'EVENT' )
+            .select()
+            .eq( 'ministryId', ministryId );
+
+        if ( error !== null )
+        {
+            logError( error );
+        }
+
+        return data;
+    }
+
     // -- OPERATIONS
 
     async addEvent(
@@ -14,14 +76,14 @@ class EventService
     {
         const { data, error } = await supabaseService
             .getClient()
-            .from('EVENT')
+            .from( 'EVENT' )
             .insert( eventData )
             .select()
             .single();
 
-        if ( error )
+        if ( error !== null )
         {
-            throw error;
+            logError( error );
         }
 
         return data;
@@ -29,64 +91,22 @@ class EventService
 
     // ~~
 
-    async getEventById(
+    async removeEventById(
         id
         )
     {
-        const { data, error } = await supabaseService
+        let { error } = await supabaseService
             .getClient()
-            .from('EVENT')
-            .select()
-            .eq('id', id )
-            .single();
+            .from( 'EVENT' )
+            .delete()
+            .eq( 'id', id );
 
-        if ( error )
+        if ( error !== null )
         {
-            throw error;
+            logError( error );
         }
-
-        return data;
-    }
-
-    // ~~
-
-    async getEventsByChurchId(
-        churchId
-        )
-    {
-        const { data, error } = await supabaseService
-            .getClient()
-            .from('EVENT')
-            .select()
-            .eq('churchId', churchId );
-
-        if ( error )
-        {
-            throw error;
-        }
-
-        return data;
-    }
-
-    // ~~
-
-    async getEventsByMinistryId(
-        ministryId
-        )
-    {
-        const { data, error } = await supabaseService
-            .getClient()
-            .from('EVENT')
-            .select()
-            .eq('ministryId', ministryId );
-
-        if ( error )
-        {
-            throw error;
-        }
-
-        return data;
     }
 }
 
-export const eventService = new EventService(); 
+export const eventService =
+    new EventService(); 

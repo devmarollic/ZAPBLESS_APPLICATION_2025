@@ -2,7 +2,9 @@
 
 import { getRandomTuid } from 'senselogic-gist';
 import { eventSchema } from '../model/event';
+import { scheduleSchema } from '../model/schedule';
 import { eventService } from '../service/event_service';
+import { scheduleService } from '../service/schedule_service';
 import { profileService } from '../service/profile_service';
 import { AppError } from '../errors/app_error';
 
@@ -17,11 +19,11 @@ class CreateEventUseCase
         userId
         )
     {
-        let { success, error, data } = eventSchema.safeParse( input );
+        let { success: eventSuccess, error: eventError, data: eventData } = eventSchema.safeParse( input );
 
-        if ( !success )
+        if ( !eventSuccess )
         {
-            return error;
+            return eventError;
         }
 
         let profile = await profileService.getProfileById( userId );
@@ -35,12 +37,38 @@ class CreateEventUseCase
             {
                 id: getRandomTuid(),
                 churchId: profile.churchId,
-                ...data
+                ...eventData
             }
             );
+
+        if ( input.schedule )
+        {
+            let { success: scheduleSuccess, error: scheduleError, data: scheduleData } = scheduleSchema.safeParse( {
+                ...input.schedule,
+                churchId: profile.churchId,
+                eventId: event.id,
+                statusId: 'pending'
+            } );
+
+            if ( !scheduleSuccess )
+            {
+                await eventService.deleteEvent( event.id );
+                return scheduleError;
+            }
+
+            let schedule = await scheduleService.addSchedule(
+                {
+                    id: getRandomTuid(),
+                    ...scheduleData
+                }
+                );
+
+            event.schedule = schedule;
+        }
 
         return event;
     }
 }
 
-export const createEventUseCase = new CreateEventUseCase();
+export const createEventUseCase =
+    new CreateEventUseCase();
