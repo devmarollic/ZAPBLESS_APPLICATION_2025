@@ -7,6 +7,14 @@ import { PaymentStrategyFactory } from '../strategy/payment_strategy_factory';
 import { NotFoundError } from '../errors/not_found';
 import { ValidationError } from '../errors/validation_error';
 import { subscriptionStatus } from '../model/subscription';
+import { AppError } from '../errors/app_error';
+
+// -- CONSTANTS
+
+let paymentStatus =
+{
+    failed: 'failed'
+};
 
 // -- TYPES
 
@@ -53,17 +61,22 @@ class PaySubscriptionUseCase
 
             await subscriptionService.setSubscriptionById(
                 {
-                    statusId: 'pending',
+                    statusId: subscriptionStatus.pending,
                     paymentGatewayId: paymentResult.id,
                     paymentMethodId: input.paymentMethod,
-                    chargeInfo: getJsonText( paymentResult )
+                    chargeInfo: paymentResult,
+                    price: paymentResult.items[ 0 ].pricing_scheme.price / 100
                 },
                 input.subscriptionId
                 );
 
+            if ( paymentResult.status === paymentStatus.failed )
+            {
+                throw new AppError( 'payment-failed' );
+            }
+
             return (
                 {
-                success: true,
                     subscriptionId: input.subscriptionId,
                     paymentId: paymentResult.id,
                     paymentMethod: input.paymentMethod,

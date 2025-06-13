@@ -142,7 +142,6 @@ export class CreditCardPaymentStrategy extends PaymentStrategy
         let payload = this.buildPaymentPayload( subscriptionData, paymentData, customerData );
 
         let headers = this.pagarmeService.getHeaders();
-        console.log( JSON.stringify( payload, null, 2 ) );
         let response = await fetch(
             this.pagarmeService.baseUrl + '/subscriptions', 
             {
