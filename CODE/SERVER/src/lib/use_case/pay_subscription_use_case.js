@@ -140,7 +140,7 @@ class PaySubscriptionUseCase
             {
                 name: church.name,
                 email: profile.email,
-                document: church.documentNumber,
+                document: church.documentNumber?.replace(/\D/g, ''),
                 documentType: church.documentType === 'CNPJ' ? 'cnpj' : 'cpf',
                 type: church.documentType === 'CNPJ' ? 'company' : 'individual',
                 phoneNumber: profile.phoneNumber?.replace( /\D/g, '' ) || '11999999999'

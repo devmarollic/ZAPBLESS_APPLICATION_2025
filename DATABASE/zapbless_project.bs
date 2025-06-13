@@ -268,9 +268,9 @@ public
 
     USER_CHURCH_ROLE | dropped
 
-        profileId : PROFILE.id | constrained
-        churchId : CHURCH.id | constrained
-        roleSlug : ROLE.slug | constrained
+        profileId : PROFILE.id | constrained, key
+        churchId : CHURCH.id | constrained, key
+        roleSlug : ROLE.slug | constrained, key
 
     EVENT | dropped
 

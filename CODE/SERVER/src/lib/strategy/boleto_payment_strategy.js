@@ -1,7 +1,7 @@
 // -- IMPORTS
 
 import { PaymentStrategy } from './payment_strategy.js';
-import { getJsonText } from 'senselogic-gist';
+import { getJsonText, getRoundInteger } from 'senselogic-gist';
 
 // -- TYPES
 
@@ -47,9 +47,11 @@ export class BoletoPaymentStrategy extends PaymentStrategy
         customerData
         )
     {
-        let priceInCents = subscriptionData.periodId === 'monthly' 
-            ? subscriptionData.plan.monthlyPrice * 100 
-            : subscriptionData.plan.annualPrice * 100;
+        let priceInCents = getRoundInteger(
+            subscriptionData.periodId === 'monthly' 
+                ? subscriptionData.plan.monthlyPrice * 100 
+                : subscriptionData.plan.annualPrice * 100
+            );
 
         let dueDate = new Date();
         dueDate.setDate( dueDate.getDate() + 7 );
@@ -57,57 +59,53 @@ export class BoletoPaymentStrategy extends PaymentStrategy
 
         return (
             {
+                payment_method: 'boleto',
+                interval: subscriptionData.periodId === 'monthly' ? 'month' : 'year',
+                interval_count: 1,
+                billing_type: 'prepaid',
+                installments: 1,
                 customer:
-                {
-                    name: customerData.name,
-                    email: customerData.email,
-                    document: customerData.document,
-                    document_type: customerData.documentType,
-                    type: customerData.type,
-                    phones:
-                        {
-                            mobile_phone: 
-                                {
-                                    country_code: '55',
-                                    area_code: customerData.phoneNumber.slice( 0, 2 ),
-                                    number: customerData.phoneNumber.slice( 2 )
-                                }
-                        }
-                },
+                    {
+                        name: customerData.name,
+                        email: customerData.email,
+                        document_type: customerData.documentType,
+                        document: customerData.document,
+                        type: customerData.type,
+                        phones:
+                            {
+                                mobile_phone: 
+                                    {
+                                        country_code: '55',
+                                        area_code: customerData.phoneNumber.slice( 0, 2 ),
+                                        number: customerData.phoneNumber.slice( 2 )
+                                    }
+                            }
+                    },
+                boleto_due_days: 7,
+                boleto:
+                    {
+                        due_at: dueDateISO,
+                        instructions: `Pagamento da assinatura ZapBless ${ subscriptionData.plan.name }. Válido até ${ dueDate.toLocaleDateString( 'pt-BR' ) }.`
+                    },
                 items:
                     [
                         {
-                            id: subscriptionData.plan.id,
                             description: `${ subscriptionData.plan.name } ${ subscriptionData.periodId === 'monthly' ? 'Mensal' : 'Anual' }`,
-                            amount: priceInCents,
-                            quantity: 1
-                        }
-                    ],
-                payments:
-                    [
-                        {
-                            payment_method: 'boleto',
-                            boleto:
+                            name: subscriptionData.plan.name,
+                            quantity: 1,
+                            pricing_scheme:
                                 {
-                                    due_at: dueDateISO,
-                                    instructions: `Pagamento da assinatura ZapBless ${ subscriptionData.plan.name }. Válido até ${ dueDate.toLocaleDateString( 'pt-BR' ) }.`,
-                                    interest:
-                                        {
-                                            days: 1,
-                                            type: 'percentage',
-                                            amount: 200
-                                        },
-                                    fine:
-                                        {
-                                            days: 1,
-                                            type: 'percentage',  
-                                            amount: 200
-                                        }
+                                    scheme_type: 'unit',
+                                    price: priceInCents
                                 }
                         }
-                    ]
-        }
-        );
+                    ],
+                currency: 'BRL',
+                description: `ZapBless ${ subscriptionData.plan.name }`,
+                start_at: new Date().toISOString(),
+                statement_descriptor: 'ZAPBLESS'
+            }
+            );
     }
 
     // ~~
@@ -122,9 +120,9 @@ export class BoletoPaymentStrategy extends PaymentStrategy
         
         let payload = this.buildPaymentPayload( subscriptionData, paymentData, customerData );
         
-        let headers = await this.pagarmeService.getHeaders();
+        let headers = this.pagarmeService.getHeaders();
         let response = await fetch(
-            this.pagarmeService.baseUrl + '/orders',
+            this.pagarmeService.baseUrl + '/subscriptions',
             {
                 method: 'POST',
                 headers,

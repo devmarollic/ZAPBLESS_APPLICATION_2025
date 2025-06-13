@@ -1,7 +1,7 @@
 // -- IMPORTS
 
 import { PaymentStrategy } from './payment_strategy.js';
-import { getJsonText } from 'senselogic-gist';
+import { getInteger, getJsonText, getRoundInteger } from 'senselogic-gist';
 
 // -- TYPES
 
@@ -65,23 +65,30 @@ export class CreditCardPaymentStrategy extends PaymentStrategy
         customerData
         )
     {
-        let priceInCents = subscriptionData.periodId === 'monthly' 
-            ? subscriptionData.plan.monthlyPrice * 100 
-            : subscriptionData.plan.annualPrice * 100;
+        let priceInCents = getRoundInteger(
+            subscriptionData.periodId === 'monthly' 
+                ? subscriptionData.plan.monthlyPrice * 100 
+                : subscriptionData.plan.annualPrice * 100
+            );
 
         let cleanCardNumber = paymentData.cardNumber.replace( /\s+/g, '' ).replace( /\D/g, '' );
         
         let [ month, year ] = paymentData.expiryDate.split( '/' );
-        let fullYear = `20${year}`;
+        let fullYear = `20${ year }`;
 
         return (
             {
+                payment_method: 'credit_card',
+                interval: subscriptionData.periodId === 'monthly' ? 'month' : 'year',
+                interval_count: 1,
+                billing_type: 'prepaid',
+                installments: 1,
                 customer:
                     {
                         name: customerData.name,
                         email: customerData.email,
-                        document: customerData.document,
                         document_type: customerData.documentType,
+                        document: customerData.document,
                         type: customerData.type,
                         phones:
                             {
@@ -93,33 +100,31 @@ export class CreditCardPaymentStrategy extends PaymentStrategy
                                     }
                             }
                     },
+                card:
+                    {
+                        number: cleanCardNumber,
+                        holder_name: paymentData.holderName,
+                        exp_month: getInteger( month, 10 ),
+                        exp_year: getInteger( fullYear, 10 ),
+                        cvv: paymentData.cvv
+                    },
                 items:
                     [
                         {
-                            id: subscriptionData.plan.id,
                             description: `${ subscriptionData.plan.name } ${ subscriptionData.periodId === 'monthly' ? 'Mensal' : 'Anual' }`,
-                            amount: priceInCents,
-                            quantity: 1
+                            name: subscriptionData.plan.name,
+                            quantity: 1,
+                            pricing_scheme:
+                                {
+                                    scheme_type: 'unit',
+                                    price: priceInCents
+                                }
                         }
                     ],
-                payments:
-                    [
-                        {
-                            payment_method: 'credit_card',
-                            credit_card: {
-                                installments: 1,
-                                statement_descriptor: `ZapBless ${ subscriptionData.plan.name }`,
-                                card:
-                                    {
-                                        number: cleanCardNumber,
-                                        holder_name: paymentData.holderName,
-                                        exp_month: parseInt( month, 10 ),
-                                        exp_year: parseInt( fullYear, 10 ),
-                                        cvv: paymentData.cvv
-                                    }
-                            }
-                        }
-                    ]
+                currency: 'BRL',
+                description: `ZapBless ${ subscriptionData.plan.name }`,
+                start_at: new Date().toISOString(),
+                statement_descriptor: 'ZAPBLESS'
             }
             );
     }
@@ -136,18 +141,16 @@ export class CreditCardPaymentStrategy extends PaymentStrategy
         
         let payload = this.buildPaymentPayload( subscriptionData, paymentData, customerData );
 
-        console.log( { subscriptionData, paymentData, customerData } );
-        
-        let headers = await this.pagarmeService.getHeaders();
-        let response = await fetch( this.pagarmeService.baseUrl + '/orders', 
+        let headers = this.pagarmeService.getHeaders();
+        console.log( JSON.stringify( payload, null, 2 ) );
+        let response = await fetch(
+            this.pagarmeService.baseUrl + '/subscriptions', 
             {
                 method: 'POST',
                 headers,
                 body: getJsonText( payload )
             }
             );
-        
-        console.log( { payload } );
 
         if ( !response.ok )
         {

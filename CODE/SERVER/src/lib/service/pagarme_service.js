@@ -13,6 +13,13 @@ export class PagarmeService
         )
     {
         this.baseUrl = enviroment.PAGARME_BASE_URL;
+        
+        // Ensure the base URL includes the version suffix expected by the API
+        if ( this.baseUrl?.endsWith( '/core/v' ) )
+        {
+            this.baseUrl = this.baseUrl + '5';
+        }
+
         this.apiKey = enviroment.PAGARME_API_KEY;
 
         if ( !this.apiKey )
@@ -28,12 +35,12 @@ export class PagarmeService
 
     // -- INQUIRIES
 
-    async getHeaders(
+    getHeaders(
         )
     {
         return (
             {
-                'Authorization': 'Basic ' + Buffer.from( this.apiKey ).toString( 'base64' ),
+                'Authorization': 'Basic ' + Buffer.from( this.apiKey + ':' ).toString( 'base64' ),
                 'Content-Type': 'application/json'
             }
             );
