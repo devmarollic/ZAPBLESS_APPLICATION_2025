@@ -4,3 +4,4 @@ CODE/SERVER/.env
 DATABASE/*.sql
 Thumbs.db
 CODE/SERVER/.wwebjs_auth
+CODE/CLIENT/node_modules
