@@ -1,38 +1,43 @@
 // -- IMPORTS
 
-import dotenv from 'dotenv';
 import Fastify from 'fastify';
 import fastifyCors from '@fastify/cors';
 import fastifyStatic from '@fastify/static';
 import fs from 'fs';
 import path from 'path';
-import { HomePageController } from './lib/controller/home_page_controller';
-import { PropertiesPageController } from './lib/controller/properties_page_controller';
-import { PropertyPageController } from './lib/controller/property_page_controller';
 import { supabaseService } from './lib/service/supabase_service';
-import { churchRoutes, profileRoutes, whatsappRoutes, authenticateRoutes, planRoutes, ministryRoutes, eventRoutes, dashboardRoutes } from './lib/routes';
+import
+    {
+        churchRoutes,
+        profileRoutes,
+        whatsappRoutes,
+        authenticateRoutes,
+        planRoutes,
+        ministryRoutes,
+        eventRoutes,
+        dashboardRoutes,
+        subscriptionRoutes
+    } from './lib/routes';
 import { initIO } from './socket';
 import { authMiddleware } from './middleware/auth_middleware';
 import { errorMiddleware } from './middleware/error_middleware';
 import { whatsappBotManager } from './lib/service/whatsapp_bot_manager';
 import { scheduleWorker } from './lib/worker/schedule_worker';
 import { logError } from 'senselogic-gist';
+import { pagarmeService } from './lib/service/pagarme_service';
+import { enviroment } from './enviroment';
 
 // -- STATEMENTS
-
-dotenv.config(
-    {
-        path: '.env'
-    }
-    );
 
 let fastify = Fastify( { logger: true } );
 
 fastify.register(
     fastifyCors,
     {
-        origin: process.env.FRONTEND_URL,
-        credentials: true
+        origin: enviroment.FRONTEND_URL,
+        credentials: true,
+        methods: [ 'GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS' ],
+        allowedHeaders: [ 'Content-Type', 'Authorization' ]
     }
     );
 
@@ -53,10 +58,6 @@ fastify.register(
     }
     );
 
-let homePageController = new HomePageController();
-let propertiesPageController = new PropertiesPageController();
-let propertyPageController = new PropertyPageController();
-
 fastify.addHook( 'onRequest', authMiddleware );
 fastify.setErrorHandler( errorMiddleware );
 
@@ -68,30 +69,7 @@ fastify.register( whatsappRoutes, { prefix: '/whatsapp' } );
 fastify.register( ministryRoutes, { prefix: '/ministry' } );
 fastify.register( eventRoutes, { prefix: '/event' } );
 fastify.register( dashboardRoutes, { prefix: '/dashboard' } );
-
-fastify.post(
-    '/api/page/home',
-    async ( request, reply ) =>
-    {
-        return await homePageController.processRequest( request, reply );
-    }
-    );
-
-fastify.post(
-    '/api/page/properties',
-    async ( request, reply ) =>
-    {
-        return await propertiesPageController.processRequest( request, reply );
-    }
-    );
-
-fastify.post(
-    '/api/page/property/:id',
-    async ( request, reply ) =>
-    {
-        return await propertyPageController.processRequest( request, reply );
-    }
-    );
+fastify.register( subscriptionRoutes, { prefix: '/subscriptions' } );
 
 fastify.setNotFoundHandler(
     async ( request, reply ) =>
@@ -120,11 +98,31 @@ let start =
     {
         supabaseService.getClient();
 
+        // await client.subscriptions.create(
+        //     {
+
+        //     }
+        //     );
+        // client.criarPedido2(
+        //     {
+        //         customer: {
+        //           name: 'Fabiano César',
+        //           type: 'individual',
+        //           email: 'fcfabiano.cesar@gmail.com',
+        //           code: '_fWVgU821P6jFFUNAP3_yQ',
+        //           document: '08443276037',
+        //           document_type: 'CPF',
+        //           gender: 'male'
+        //         },
+        //         items: [ { quantity: 1, code: 'basic', description: 'Plano mensal básico', amount: 5990 } ]
+        //       }
+        //     );
+
         try
         {
             whatsappBotManager.initializeAllSessions();
             
-            await fastify.listen( { port : 8000, host : '0.0.0.0' } );
+            await fastify.listen( { port : enviroment.PORT, host : '0.0.0.0' } );
         }
         catch ( error )
         {
@@ -150,10 +148,12 @@ fastify.ready(
 
 initIO( fastify.server );
 
-scheduleWorker.start().catch(
-    ( error ) =>
-    {
-        logError( error );
-        process.exit( 1 );
-    }
-    );
+scheduleWorker
+    .start()
+    .catch(
+        ( error ) =>
+        {
+            logError( error );
+            process.exit( 1 );
+        }
+        );

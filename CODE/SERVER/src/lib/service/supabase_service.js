@@ -1,6 +1,7 @@
 // -- IMPORTS
 
 import { createServerClient } from '@supabase/ssr';
+import { enviroment } from '../../enviroment';
 
 // -- STATEMENTS
 
@@ -22,8 +23,8 @@ class SupabaseService
         )
     {
         return createServerClient(
-            process.env.ZAPBLESS_PROJECT_SUPABASE_DATABASE_URL,
-            process.env.ZAPBLESS_PROJECT_SUPABASE_DATABASE_KEY,
+            enviroment.ZAPBLESS_PROJECT_SUPABASE_DATABASE_URL,
+            enviroment.ZAPBLESS_PROJECT_SUPABASE_DATABASE_KEY,
             {
                 cookies:
                 {
@@ -100,7 +101,7 @@ class SupabaseService
         let { data, error } =
             await this.getClient()
                 .storage
-                .from( process.env.ZAPBLESS_PROJECT_SUPABASE_STORAGE_URL )
+                .from( enviroment.ZAPBLESS_PROJECT_SUPABASE_STORAGE_URL )
                 .upload(
                       storageFilePath,
                       localFile,
@@ -127,7 +128,7 @@ class SupabaseService
         let { data, error } =
             await this.getClient()
                 .storage
-                .from( process.env.ZAPBLESS_PROJECT_SUPABASE_STORAGE_URL )
+                .from( enviroment.ZAPBLESS_PROJECT_SUPABASE_STORAGE_URL )
                 .remove( [ storageFilePath ] );
 
         if ( error !== null )

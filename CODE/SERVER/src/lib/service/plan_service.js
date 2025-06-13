@@ -1,6 +1,6 @@
 // -- IMPORTS
 
-import { logError } from 'senselogic-gist';
+import { getMapById, logError } from 'senselogic-gist';
 import { databaseService } from './database_service';
 
 // -- FUNCTIONS
@@ -14,6 +14,7 @@ class PlanService
     {
         this.cachedPlanArray = null;
         this.cachedPlanArrayTimestamp = 0;
+        this.cachedPlanByIdMap = null;
     }
 
     // -- INQUIRIES
@@ -45,6 +46,7 @@ class PlanService
        {
            this.cachedPlanArray = await this.getPlanArray();
            this.cachedPlanArrayTimestamp = Date.now();
+           this.cachedPlanByIdMap = getMapById( this.cachedPlanArray, 'id' );
        }
 
        return this.cachedPlanArray;
@@ -77,6 +79,7 @@ class PlanService
     {
         this.cachedPlanArray = null;
         this.cachedPlanArrayTimestamp = 0;
+        this.cachedPlanByIdMap = null;
     }
 }
 

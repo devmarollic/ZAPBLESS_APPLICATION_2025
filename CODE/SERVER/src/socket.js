@@ -5,6 +5,7 @@ import { verify } from 'jsonwebtoken';
 import { AppError } from './lib/errors/app_error';
 import { getJsonText, logError } from 'senselogic-gist';
 import { supabaseService } from './lib/service/supabase_service';
+import { enviroment } from './enviroment';
 
 // -- VARIABLES
 
@@ -21,7 +22,7 @@ export function initIO(
         {
             cors:
             {
-                origin: process.env.FRONTEND_URL
+                origin: enviroment.FRONTEND_URL
             }
         }
         );
@@ -35,7 +36,7 @@ export function initIO(
 
             try
             {
-                tokenData = verify( token, process.env.ZAPBLESS_PROJECT_SUPABASE_JWT_SECRET );
+                tokenData = verify( token, enviroment.ZAPBLESS_PROJECT_SUPABASE_JWT_SECRET );
                 socket.userId = tokenData.sub;
             }
             catch ( error )

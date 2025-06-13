@@ -3,6 +3,7 @@
 import { getRandomTuid } from 'senselogic-gist';
 import { subscriptionSchema } from '../model/subscription';
 import { subscriptionService } from '../service/subscription_service';
+import { ZodError } from 'zod';
 
 //  TYPES
 
@@ -18,10 +19,15 @@ class CreateSubscriptionUseCase
     
         if ( !success )
         {
-            return error;
+            throw new ZodError( error );
         }
 
-        let subscription = await subscriptionService.addSubscription( data );
+        let subscription = await subscriptionService.addSubscription(
+            {
+                ...data,
+                id: getRandomTuid()
+            }
+            );
 
         return subscription;
     }

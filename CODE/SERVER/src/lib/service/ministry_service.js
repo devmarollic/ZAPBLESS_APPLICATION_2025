@@ -1,6 +1,7 @@
 
 // -- IMPORTS
 
+import { logError } from 'senselogic-gist';
 import { supabaseService } from '../service/supabase_service';
 
 // -- TYPES
@@ -14,12 +15,32 @@ class MinistryService
     {
         const { data, error } = await supabaseService
             .getClient()
-            .from('MINISTRY')
+            .from( 'MINISTRY' )
             .select();
 
-        if ( error )
+        if ( error !== null )
         {
-            throw error;
+            logError( error );
+        }
+
+        return data;
+    }
+
+    // ~~
+
+    async getMinistryArrayByChurchId(
+        churchId
+        )
+    {
+        const { data, error } = await supabaseService
+            .getClient()
+            .from( 'MINISTRY' )
+            .select()
+            .eq( 'churchId', churchId );
+
+        if ( error !== null )
+        {
+            logError( error );
         }
 
         return data;
@@ -33,14 +54,14 @@ class MinistryService
     {
         const { data, error } = await supabaseService
             .getClient()
-            .from('MINISTRY')
+            .from( 'MINISTRY' )
             .select()
-            .eq('id', id )
+            .eq( 'id', id )
             .single();
 
-        if ( error )
+        if ( error !== null )
         {
-            throw error;
+            logError( error );
         }
 
         return data;
@@ -54,13 +75,13 @@ class MinistryService
     {
         const { data, error } = await supabaseService
             .getClient()
-            .from('MINISTRY')
+            .from( 'MINISTRY' )
             .select()
-            .eq('churchId', churchId );
+            .eq( 'churchId', churchId );
 
-        if ( error )
+        if ( error !== null )
         {
-            throw error;
+            logError( error );
         }
 
         return data;
@@ -74,14 +95,14 @@ class MinistryService
     {
         const { data, error } = await supabaseService
             .getClient()
-            .from('MINISTRY')
+            .from( 'MINISTRY' )
             .insert( ministryData )
             .select()
             .single();
 
-        if ( error )
+        if ( error !== null )
         {
-            throw error;
+            logError( error );
         }
 
         return data;
@@ -96,15 +117,15 @@ class MinistryService
     {
         const { data, error } = await supabaseService
             .getClient()
-            .from('MINISTRY')
+            .from( 'MINISTRY' )
             .update( ministry )
             .eq('id', id )
             .select()
             .single();
 
-        if ( error )
+        if ( error !== null )
         {
-            throw error;
+            logError( error );
         }
 
         return data;
@@ -118,13 +139,13 @@ class MinistryService
     {
         const { error } = await supabaseService
             .getClient()
-            .from('MINISTRY')
+            .from( 'MINISTRY' )
             .delete()
-            .eq('id', id );
+            .eq( 'id', id );
 
-        if ( error )
+        if ( error !== null )
         {
-            throw error;
+            logError( error );
         }
 
         return data;

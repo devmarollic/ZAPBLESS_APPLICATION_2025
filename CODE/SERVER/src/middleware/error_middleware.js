@@ -33,7 +33,7 @@ export async function errorMiddleware(
             .send(
                 {
                     message: 'Validation error',
-                    details: error.errors
+                    details: error.issues
                 }
                 );
     }

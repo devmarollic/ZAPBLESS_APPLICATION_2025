@@ -1,8 +1,9 @@
 // -- IMPORTS
 
 import { getRandomTuid } from 'senselogic-gist';
-import { churchSchema } from '../model/church';
+import { churchSchema, churchType } from '../model/church';
 import { churchService } from '../service/church_service';
+import { ZodError } from 'zod';
 
 // -- TYPES
 
@@ -14,17 +15,17 @@ class CreateChurchUseCase
         input
         )
     {
-        let { success, error, data } = await churchSchema.safeParse( input );
+        let { success, error, data } = await churchSchema.safeParseAsync( input );
 
         if ( !success )
         {
-            return error;
+            throw new ZodError( error );
         }
 
         let church = await churchService.addChurch(
             {
                 id: getRandomTuid(),
-                statusId: 'active',
+                statusId: churchType.active,
                 ...data
             }
             );

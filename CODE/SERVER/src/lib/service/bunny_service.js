@@ -1,6 +1,7 @@
 // -- IMPORTS
 
 import fs from 'fs';
+import { enviroment } from '../../enviroment';
 
 // -- TYPES
 
@@ -11,9 +12,9 @@ class BunnyService
     constructor(
         )
     {
-        this.baseUrl = process.env.FUSION_PROJECT_BUNNY_STORAGE_URL;
-        this.storageZoneName = process.env.FUSION_PROJECT_BUNNY_STORAGE_ZONE_NAME;
-        this.apiKey = process.env.FUSION_PROJECT_BUNNY_STORAGE_API_KEY;
+        this.baseUrl = enviroment.FUSION_PROJECT_BUNNY_STORAGE_URL;
+        this.storageZoneName = enviroment.FUSION_PROJECT_BUNNY_STORAGE_ZONE_NAME;
+        this.apiKey = enviroment.FUSION_PROJECT_BUNNY_STORAGE_API_KEY;
     }
 
     // -- INQUIRIES

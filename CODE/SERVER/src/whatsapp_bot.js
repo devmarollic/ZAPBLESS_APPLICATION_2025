@@ -70,16 +70,16 @@ export async function initWbot(
 
                 let whatsappBot = new Client(
                     {
-                        session: session,
+                        // session: session,
                         authStrategy: new RemoteAuth(
                             {
                                 clientId: whatsapp.id,
                                 store,
                                 backupSyncIntervalMs: 300000,
-                                storeOptions: {
-                                    useLocalStorage: false,
-                                    useMemoryStorage: true
-                                }
+                                // storeOptions: {
+                                //     useLocalStorage: false,
+                                //     useMemoryStorage: true
+                                // }
                             }
                             ),
                         puppeteer:

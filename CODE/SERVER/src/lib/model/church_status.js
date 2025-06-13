@@ -11,3 +11,10 @@ export const churchStatusEnum = z.enum(
         'suspended'
     ]
     );
+
+export const churchStatus =
+    {
+        active: 'active',
+        inactive: 'inactive',
+        suspended: 'suspended'
+    };

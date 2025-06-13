@@ -1,10 +1,12 @@
 // -- IMPORTS
 
 import { getRandomTuid } from 'senselogic-gist';
-import { profileSchema } from '../model/profile';
+import { documentType, profileSchema } from '../model/profile';
 import { authentificationService } from '../service/authentification_service';
 import { profileService } from '../service/profile_service';
 import { userChurchRoleService } from '../service/role_service';
+import { profileStatus } from '../model/profile_status';
+import { ZodError } from 'zod';
 
 //  TYPES
 
@@ -16,11 +18,13 @@ class CreateProfileUseCase
         input
         )
     {
-        let { success, error, data } = profileSchema.safeParse( input );
+        let { success, error, data } = await profileSchema.safeParseAsync( input );
+
+        console.log( { success, error, data } );
 
         if ( !success )
         {
-            return error;
+            throw new ZodError( error );
         }
 
         let user = await authentificationService.signUpUser(
@@ -35,14 +39,16 @@ class CreateProfileUseCase
         let profile = await profileService.setProfileByEmail(
             {
                 churchId: data.churchId,
-                statusId: 'active',
+                statusId: profileStatus.active,
                 genderId: data.genderId,
                 phonePrefix: data.phonePrefix,
                 phoneNumber: data.phoneNumber,
                 countryCode: data.countryCode,
                 imagePath: data.imagePath,
                 birthDate: data.birthDate,
-                legalName: data.legalName
+                legalName: data.legalName,
+                documentType: data.documentType,
+                documentNumber: data.documentNumber
             },
             data.email
             );

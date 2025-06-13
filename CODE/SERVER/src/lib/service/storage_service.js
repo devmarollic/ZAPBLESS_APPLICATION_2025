@@ -4,6 +4,7 @@ import { logError } from 'senselogic-gist';
 import { bunnyService } from './bunny_service';
 import { supabaseService } from './supabase_service';
 import { createLimitedImage } from '../base/image';
+import { enviroment } from '../../enviroment';
 
 // -- TYPES
 
@@ -17,11 +18,11 @@ export class StorageService
     {
         if ( filePath.startsWith( '/global/' ) )
         {
-            return process.env.FUSION_PROJECT_BUNNY_STORAGE_URL + filePath;
+            return enviroment.FUSION_PROJECT_BUNNY_STORAGE_URL + filePath;
         }
         else if ( filePath.startsWith( '/upload/' ) )
         {
-            return process.env.FUSION_PROJECT_SUPABASE_STORAGE_URL + filePath;
+            return enviroment.FUSION_PROJECT_SUPABASE_STORAGE_URL + filePath;
         }
         else
         {

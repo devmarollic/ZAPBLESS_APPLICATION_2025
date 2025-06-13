@@ -2,16 +2,18 @@
 
 import { getMapByCode, logError } from 'senselogic-gist';
 import { databaseService } from './database_service';
+import { PagarmeService } from './pagarme_service';
 
 // -- FUNCTIONS
 
-class SubscriptionService
+class SubscriptionService extends PagarmeService
 {
     // -- CONSTRUCTORS
 
     constructor(
         )
     {
+        super();
     }
 
     // -- INQUIRIES
@@ -25,6 +27,117 @@ class SubscriptionService
                 .from( 'SUBSCRIPTION' )
                 .eq( 'churchId', churchId )
                 .select()
+                .single();
+
+        if ( error !== null )
+        {
+            logError( error );
+        }
+
+        return data;
+    }
+
+    // ~~
+
+    async getSubscriptionById(
+        subscriptionId
+        )
+    {
+        let { data, error } =
+            await databaseService.getClient()
+                .from( 'SUBSCRIPTION' )
+                .eq( 'id', subscriptionId )
+                .select()
+                .single();
+
+        if ( error !== null )
+        {
+            logError( error );
+        }
+
+        return data;
+    }
+
+    // ~~
+
+    async getSubscriptionByEmail(
+        email
+        )
+    {
+        let { data, error } =
+            await databaseService.getClient()
+                .from( 'SUBSCRIPTION' )
+                .select( `
+                    id,
+                    churchId,
+                    planId,
+                    typeId,
+                    statusId,
+                    periodId,
+                    startAtDateTimestamp,
+                    expiresAtDateTimestamp,
+                    CHURCH!inner (
+                        PROFILE!constraint_profile_church_1 (
+                            email
+                        )
+                    )
+                ` )
+                .eq( 'CHURCH.PROFILE.email', email )
+                .eq( 'statusId', 'pending' )
+                .single();
+
+        if ( error !== null )
+        {
+            logError( error );
+        }
+
+        return data;
+    }
+
+    // ~~
+
+    async getSubscriptionWithDetailsById(
+        subscriptionId
+        )
+    {
+        let { data, error } =
+            await databaseService.getClient()
+                .from( 'SUBSCRIPTION' )
+                .select( `
+                    id,
+                    churchId,
+                    planId,
+                    typeId,
+                    statusId,
+                    periodId,
+                    startAtDateTimestamp,
+                    expiresAtDateTimestamp,
+                    paymentGatewayId,
+                    paymentMethodId,
+                    church:CHURCH!inner (
+                        id,
+                        name,
+                        countryCode,
+                        documentNumber,
+                        documentType,
+                        profile:PROFILE!constraint_profile_church_1 (
+                            id,
+                            firstName,
+                            lastName,
+                            email,
+                            phoneNumber
+                        )
+                    ),
+                    plan:PLAN!inner (
+                        id,
+                        name,
+                        description,
+                        monthlyPrice,
+                        annualPrice,
+                        currencyCode
+                    )
+                ` )
+                .eq( 'id', subscriptionId )
                 .single();
 
         if ( error !== null )

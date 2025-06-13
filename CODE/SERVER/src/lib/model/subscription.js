@@ -12,9 +12,10 @@ export const subscriptionSchema = z.object(
         churchId: z.string(),
         planId: z.enum( [ 'basic', 'growth', 'community' ] ),
         typeId : z.enum( [ 'active', 'inactive', 'trial', 'cancelled' ] ).optional(),
+        statusId: z.enum( [ 'paid', 'pending', 'canceled', 'refused' ] ).optional(),
         periodId : z.enum( [ 'monthly', 'annual' ] ),
-        startAtDateTimestamp: z.string().date(),
-        expiresAtDateTimestamp: z.string().date()
+        startAtDateTimestamp: z.date(),
+        expiresAtDateTimestamp: z.date()
     }
     );
 
@@ -24,3 +25,25 @@ export const subscriptionWithIdSchema = z.object(
     }
     )
     .merge( subscriptionSchema );
+
+export const subscriptionType =
+    {
+        active: 'active',
+        inactive: 'inactive',
+        trial: 'trial',
+        cancelled: 'cancelled'
+    };
+
+export const subscriptionPeriod =
+    {
+        monthly: 'monthly',
+        annual: 'annual'
+    };
+
+export const subscriptionStatus =
+    {
+        paid: 'paid',
+        pending: 'pending',
+        canceled: 'canceled',
+        refused: 'refused'
+    };

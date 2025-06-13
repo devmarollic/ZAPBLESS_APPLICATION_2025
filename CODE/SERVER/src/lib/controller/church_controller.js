@@ -1,6 +1,7 @@
 // -- IMPORTS
 
-import { pagarmeService } from '../service/pagarme_service';
+import { documentType } from '../model/profile';
+import { subscriptionPeriod, subscriptionType, subscriptionStatus } from '../model/subscription';
 import { createChurchUseCase } from '../use_case/create_church_use_case';
 import { createProfileUseCase } from '../use_case/create_profile_use_case';
 import { createSubscriptionUseCase } from '../use_case/create_subscription_use_case';
@@ -24,7 +25,8 @@ export class ChurchController extends Controller
         let profile = await createProfileUseCase.execute(
             {
                 ...body.adminInfo,
-                churchId: church.id
+                churchId: church.id,
+                documentType: documentType.cpf
             }
             );
         let startAtDate = new Date();
@@ -42,34 +44,18 @@ export class ChurchController extends Controller
             {
                 churchId: church.id,
                 planId: body.selectedPlan,
-                typeId : 'inactive',
-                periodId : body.isAnnual ? 'annual' : 'monthly',
+                typeId : subscriptionType.trial,
+                statusId: subscriptionStatus.pending,
+                periodId : body.isAnnual ? subscriptionPeriod.annual : subscriptionPeriod.monthly,
                 startAtDateTimestamp: startAtDate,
                 expiresAtDateTimestamp: expiresAtDate
             }
             );
-        // let pagarmeClient = await pagarmeService.getClient();
 
-        // let customer = await pagarmeClient.customers.create(
-        //     {
-        //         external_id: church.id,
-        //         name: church.name,
-        //         type: 'company',
-        //         country: church.countryCode,
-        //         email: profile.email,
-        //         documents:
-        //             [
-        //                 {
-        //                     type: 'cpf',
-        //                     number: '31142815080'
-        //                 }
-        //             ],
-        //         phone_numbers: [ profile.phoneNumber ]
-        //     }
-        //     );
-        // console.log( { customer } );
-        // -- add plan selectedPlan, isAnnual
-
-        return church;
+        return (
+            {
+                subscriptionId: subscription.id
+            }
+            );
     }
 }

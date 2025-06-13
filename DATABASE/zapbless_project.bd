@@ -1,5 +1,6 @@
 @include DATA/continent.bd
 @include DATA/country.bd
+@include DATA/city.bd
 @include DATA/language.bd
 @include DATA/church_status.bd
 @include DATA/user_gender.bd
@@ -21,3 +22,4 @@
 @include DATA/subscription_period.bd
 @include DATA/subscription_status.bd
 @include DATA/role.bd
+

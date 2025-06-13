@@ -1,0 +1,12 @@
+CITY
+
+    code countryCode name searchName provinceName countryName communityName position
+
+        SP
+            ~ BR
+            ~ São Paulo
+            ~ sao paulo
+            ~
+            ~ Brasil
+            ~
+            ~

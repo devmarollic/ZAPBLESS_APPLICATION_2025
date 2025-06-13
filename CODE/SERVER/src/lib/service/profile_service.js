@@ -16,6 +16,26 @@ class ProfileService
 
     // -- INQUIRIES
 
+    async getChurchIdByProfileId(
+        profileId
+        )
+    {
+        let { data, error } = await databaseService.getClient()
+            .from( 'PROFILE' )
+            .select( 'churchId' )
+            .eq( 'id', profileId )
+            .single();
+
+        if ( error !== null )
+        {
+            logError( error );
+
+            return null;
+        }
+
+        return data.churchId;
+    }
+
     // -- OPERATIONS
 
     async addProfile(

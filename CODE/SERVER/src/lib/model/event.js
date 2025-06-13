@@ -11,7 +11,7 @@ export const eventSchema = z.object(
         description: z.string(),
         location: z.object(
             {
-                type: z.literal('Point'),
+                type: z.literal( 'Point' ),
                 coordinates: z.array(z.number())
             }
             ),

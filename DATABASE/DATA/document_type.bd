@@ -1,0 +1,18 @@
+DOCUMENT_TYPE
+
+    id name validatePattern maskPattern
+
+        cpf
+            ~ CPF
+            ~ ^\d{3}\.\d{3}\.\d{3}-\d{2}$|^\d{11}$
+            ~ 999.999.999-99
+
+        cnpj
+            ~ CNPJ
+            ~ ^\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}$|^\d{14}$
+            ~ 99.999.999/9999-99
+
+        passport
+            ~ PASSPORT
+            ~ ^[A-Z]{1}[0-9]{6,8}$|^[A-Z0-9]{6,9}$
+            ~ AAAAAAAAA

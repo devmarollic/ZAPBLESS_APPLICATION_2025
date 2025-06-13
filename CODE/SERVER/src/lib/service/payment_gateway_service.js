@@ -1,6 +1,7 @@
 // -- IMPORTS
 
 import pagarme from 'pagarme';
+import { enviroment } from '../../enviroment';
 
 // -- CONSTANTS
 
@@ -16,7 +17,7 @@ class PaymentGatewayService
     {
         return pagarme.client.connect(
             {
-                api_key: process.env.ZAPBLES_PROJECT_PAGARME_API_KEY
+                api_key: enviroment.ZAPBLES_PROJECT_PAGARME_API_KEY
             }
             );
     }

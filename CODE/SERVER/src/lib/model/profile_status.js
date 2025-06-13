@@ -10,3 +10,9 @@ export const profileStatusEnum = z.enum(
         'inactive'
     ]
     );
+
+export const profileStatus =
+    {
+        active: 'active',
+        inactive: 'inactive'
+    };

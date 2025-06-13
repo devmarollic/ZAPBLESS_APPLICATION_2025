@@ -4,6 +4,7 @@ import { object, z } from 'zod';
 import { profileStatusEnum } from './profile_status';
 import { profileGenderEnum } from './profile_gender';
 import { countryCodeEnum } from './country_code';
+import { documentTypeEnum } from './document_type';
 
 // -- CONSTANTS
 
@@ -21,6 +22,8 @@ export const profileSchema = z.object(
         phoneNumber: z.string(),
         countryCode: countryCodeEnum,
         imagePath: z.string().optional().nullable(),
+        documentType: documentTypeEnum,
+        documentNumber: z.string(),
         aboutDescription: z.string().optional(),
         legalName: z.string().optional()
     }
@@ -47,3 +50,16 @@ export const profileWithIdSchema = z.object(
     }
     )
     .merge( profileSchema );
+
+export const documentType =
+    {
+        cpf: 'cpf',
+        cnpj: 'cnpj',
+        passport: 'passport'
+    };
+
+export const profileStatus =
+    {
+        active: 'active',
+        inactive: 'inactive'
+    };

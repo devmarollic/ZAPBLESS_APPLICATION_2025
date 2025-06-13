@@ -34,6 +34,15 @@ public
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
+    DOCUMENT_TYPE
+
+        id : STRING = "{{name:slug_case}}" | key, unique
+        name : STRING
+        validatePattern : STRING
+        maskPattern : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
     CITY | dropped
 
         code : STRING | key, unique
@@ -59,10 +68,17 @@ public
         statusId : CHURCH_STATUS.id | constrained
         addressLine1 : STRING
         addressLine2 : STRING
-        cityCode : CITY.code | constrained
+        cityCode : STRING
         cityName : STRING
+        zipCode : STRING
+        neighborhood : STRING
+        stateCode : STRING
+        stateName : STRING
         countryCode : COUNTRY.code | constrained
-        languageTag : STRING
+        coordinates : GEOMETRY
+        documentType : DOCUMENT_TYPE.id | constrained
+        documentNumber : STRING
+        languageTag : LANGUAGE.code | constrained
         imagePath : STRING
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
@@ -84,6 +100,8 @@ public
         legalName : STRING
         birthDate : DATETIME
         genderId : USER_GENDER.id | constrained
+        documentType : DOCUMENT_TYPE.id | constrained
+        documentNumber : STRING
         email : STRING
         phonePrefix : STRING
         phoneNumber : STRING
@@ -156,7 +174,8 @@ public
         planId : PLAN.id | constrained
         typeId : SUBSCRIPTION_TYPE.id | constrained
         statusId : SUBSCRIPTION_STATUS.id | constrained
-        periodId : SUBSCRIPTION_PERIOD | constrained
+        periodId : SUBSCRIPTION_PERIOD.id | constrained
+        price : NUMBER
         startAtDateTimestamp : DATETIME
         expiresAtDateTimestamp : DATETIME
         paymentGatewayId : STRING

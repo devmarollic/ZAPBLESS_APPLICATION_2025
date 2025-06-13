@@ -5,6 +5,7 @@ import { paymentGatewayService } from '../service/payment_gateway_service';
 import { planService } from '../service/plan_service';
 import { subscriptionService } from '../service/subscription_service';
 import { NotFoundError } from '../errors/not_found';
+import { enviroment } from '../../enviroment';
 
 // -- TYPES
 
@@ -56,7 +57,7 @@ class CreateCheckoutUseCase
                 payment_method: input.paymentMethodId,
                 plan_id: plan.id,
                 customer: input.customerData,
-                postback_url: process.env.BASE_URL + '/api/webhook/pagarme',
+                postback_url: enviroment.BASE_URL + '/api/webhook/pagarme',
                 metadata:
                     {
                         subscription_id: subscription.id

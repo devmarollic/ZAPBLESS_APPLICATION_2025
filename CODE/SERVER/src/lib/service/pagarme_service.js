@@ -1,28 +1,59 @@
 // -- IMPORTS
 
-import pagarme from 'pagarme';
+import { enviroment } from "../../enviroment";
 
-// -- CONSTANTS
-
-export const
-    pagarmeApiKey = 'pk_test_w519v4aIMYcNY0bx';
 
 // -- TYPES
 
-class PagarmeService
+export class PagarmeService
 {
-    // -- INQUIRIES
+    // -- CONSTRUCTORS
 
-    async getClient(
+    constructor(
         )
     {
-        let client = await pagarme.client.connect(
-            {
-                encryption_key: pagarmeApiKey
-            }
-        );
+        this.baseUrl = enviroment.PAGARME_BASE_URL;
+        this.apiKey = enviroment.PAGARME_API_KEY;
 
-        return client;
+        if ( !this.apiKey )
+        {
+            throw new Error( 'PAGARME_API_KEY missing' );
+        }
+
+        if ( !this.baseUrl )
+        {
+            throw new Error( 'PAGARME_BASE_URL missing' );
+        }
+    }
+
+    // -- INQUIRIES
+
+    async getHeaders(
+        )
+    {
+        return (
+            {
+                'Authorization': 'Basic ' + Buffer.from( this.apiKey ).toString( 'base64' ),
+                'Content-Type': 'application/json'
+            }
+            );
+    }
+
+    // ~~
+
+    async paySubscription(
+        subscriptionData
+        )
+    {
+        let subscription = await fetch( this.baseUrl + '/subscriptions',
+            {
+                method: 'POST',
+                headers: this.getHeaders(),
+                body: JSON.stringify( subscriptionData )
+            }
+            );
+
+        return subscription;
     }
 }
 
