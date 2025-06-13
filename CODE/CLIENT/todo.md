@@ -1,0 +1,12 @@
+- [ ] Importar contatos
+- [ ] Integrar calendário
+- [ ] Integrar página de eventos
+- [ ] Integrar Detalhes dos eventos
+- [ ] Criar sistema de recorrência de eventos
+- [ ] Finalizar integração com pagarme
+- [ ] Limitar recursos e criação de ministérios por plano
+- [ ] Sincronizar whatsapp após sessão iniciada (Recuperar sessão ativa)
+- [ ] Integrar gráficos (acessos, mensagens, membros, ministérios, avisos)
+- [ ] Listar ministérios
+- [ ] Integrar meus dados
+- [ ] Integrar métricas home page (total de membros, mensagens enviadas, ministérios ativos, avisos publicados, atividade semanal, distribuição de ministérios)

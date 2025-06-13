@@ -1,7 +1,7 @@
 // -- IMPORTS
 
 import { PaymentStrategy } from './payment_strategy.js';
-import { getJsonText, getRoundInteger } from 'senselogic-gist';
+import { getInteger, getJsonText, getRoundInteger } from 'senselogic-gist';
 
 // -- TYPES
 
@@ -104,8 +104,8 @@ export class DebitCardPaymentStrategy extends PaymentStrategy
                     {
                         number: cleanCardNumber,
                         holder_name: paymentData.holderName,
-                        exp_month: parseInt( month, 10 ),
-                        exp_year: parseInt( fullYear, 10 ),
+                        exp_month: getInteger( month, 10 ),
+                        exp_year: getInteger( fullYear, 10 ),
                         cvv: paymentData.cvv
                     },
                 items:

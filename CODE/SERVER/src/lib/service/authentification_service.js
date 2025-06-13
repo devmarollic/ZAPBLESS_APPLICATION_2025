@@ -37,7 +37,6 @@ class AuthentificationService
                   }
                   );
 
-
         if ( error !== null )
         {
             logError( error );
