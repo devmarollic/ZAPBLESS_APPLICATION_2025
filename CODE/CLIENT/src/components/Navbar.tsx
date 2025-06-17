@@ -36,6 +36,8 @@ const Navbar = () => {
     } else {
         enableScroll();
     }
+
+    return () => enableScroll();
   }, [mobileMenuOpen]);
 
   return (

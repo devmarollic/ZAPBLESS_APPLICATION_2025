@@ -71,21 +71,11 @@ const Login = () => {
 
             AuthenticationService.authenticate(response, response.user.user_metadata.first_name);
 
-            const hasSubscription = await checkUserSubscription(data.email);
-
-            if (hasSubscription) {
-                toast({
-                    title: 'Login realizado com sucesso',
-                    description: 'Você será redirecionado para o dashboard',
-                });
-                navigate('/dashboard');
-            } else {
-                toast({
-                    title: 'Bem-vindo!',
-                    description: 'Selecione um plano para continuar',
-                });
-                navigate('/plan-selection/' + data.email);
-            }
+            toast({
+                title: 'Login realizado com sucesso',
+                description: 'Você será redirecionado para o dashboard',
+            });
+            navigate('/dashboard');
         } catch (error) {
             if ( error.message === ErrorConstants.SUBSCRIPTION_NOT_FOUND ) {
                 const hasSubscription = await checkUserSubscription(data.email);
