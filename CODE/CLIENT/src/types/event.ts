@@ -26,14 +26,30 @@ export interface Event {
   id?: string;
   title: string;
   description: string;
+  churchId: string;
   location: string;
   date: Date;
-  startTime: string;
-  endTime: string;
-  ministry?: string;
+  startAtTimestamp: string;
+  endAtTimestamp: string;
+  ministryId?: string;
   isPublic: boolean;
   recurrence_id?: string;
   recurrence?: RecurrenceRule;
+  statusId: string;
+  typeId: string;
+  ministry?: {
+    id: string;
+    name: string;
+    color: string;
+  };
+  status?: {
+    id: string;
+    name: string;
+  };
+  type?: {
+    id: string;
+    name: string;
+  }
 }
 
 export type EventFormValues = {
@@ -43,6 +59,7 @@ export type EventFormValues = {
   startTime: string;
   endTime: string;
   location: string;
+  typeId: string;
   ministry?: string;
   isPublic: boolean;
   recurrence_type: RecurrenceType;

@@ -11,13 +11,20 @@ interface Ministry {
   name: string;
 }
 
+interface EventType {
+  id: string;
+  name: string;
+}
+
 interface EventBasicInfoFormProps {
   control: Control<EventFormValues>;
   ministries: Ministry[];
+  eventTypes: EventType[];
   loadingMinistries?: boolean;
+  loadingEventType?: boolean;
 }
 
-const EventBasicInfoForm = ({ control, ministries, loadingMinistries = false }: EventBasicInfoFormProps) => {
+const EventBasicInfoForm = ({ control, ministries, eventTypes, loadingMinistries = false, loadingEventType = false }: EventBasicInfoFormProps) => {
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -30,6 +37,35 @@ const EventBasicInfoForm = ({ control, ministries, loadingMinistries = false }: 
               <FormControl>
                 <Input placeholder="Digite o título do evento" {...field} />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={control}
+          name="typeId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tipo de evento</FormLabel>
+              <Select 
+                onValueChange={field.onChange} 
+                defaultValue={field.value}
+                disabled={loadingEventType}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder={loadingEventType ? "Carregando..." : "Selecione um ministério"} />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {eventTypes.map((eventType) => (
+                    <SelectItem key={eventType.id} value={eventType.id}>
+                      {eventType.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}

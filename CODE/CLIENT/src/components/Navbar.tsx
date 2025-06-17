@@ -8,6 +8,13 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const disableScroll = () => {
+    document.documentElement.style.overflow = "hidden";
+  }
+  const enableScroll = () => {
+    document.documentElement.style.overflow = "auto";
+  }
+
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 10) {
@@ -23,9 +30,17 @@ const Navbar = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if(mobileMenuOpen) {
+        disableScroll();
+    } else {
+        enableScroll();
+    }
+  }, [mobileMenuOpen]);
+
   return (
     <header
-      className={`fixed w-full top-0 z-50 transition-all duration-300 ${
+      className={`fixed w-[100dvw] top-0 z-50 transition-all duration-300 ${
         isScrolled
           ? "bg-white/90 backdrop-blur-sm shadow-sm py-2"
           : "bg-transparent py-4"

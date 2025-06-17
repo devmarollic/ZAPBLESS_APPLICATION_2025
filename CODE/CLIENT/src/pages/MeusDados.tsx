@@ -91,7 +91,7 @@ const MeusDados = () => {
   };
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="md:container mx-auto py-6">
       <h1 className="text-2xl md:text-3xl font-bold mb-6">Meus Dados</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -16,6 +16,7 @@ import EventLocationForm from '@/components/events/EventLocationForm';
 import EventRecurrenceForm from '@/components/events/EventRecurrenceForm';
 import EventVisibilityForm from '@/components/events/EventVisibilityForm';
 import EventFormActions from '@/components/events/EventFormActions';
+import { EventType, EventTypeListResponse, EventTypeService } from '@/services/eventTypeService';
 
 const eventFormSchema = z.object({
   title: z.string().min(3, "O título deve ter pelo menos 3 caracteres"),
@@ -43,7 +44,9 @@ const EventoNovo = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [ministries, setMinistries] = useState<Ministry[]>([]);
+  const [eventTypes, setEventTypes] = useState<EventType[]>([]);
   const [loadingMinistries, setLoadingMinistries] = useState(true);
+  const [loadingEventTypes, setLoadingEventTypes] = useState(true);
 
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventFormSchema),
@@ -55,6 +58,7 @@ const EventoNovo = () => {
       endTime: '21:00',
       location: '',
       ministry: undefined,
+      typeId: 'worship',
       isPublic: true,
       recurrence_type: 'none',
       recurrence_interval: 1,
@@ -90,7 +94,33 @@ const EventoNovo = () => {
       }
     };
 
+    const fetchEventTypes = async () => {
+        try {
+          setLoadingEventTypes(true);
+          const response = await EventTypeService.getEventTypes();
+          if (response) {
+            setEventTypes(response as EventType[]);
+          } else {
+            toast({
+              title: "Erro ao carregar tipos de eventos",
+              description: (response as EventTypeListResponse).message || "Não foi possível carregar a lista de tipos de eventos.",
+              variant: "destructive",
+            });
+          }
+        } catch (error) {
+          console.error("Error fetching event types:", error);
+          toast({
+            title: "Erro ao carregar tipos de eventos",
+            description: "Não foi possível carregar a lista de tipos de eventos.",
+            variant: "destructive",
+          });
+        } finally {
+          setLoadingEventTypes(false);
+        }
+      };
+
     fetchMinistries();
+    fetchEventTypes();
   }, [toast]);
 
   // Handle day of week selection
@@ -155,7 +185,7 @@ const EventoNovo = () => {
   };
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="md:container mx-auto py-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl md:text-3xl font-bold">Novo Evento</h1>
         <Button variant="outline" onClick={() => navigate('/dashboard/eventos')}>
@@ -176,7 +206,9 @@ const EventoNovo = () => {
               <EventBasicInfoForm 
                 control={form.control} 
                 ministries={ministries}
+                eventTypes={eventTypes}
                 loadingMinistries={loadingMinistries}
+                loadingEventType={loadingEventTypes}
               />
               <EventDateTimeForm control={form.control} />
               <EventLocationForm control={form.control} />

@@ -14,13 +14,31 @@ const WhatsAppContext = createContext({
   setSyncing: (syncing: boolean) => {},
   qrCode: null,
   setQrCode: (qrCode: string) => {},
+  metrics: {
+    members: {
+      total: 0,
+      growth: 0
+    },
+    messages: {
+      total: 0,
+      growth: 0
+    },
+    ministries: {
+      total: 0,
+      growth: 0
+    },
+    announcements: {
+      total: 0,
+      growth: 0
+    }
+  }
 });
 
 export function WhatsAppProvider({ children }: { children: React.ReactNode }) {
-    const { isLoading, whatsapps, church, ministries, contacts, whatsapp, setWhatsapp, syncing, setSyncing, qrCode, setQrCode } = useDashboard();
+    const { isLoading, whatsapps, church, ministries, contacts, whatsapp, setWhatsapp, syncing, setSyncing, qrCode, setQrCode, metrics } = useDashboard();
 
     return (
-        <WhatsAppContext.Provider value={{ isLoading, whatsapps, church, ministries, contacts, whatsapp, setWhatsapp, syncing, setSyncing, qrCode, setQrCode }}>
+        <WhatsAppContext.Provider value={{ isLoading, whatsapps, church, ministries, contacts, whatsapp, setWhatsapp, syncing, setSyncing, qrCode, setQrCode, metrics }}>
             {children}
         </WhatsAppContext.Provider>
     );

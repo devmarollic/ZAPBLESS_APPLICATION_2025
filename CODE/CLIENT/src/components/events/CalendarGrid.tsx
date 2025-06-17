@@ -23,7 +23,7 @@ const CalendarGrid = ({
 }: CalendarGridProps) => {
   const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
   const nomeMes = new Date(anoAtual, mesAtual).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-
+console.log({eventos})
   const obterEventosDoDia = (data: Date) => {
     return eventos.filter(evento => {
       const eventoData = new Date(evento.data);
@@ -59,7 +59,7 @@ const CalendarGrid = ({
             <div
               key={index}
               className={`
-                min-h-[100px] p-2 border rounded-lg transition-colors hover:bg-muted/50
+                md:min-h-[60px] lg:min-h-[100px] p-2 border rounded-lg transition-colors hover:bg-muted/50
                 ${isMesAtual ? 'bg-background' : 'bg-muted/20 text-muted-foreground'}
                 ${isHoje ? 'ring-2 ring-primary' : ''}
               `}

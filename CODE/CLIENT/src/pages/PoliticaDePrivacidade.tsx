@@ -22,7 +22,7 @@ const PoliticaDePrivacidade = () => {
         
         <h1 className="text-3xl font-bold mb-8">Política de Privacidade</h1>
         <div className="prose prose-gray max-w-none">
-          <p className="text-gray-600 mb-4">Última atualização: 23 de Maio de 2023</p>
+          <p className="text-gray-600 mb-4">Última atualização: 01 de Maio de 2025</p>
           
           <section className="mb-8">
             <h2 className="text-xl font-semibold mb-4">1. Introdução</h2>

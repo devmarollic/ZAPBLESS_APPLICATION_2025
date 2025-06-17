@@ -36,6 +36,7 @@ const Pagamento = () => {
     });
 
     const price = isAnnual ? planByIdMap[selectedPlan]?.annualPrice : planByIdMap[selectedPlan]?.monthlyPrice;
+    const [ real, cents ] = price?.toFixed(2).replace('.', ',').split(',');
 
     useEffect(() => {
         if (!selectedPlan) {
@@ -350,7 +351,13 @@ const Pagamento = () => {
                                 </div>
                                 <div className="text-right">
                                     <p className="text-2xl font-bold text-zapPurple-600">
-                                        R$ {price?.toFixed(2).replace('.', ',')}
+                                        <span className="text-sm">R$</span>
+                                        <span className="text-2xl font-bold text-zapPurple-600">
+                                            {real}
+                                        </span>
+                                        <span className="text-sm text-zapPurple-600">
+                                            ,{cents}
+                                        </span>
                                     </p>
                                     <p className="text-sm text-gray-600">
                                         {isAnnual ? '/ano' : '/mês'}

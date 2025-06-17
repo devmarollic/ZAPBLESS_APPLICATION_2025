@@ -1,6 +1,7 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Check } from 'lucide-react';
+import { Check, TrendingUp } from 'lucide-react';
 import { PlanOption } from './register/PlanSelectionStep';
 import { usePlan } from '@/hooks/use-plan';
 
@@ -13,6 +14,24 @@ const Pricing = () => {
         0: 'border-zapBlue-200 hover:border-zapBlue-400',
         1: 'border-zapPurple-300 hover:border-zapPurple-500',
         2: 'border-zapGold-200 hover:border-zapGold-400'
+    };
+
+    const formatPrice = (price: number) => {
+        return new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL',
+            minimumFractionDigits: 2
+        }).format(price);
+    };
+
+    const calculateMonthlyFromAnnual = (annualPrice: number) => {
+        return annualPrice / 12;
+    };
+
+    const calculateSavings = (monthlyPrice: number, annualPrice: number) => {
+        const annualMonthly = annualPrice / 12;
+        const savings = ((monthlyPrice - annualMonthly) / monthlyPrice) * 100;
+        return Math.round(savings);
     };
 
     return (
@@ -31,7 +50,7 @@ const Pricing = () => {
                             }`}
                         onClick={() => setIsAnnual(true)}
                     >
-                        Anual <span className="text-zapPurple-600">(Economize 15%)</span>
+                        Anual <span className="text-zapPurple-600 font-semibold">(Economize até 15%)</span>
                     </button>
                     <button
                         className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${!isAnnual ? "bg-white shadow-sm" : "text-gray-500"
@@ -58,16 +77,64 @@ const Pricing = () => {
                         <div className="flex-1">
                             <div className="text-center mb-8">
                                 <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
-                                <p className="text-gray-500 mb-4">{plan.description}</p>
-                                <div className="text-4xl font-bold">
-                                    R${isAnnual ? plan.annualPrice : plan.monthlyPrice}
-                                    <span className="text-lg text-gray-500 font-normal">
-                                        /mês
-                                    </span>
+                                <p className="text-gray-500 mb-6">{plan.description}</p>
+                                
+                                {/* Preço Principal */}
+                                <div className="mb-4">
+                                    {isAnnual ? (
+                                        <div className="space-y-2">
+                                            {/* Preço Original Riscado */}
+                                            <div className="text-lg text-gray-400 line-through">
+                                                {formatPrice(plan.monthlyPrice)}/mês
+                                            </div>
+                                            
+                                            {/* Preço com Desconto */}
+                                            <div className="flex items-baseline justify-center gap-1">
+                                                <span className="text-sm text-gray-600">R$</span>
+                                                <span className="text-5xl font-bold text-gray-900">
+                                                    {Math.round(calculateMonthlyFromAnnual(plan.annualPrice))}
+                                                </span>
+                                                <span className="text-lg text-gray-600 font-medium">/mês</span>
+                                            </div>
+                                            
+                                            {/* Badge de Economia */}
+                                            <div className="inline-flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">
+                                                <TrendingUp className="w-3 h-3" />
+                                                Economize {calculateSavings(plan.monthlyPrice, plan.annualPrice)}%
+                                            </div>
+                                            
+                                            {/* Valor Total Anual */}
+                                            <div className="text-sm text-gray-500 mt-2">
+                                                Cobrança anual de <span className="font-semibold text-gray-700">{formatPrice(plan.annualPrice)}</span>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-2">
+                                            <div className="flex items-baseline justify-center gap-1">
+                                                <span className="text-sm text-gray-600">R$</span>
+                                                <span className="text-5xl font-bold text-gray-900">
+                                                    {plan.monthlyPrice}
+                                                </span>
+                                                <span className="text-lg text-gray-600 font-medium">/mês</span>
+                                            </div>
+                                            
+                                            {/* Preço Anual Equivalente */}
+                                            <div className="text-sm text-gray-500">
+                                                ou {formatPrice(plan.annualPrice)} por ano
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
+
+                                {/* Indicador de Valor */}
                                 {isAnnual && (
-                                    <div className="text-sm text-zapPurple-600 mt-1">
-                                        Cobrança anual de R${plan.annualPrice * 12}
+                                    <div className="bg-gradient-to-r from-zapPurple-50 to-zapBlue-50 border border-zapPurple-200 rounded-lg p-3 mb-4">
+                                        <div className="text-xs text-zapPurple-700 font-medium">
+                                            🎯 Melhor custo-benefício
+                                        </div>
+                                        <div className="text-sm text-zapPurple-600 mt-1">
+                                            Você economiza {formatPrice((plan.monthlyPrice * 12) - plan.annualPrice)} por ano
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -83,20 +150,12 @@ const Pricing = () => {
                         </div>
 
                         <Button
-                            className={`w-full rounded-full mt-8 ${ index !== ( plans.length - 1 ) ? 'bg-gradient-to-r from-zapBlue-600 to-zapPurple-600 hover:from-zapBlue-700 hover:to-zapPurple-700' : 'bg-zapGold-600 hover:bg-zapGold-700' } py-6 text-white`}
+                            className={`w-full rounded-full mt-8 ${ index !== ( plans.length - 1 ) ? 'bg-gradient-to-r from-zapBlue-600 to-zapPurple-600 hover:from-zapBlue-700 hover:to-zapPurple-700' : 'bg-zapGold-600 hover:bg-zapGold-700' } py-6 text-white font-semibold text-lg`}
                         >
-                            Comece Agora
+                            {isAnnual ? 'Economizar Agora' : 'Comece Agora'}
                         </Button>
                     </div>
                 ))}
-            </div>
-
-            <div className="mt-12 text-center text-gray-500">
-                <p>
-                    Todos os planos incluem período de teste gratuito de 14 dias.
-                    <br />
-                    Não é necessário cartão de crédito.
-                </p>
             </div>
         </section>
     );

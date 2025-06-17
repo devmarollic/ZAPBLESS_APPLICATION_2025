@@ -36,6 +36,28 @@ class ProfileService
         return data.churchId;
     }
 
+    // ~~
+
+    async getChurchIdByProfileEmail(
+        email
+        )
+    {
+        let { data, error } = await databaseService.getClient()
+            .from( 'PROFILE' )
+            .select( 'churchId' )
+            .eq( 'email', email )
+            .single();
+
+        if ( error !== null )
+        {
+            logError( error );
+
+            return null;
+        }
+
+        return data.churchId;
+    }
+
     // -- OPERATIONS
 
     async addProfile(

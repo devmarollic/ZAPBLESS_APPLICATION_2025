@@ -1,3 +1,4 @@
+
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -25,6 +26,7 @@ import GraficosMinisterios from './pages/GraficosMinisterios';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import Pagamento from './pages/Pagamento';
+import PlanSelection from './pages/PlanSelection';
 import Ministerios from './pages/Ministerios';
 import MinisterioNovo from './pages/MinisterioNovo';
 import MinisterioEditar from './pages/MinisterioEditar';
@@ -65,6 +67,7 @@ const App = () => (
                             <Route path="/" element={<Index />} />
                             <Route path="/register" element={<Register />} />
                             <Route path="/login" element={<Login />} />
+                            <Route path="/plan-selection/:email" element={<PlanSelection />} />
                             <Route path="/pagamento" element={<Pagamento />} />
 
                             {/* Legal Pages */}

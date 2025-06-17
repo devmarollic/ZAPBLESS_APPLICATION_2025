@@ -48,13 +48,17 @@ const Login = () => {
         },
     });
 
-    const getSubscriptionByEmail = async (email: string) => {
-        const response = await HttpClient.get<Subscription>('/subscriptions/email/' + email);
-
-        setSelectedPlan(response.planId);
-        setIsAnnual(response.periodId === 'annual');
-        setSubscriptionId(response.id);
-    }
+    const checkUserSubscription = async (email: string) => {
+        try {
+            const response = await HttpClient.get<Subscription>('/subscriptions/email/' + email);
+            setSelectedPlan(response.planId);
+            setIsAnnual(response.periodId === 'annual');
+            setSubscriptionId(response.id);
+            return true;
+        } catch (error) {
+            return false;
+        }
+    };
 
     const onSubmit = async (data: LoginFormData) => {
         setIsLoading(true);
@@ -67,16 +71,29 @@ const Login = () => {
 
             AuthenticationService.authenticate(response, response.user.user_metadata.first_name);
 
-            toast({
-                title: 'Login realizado com sucesso',
-                description: 'Você será redirecionado para o dashboard',
-            });
+            const hasSubscription = await checkUserSubscription(data.email);
 
-            navigate('/dashboard');
+            if (hasSubscription) {
+                toast({
+                    title: 'Login realizado com sucesso',
+                    description: 'Você será redirecionado para o dashboard',
+                });
+                navigate('/dashboard');
+            } else {
+                toast({
+                    title: 'Bem-vindo!',
+                    description: 'Selecione um plano para continuar',
+                });
+                navigate('/plan-selection/' + data.email);
+            }
         } catch (error) {
             if ( error.message === ErrorConstants.SUBSCRIPTION_NOT_FOUND ) {
-                await getSubscriptionByEmail(data.email);
-                navigate('/pagamento');
+                const hasSubscription = await checkUserSubscription(data.email);
+                if (hasSubscription) {
+                    navigate('/pagamento');
+                } else {
+                    navigate('/plan-selection/' + data.email);
+                }
             }
             else if ( error.message === ErrorConstants.PERMISSION_VALIDATION_ERROR ) {
                 toast({

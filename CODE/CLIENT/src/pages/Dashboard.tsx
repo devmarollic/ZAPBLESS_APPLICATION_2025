@@ -20,7 +20,7 @@ const dashboardData = [
 ];
 
 const Dashboard = () => {
-    const { ministries, isLoading } = useDashboard();
+    const { ministries, isLoading, metrics} = useDashboard();
 
     // Transform ministries data for the chart
     const ministeriosData = ministries?.map(ministry => ({
@@ -48,9 +48,9 @@ const Dashboard = () => {
                         <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">245</div>
+                        <div className="text-2xl font-bold">{ metrics.members.total }</div>
                         <p className="text-xs text-muted-foreground">
-                            +12 neste mês
+                            +{ metrics.members.growth } neste mês
                         </p>
                     </CardContent>
                 </Card>
@@ -60,9 +60,9 @@ const Dashboard = () => {
                         <MessageSquare className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">1,253</div>
+                        <div className="text-2xl font-bold">{ metrics.messages.total }</div>
                         <p className="text-xs text-muted-foreground">
-                            +124 nesta semana
+                            +{ metrics.messages.growth } nesta semana
                         </p>
                     </CardContent>
                 </Card>
@@ -72,9 +72,9 @@ const Dashboard = () => {
                         <Building className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{ministries?.length || 8}</div>
+                        <div className="text-2xl font-bold">{ metrics.ministries.total }</div>
                         <p className="text-xs text-muted-foreground">
-                            +2 neste trimestre
+                            +{ metrics.ministries.growth } neste trimestre
                         </p>
                     </CardContent>
                 </Card>
@@ -84,9 +84,9 @@ const Dashboard = () => {
                         <Bell className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">42</div>
+                        <div className="text-2xl font-bold">{ metrics.announcements.total }</div>
                         <p className="text-xs text-muted-foreground">
-                            +8 neste mês
+                            +{ metrics.announcements.growth } neste mês
                         </p>
                     </CardContent>
                 </Card>

@@ -251,6 +251,8 @@ export class HttpClient {
             headers['Content-Type'] = contentType;
         }
 
+        headers['ngrok-skip-browser-warning'] = 'true';
+
         return headers;
     }
 

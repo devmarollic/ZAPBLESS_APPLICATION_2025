@@ -1,3 +1,4 @@
+import { Event } from "@/types/event";
 
 export const gerarCalendario = (ano: number = 2025, mes: number = 4) => {
   // Criar um array bidimensional para representar as semanas do mês
@@ -123,7 +124,7 @@ export const filtrarEventosPorData = (eventos: any[], dataInicio?: Date, dataFim
 };
 
 export const aplicarFiltros = (
-  eventos: any[], 
+  eventos: Event[], 
   categorias: string[] = [], 
   dataInicio?: Date, 
   dataFim?: Date, 
@@ -138,7 +139,7 @@ export const aplicarFiltros = (
   // Filtrar por mês/ano específico se fornecido
   if (mesAtual !== undefined && anoAtual !== undefined) {
     eventosFiltrados = eventosFiltrados.filter(
-      evento => evento.data.getMonth() === mesAtual && evento.data.getFullYear() === anoAtual
+      evento => new Date(evento.startAtTimestamp).getMonth() === mesAtual && new Date(evento.startAtTimestamp).getFullYear() === anoAtual
     );
   }
   
@@ -146,14 +147,14 @@ export const aplicarFiltros = (
   if (categorias && categorias.length > 0) {
     eventosFiltrados = eventosFiltrados.filter(evento => 
       categorias.includes('todas') || categorias.some(cat => 
-        evento.tipo?.toLowerCase() === cat.toLowerCase() || 
-        (evento.cor === 'green' && cat.toLowerCase() === 'cultos') ||
-        (evento.cor === 'purple' && cat.toLowerCase() === 'reunioes') ||
-        (evento.cor === 'orange' && cat.toLowerCase() === 'eventos especiais') ||
-        (evento.cor === 'blue' && cat.toLowerCase() === 'grupos')
+        evento.typeId?.toLowerCase() === cat.toLowerCase() || 
+        (evento.statusId === 'is-coming' && cat.toLowerCase() === 'cultos') ||
+        (evento.statusId === 'is-coming' && cat.toLowerCase() === 'reunioes') ||
+        (evento.statusId === 'is-coming' && cat.toLowerCase() === 'eventos especiais') ||
+        (evento.statusId === 'is-coming' && cat.toLowerCase() === 'grupos')
       )
     );
   }
   
-  return eventosFiltrados;
+  return eventos;
 };

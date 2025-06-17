@@ -10,7 +10,7 @@ const Sobre = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <div className="flex-grow container max-w-6xl mx-auto px-4 py-16 mt-16">
+      <div className="flex-grow container max-w-6xl mx-auto px-4 md:py-16 sm:py-8 mt-16">
         <div className="mb-8">
           <Link to="/">
             <Button variant="ghost" className="flex items-center gap-2">

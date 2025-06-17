@@ -18,19 +18,10 @@ import {
   DialogTitle,
   DialogClose,
 } from "@/components/ui/dialog";
+import { Event } from "@/types/event";
 
 interface EventDetailsCardProps {
-  event: {
-    id: number;
-    data: Date;
-    titulo: string;
-    cor: string;
-    tipo: string;
-    horario?: string;
-    local?: string;
-    quantidade?: number;
-    recurrence?: boolean;
-  } | null;
+  event: Event;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -73,14 +64,14 @@ const EventDetailsCard = ({ event, isOpen, onClose }: EventDetailsCardProps) => 
           <CardHeader className="px-0 pb-3">
             <div className="flex items-start justify-between">
               <div>
-                <CardTitle className="text-lg">{event.titulo}</CardTitle>
+                <CardTitle className="text-lg">{event.title}</CardTitle>
                 <CardDescription className="mt-1">
-                  {format(event.data, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                  {format(event.startAtTimestamp, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR })}
                 </CardDescription>
               </div>
               <div className="flex gap-2">
-                <Badge className={getEventTypeColor(event.cor)}>
-                  {getEventTypeLabel(event.tipo)}
+                <Badge className={event.ministry.color}>
+                  {event.type.name}
                 </Badge>
                 {event.recurrence && (
                   <Badge variant="outline" className="gap-1">
@@ -93,26 +84,26 @@ const EventDetailsCard = ({ event, isOpen, onClose }: EventDetailsCardProps) => 
           </CardHeader>
           
           <CardContent className="px-0 space-y-3">
-            {event.horario && (
+            {event.startAtTimestamp && (
               <div className="flex items-center gap-3">
                 <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{event.horario}</span>
+                <span className="text-sm">{event.startAtTimestamp}</span>
               </div>
             )}
             
-            {event.local && (
+            {event.location && (
               <div className="flex items-center gap-3">
                 <MapPin className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{event.local}</span>
+                <span className="text-sm">{event.location}</span>
               </div>
             )}
-            
+{/*             
             {event.quantidade && (
               <div className="flex items-center gap-3">
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm">{event.quantidade} participantes esperados</span>
               </div>
-            )}
+            )} */}
             
             <div className="pt-2">
               <p className="text-xs text-muted-foreground">

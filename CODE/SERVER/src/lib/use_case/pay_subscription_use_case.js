@@ -57,23 +57,23 @@ class PaySubscriptionUseCase
                 input.paymentData,
                 customerData
                 );
+            let isPaymentFailed = paymentResult.status === paymentStatus.failed;
 
             await subscriptionService.setSubscriptionById(
                 {
-                    statusId: subscriptionStatus.pending,
                     paymentGatewayId: paymentResult.id,
                     paymentMethodId: input.paymentMethod,
                     chargeInfo: paymentResult,
                     price: paymentResult.items[ 0 ].pricing_scheme.price / 100,
+                    statusId: isPaymentFailed ? subscriptionStatus.refused : subscriptionStatus.paid
                 },
                 input.subscriptionId
                 );
-            let isPaymentSuccessful = paymentResult.status === paymentStatus.success;
 
             await mailer.sendEmail(
                 subscriptionData.church.profile[ 0 ].email,
-                isPaymentSuccessful ? 'Assinatura ativada com sucesso' : 'Pagamento não autorizado',
-                isPaymentSuccessful ? 'payment_successful' : 'payment_failed',
+                !isPaymentFailed ? 'Assinatura ativada com sucesso' : 'Pagamento não autorizado',
+                !isPaymentFailed ? 'payment_successful' : 'payment_failed',
                 {
                     customerName: subscriptionData.church.name,
                     planName: subscriptionData.plan.name,
@@ -86,7 +86,7 @@ class PaySubscriptionUseCase
                 }
                 );
 
-            if ( paymentResult.status === paymentStatus.failed )
+            if ( isPaymentFailed )
             {
                 throw new AppError( 'payment-failed' );
             }

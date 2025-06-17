@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Check } from 'lucide-react';
+import { Check, TrendingUp } from 'lucide-react';
 import { usePlanContext } from '@/context/PlanContext';
 
 export type PlanOption = {
@@ -23,7 +23,21 @@ const PlanSelectionStep = () => {
     if (isLoading) {
         return <div>Loading...</div>;
     }
-
+    const formatPrice = (price: number) => {
+        return new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL',
+            minimumFractionDigits: 2
+        }).format(price);
+    };
+    const calculateSavings = (monthlyPrice: number, annualPrice: number) => {
+        const annualMonthly = annualPrice / 12;
+        const savings = ((monthlyPrice - annualMonthly) / monthlyPrice) * 100;
+        return Math.round(savings);
+    };
+    const calculateMonthlyFromAnnual = (annualPrice: number) => {
+        return annualPrice / 12;
+    };
     return (
         <div className="space-y-6">
             <h2 className="text-xl font-semibold text-center mb-6">
@@ -71,18 +85,56 @@ const PlanSelectionStep = () => {
                                     Mais Popular
                                 </div>
                             )}
-                            <div className="text-center mb-4">
-                                <h3 className="text-lg font-bold mb-1">{plan.name}</h3>
-                                <p className="text-gray-500 text-sm">{plan.description}</p>
-                                <div className="text-2xl font-bold mt-2">
-                                    R${isAnnual ? plan.annualPrice : plan.monthlyPrice}
-                                    <span className="text-sm text-gray-500 font-normal">/mês</span>
+                            <div className="text-center mb-8">
+                                <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
+                                <p className="text-gray-500 mb-6">{plan.description}</p>
+                                
+                                {/* Preço Principal */}
+                                <div className="mb-4">
+                                    {isAnnual ? (
+                                        <div className="space-y-2">
+                                            {/* Preço Original Riscado */}
+                                            <div className="text-lg text-gray-400 line-through">
+                                                {formatPrice(plan.monthlyPrice)}/mês
+                                            </div>
+                                            
+                                            {/* Preço com Desconto */}
+                                            <div className="flex items-baseline justify-center gap-1">
+                                                <span className="text-sm text-gray-600">R$</span>
+                                                <span className="text-5xl font-bold text-gray-900">
+                                                    {Math.round(calculateMonthlyFromAnnual(plan.annualPrice))}
+                                                </span>
+                                                <span className="text-lg text-gray-600 font-medium">/mês</span>
+                                            </div>
+                                            
+                                            {/* Badge de Economia */}
+                                            <div className="inline-flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">
+                                                <TrendingUp className="w-3 h-3" />
+                                                Economize {calculateSavings(plan.monthlyPrice, plan.annualPrice)}%
+                                            </div>
+                                            
+                                            {/* Valor Total Anual */}
+                                            <div className="text-sm text-gray-500 mt-2">
+                                                Cobrança anual de <span className="font-semibold text-gray-700">{formatPrice(plan.annualPrice)}</span>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-2">
+                                            <div className="flex items-baseline justify-center gap-1">
+                                                <span className="text-sm text-gray-600">R$</span>
+                                                <span className="text-5xl font-bold text-gray-900">
+                                                    {plan.monthlyPrice}
+                                                </span>
+                                                <span className="text-lg text-gray-600 font-medium">/mês</span>
+                                            </div>
+                                            
+                                            {/* Preço Anual Equivalente */}
+                                            <div className="text-sm text-gray-500">
+                                                ou {formatPrice(plan.annualPrice)} por ano
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                                {isAnnual && (
-                                    <div className="text-xs text-zapPurple-600 mt-0.5">
-                                        Cobrança anual de R${plan.annualPrice * 12}
-                                    </div>
-                                )}
                             </div>
 
                             <ul className="space-y-2 text-sm">

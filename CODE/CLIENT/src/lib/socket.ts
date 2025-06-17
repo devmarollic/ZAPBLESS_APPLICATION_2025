@@ -13,6 +13,7 @@ function connectToSocket() {
         query: {
             token: token
         },
+        autoConnect: true
     });
 }
 

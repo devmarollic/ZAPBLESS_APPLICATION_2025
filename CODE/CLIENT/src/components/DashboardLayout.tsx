@@ -12,7 +12,7 @@ const SidebarToggle = () => {
     <Button 
       variant="ghost" 
       size="icon" 
-      className="fixed left-4 top-4 z-50 md:hidden"
+      className="fixed right-4 top-4 z-50 md:hidden"
     >
       <SidebarTrigger>
         <Menu className="h-5 w-5" />

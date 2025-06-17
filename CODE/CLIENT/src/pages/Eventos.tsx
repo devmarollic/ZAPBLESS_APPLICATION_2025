@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Repeat, Settings } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -12,17 +12,8 @@ import CalendarAgendaView from "@/components/events/CalendarAgendaView";
 import EventDetailsCard from "@/components/events/EventDetailsCard";
 import { gerarCalendario, aplicarFiltros } from "@/utils/calendarUtils";
 import { useIsMobile } from "@/hooks/use-mobile";
-
-// Mock de eventos com mais detalhes para as novas visualizações
-const eventos = [
-  { id: 1, data: new Date(2025, 4, 1), titulo: "Culto Especial", cor: "green", tipo: "culto", horario: "19:00", local: "Templo Principal" },
-  { id: 2, data: new Date(2025, 4, 5), titulo: "Reunião de Liderança", quantidade: 3, cor: "purple", tipo: "reuniao", horario: "20:00", local: "Sala de Reuniões" },
-  { id: 3, data: new Date(2025, 4, 8), titulo: "Celebração", cor: "blue", tipo: "culto", horario: "18:30", local: "Templo Principal" },
-  { id: 4, data: new Date(2025, 4, 11), titulo: "Reunião de Jovens", cor: "red", tipo: "reuniao", recurrence: true, horario: "20:00", local: "Anexo" },
-  { id: 5, data: new Date(2025, 4, 13), titulo: "Grupo de Estudo", quantidade: 3, cor: "purple", tipo: "grupo", horario: "19:30", local: "Sala 3" },
-  { id: 6, data: new Date(2025, 4, 15), titulo: "Evento Especial", quantidade: 2, cor: "orange", tipo: "especial", recurrence: true, horario: "14:00", local: "Centro Comunitário" },
-  { id: 7, data: new Date(2025, 4, 20), titulo: "Culto Dominical", cor: "green", tipo: "culto", recurrence: true, horario: "10:00", local: "Templo Principal" },
-];
+import { HttpClient } from "@/lib/http_client";
+import { Event } from "@/types/event";
 
 const Eventos = () => {
   const [anoAtual, setAnoAtual] = useState(2025);
@@ -33,7 +24,8 @@ const Eventos = () => {
     from: undefined,
     to: undefined
   });
-  const [selectedEvent, setSelectedEvent] = useState<typeof eventos[0] | null>(null);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [selectedEvent, setSelectedEvent] = useState<typeof events[0] | null>(null);
   const [isEventDetailsOpen, setIsEventDetailsOpen] = useState(false);
   
   const calendario = gerarCalendario(anoAtual, mesAtual);
@@ -42,7 +34,7 @@ const Eventos = () => {
   
   // Apply filters to get filtered events
   const eventosFiltrados = aplicarFiltros(
-    eventos,
+    events,
     selectedCategories,
     dateRange.from,
     dateRange.to,
@@ -72,7 +64,7 @@ const Eventos = () => {
     setSelectedCategories(categories);
   };
 
-  const handleEventClick = (event: typeof eventos[0]) => {
+  const handleEventClick = (event: typeof events[0]) => {
     setSelectedEvent(event);
     setIsEventDetailsOpen(true);
   };
@@ -117,6 +109,16 @@ const Eventos = () => {
         );
     }
   };
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      const response = await HttpClient.get<Event[]>('/event/list');
+      if (response) {
+        setEvents(response);
+      }
+    }
+    fetchEvents();
+  }, []);
 
   return (
     <div className="space-y-4 md:space-y-6">

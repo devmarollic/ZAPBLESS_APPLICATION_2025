@@ -123,7 +123,9 @@ const ReviewStep = ({ churchInfo, adminInfo }: ReviewStepProps) => {
                                 <span className="text-xl font-bold text-zapPurple-700">
                                     R${isAnnual ? planByIdMap[selectedPlan].annualPrice : planByIdMap[selectedPlan].monthlyPrice}
                                 </span>
-                                <span className="text-sm text-zapPurple-600">/mês</span>
+                                <span className="text-sm text-zapPurple-600">
+                                    {isAnnual ? ' / ano' : ' / mês'}
+                                </span>
                             </div>
                         </div>
                     </div>

@@ -1,28 +1,25 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Event } from "@/types/event";
+import { HttpClient } from "@/lib/http_client";
 
-const eventos = [
-  { id: 1, titulo: "Culto de Domingo", data: new Date(2025, 5, 1, 10, 0), descricao: "Culto semanal" },
-  { id: 2, titulo: "Reunião de Jovens", data: new Date(2025, 5, 1, 19, 0), descricao: "Tema: Crescendo na fé" },
-  { id: 3, titulo: "Estudo Bíblico", data: new Date(2025, 5, 3, 19, 30), descricao: "Livro de João" },
-  { id: 4, titulo: "Ensaio do Coral", data: new Date(2025, 5, 4, 18, 0), descricao: "Preparação para domingo" },
-];
 
 const Calendario = () => {
   const [date, setDate] = useState<Date | undefined>(new Date(2025, 5, 4)); // 4 de junho de 2025
   const [currentMonth, setCurrentMonth] = useState(new Date(2025, 5, 1)); // junho de 2025
+  const [events, setEvents] = useState<Event[]>([]);
   
   const eventosDodia = date 
-    ? eventos.filter(
-        (evento) => 
-          evento.data.getDate() === date.getDate() && 
-          evento.data.getMonth() === date.getMonth() && 
-          evento.data.getFullYear() === date.getFullYear()
+    ? events.filter(
+        (event) => 
+          new Date(event.startAtTimestamp).getDate() === date.getDate() && 
+          new Date(event.startAtTimestamp).getMonth() === date.getMonth() && 
+          new Date(event.startAtTimestamp).getFullYear() === date.getFullYear()
       )
     : [];
 
@@ -56,8 +53,18 @@ const Calendario = () => {
     year: "numeric" 
   });
 
+  useEffect(() => {
+    const fetchEvents = async () => {
+      const response = await HttpClient.get<Event[]>('/event/list');
+      if (response) {
+        setEvents(response);
+      }
+    }
+    fetchEvents();
+  }, []);
+
   return (
-    <div className="space-y-6 max-w-7xl mx-auto p-6">
+    <div className="space-y-6 max-w-7xl mx-auto md:p-6">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-4xl font-bold text-blue-600 mb-2">Calendário</h1>
@@ -132,12 +139,12 @@ const Calendario = () => {
                 {eventosDodia.map((evento) => (
                   <div key={evento.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-lg">{evento.titulo}</h3>
+                      <h3 className="font-semibold text-lg">{evento.title}</h3>
                       <span className="text-blue-600 font-semibold">
-                        {formatarHora(evento.data)}
+                        {formatarHora(new Date(evento.startAtTimestamp))}
                       </span>
                     </div>
-                    <p className="text-gray-600 mb-3">{evento.descricao}</p>
+                    <p className="text-gray-600 mb-3">{evento.description}</p>
                     <div className="flex justify-end gap-2">
                       <Button variant="outline" size="sm" className="text-gray-600 hover:text-gray-800">
                         Editar

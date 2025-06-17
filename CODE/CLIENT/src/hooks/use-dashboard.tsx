@@ -28,10 +28,11 @@ interface Contact {
 }
 
 interface DashboardData {
-  whatsapps?: WhatsApp[];
+  whatsapp?: WhatsApp;
   church?: Church;
   ministries?: Ministry[];
   contacts?: Contact[];
+  metrics?: Metric;
 }
 
 type MinistriesAction = 
@@ -44,6 +45,25 @@ type WhatsAppAction =
   | { type: 'UPDATE_SESSION', payload: WhatsApp }
   | { type: 'DELETE_WHATSAPPS', payload: string }
   | { type: 'RESET' };
+
+type Metric = {
+    members: {
+        total: number;
+        growth: number;
+    },
+    messages: {
+        total: number;
+        growth: number;
+    },
+    ministries: {
+        total: number;
+        growth: number;
+    },
+    announcements: {
+        total: number;
+        growth: number;
+    }
+};
 
 function reducer(state: any, action: MinistriesAction) {
     if (action.type === 'FETCH_MINISTRIES_SUCCESS') {
@@ -116,6 +136,24 @@ export function useDashboard() {
     const [contacts, setContacts] = useState<Contact[]>([]);
     const [syncing, setSyncing] = useState(false);
     const [qrCode, setQrCode] = useState<string | null>(null);
+    const [metrics, setMetrics] = useState<Metric>({
+        members: {
+          total: 0,
+          growth: 0
+        },
+        messages: {
+          total: 0,
+          growth: 0
+        },
+        ministries: {
+          total: 0,
+          growth: 0
+        },
+        announcements: {
+          total: 0,
+          growth: 0
+        }
+    });
 
     useEffect(() => {
         async function fetchDashboardData() {
@@ -124,8 +162,8 @@ export function useDashboard() {
                 const data = await HttpClient.get<DashboardData>('/dashboard/get');
                 
                 if (data) {
-                    if (data.whatsapps) {
-                        dispatchWhatsapp({ type: 'LOAD_WHATSAPPS', payload: data.whatsapps });
+                    if (data.whatsapp) {
+                        dispatchWhatsapp({ type: 'UPDATE_SESSION', payload: data.whatsapp });
                     }
                     
                     if (data.church) {
@@ -138,6 +176,10 @@ export function useDashboard() {
                     
                     if (data.contacts) {
                         setContacts(data.contacts);
+                    }
+
+                    if ( data.metrics ) {
+                        setMetrics(data.metrics);
                     }
                 }
             } catch (error) {
@@ -174,8 +216,14 @@ export function useDashboard() {
 
         socket.on('whatsappSession', (data: { action: string; session: WhatsApp }) => {
             if (data.action === 'update') {
+
+                setWhatsapp(prev => {
+                      if (prev?.status === 'CONNECTED' && data.session.status === 'qrcode') {
+                        return prev;
+                      }
+                      return data.session;
+                    });
                 setSyncing( false );
-                setWhatsapp( data.session );
                 dispatchWhatsapp({ type: 'UPDATE_SESSION', payload: data.session });
             }
         });
@@ -196,6 +244,7 @@ export function useDashboard() {
         syncing,
         setSyncing,
         qrCode,
-        setQrCode
+        setQrCode,
+        metrics
     };
 }
