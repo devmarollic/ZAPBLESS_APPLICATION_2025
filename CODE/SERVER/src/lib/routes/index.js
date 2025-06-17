@@ -9,3 +9,4 @@ export * from './ministry_routes';
 export * from './event_routes';
 export * from './dashboard_routes';
 export * from './subscription_routes';
+export * from './event_type_routes';

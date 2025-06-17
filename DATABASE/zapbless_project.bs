@@ -197,6 +197,7 @@ public
         churchId : CHURCH.id | constrained
         name : STRING
         description : STRING
+        color : STRING
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
@@ -281,7 +282,7 @@ public
         description : STRING
         location : GEOMETRY
         statusId : EVENT_STATUS.id | constrained
-        typeId :  EVENT_TYPE | constrained
+        typeId :  EVENT_TYPE.id | constrained
         startAtTimestamp : DATETIME
         endAtTimestamp : DATETIME
         creationTimestamp : TIMESTAMP | generated

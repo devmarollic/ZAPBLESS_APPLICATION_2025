@@ -1,6 +1,5 @@
 // -- IMPORTS
 
-import { logError } from 'senselogic-gist';
 import { scheduleService } from '../service/schedule_service';
 import { notificationService } from '../service/notification_service';
 
@@ -67,7 +66,8 @@ class ScheduleWorker
                     }
                     catch ( error )
                     {
-                        logError( error );
+                        console.trace();
+                        console.error( error );
 
                         await scheduleService.setScheduleById(
                             {
@@ -82,7 +82,8 @@ class ScheduleWorker
             }
             catch ( error )
             {
-                logError( error );
+                console.trace();
+                console.error( error );
             }
 
             await new Promise( resolve => setTimeout( resolve, this.interval ) );

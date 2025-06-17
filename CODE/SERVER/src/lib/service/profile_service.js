@@ -97,6 +97,34 @@ class ProfileService
         return data;
     }
 
+    // ~~~
+
+    async getProfileWithChurchById(
+        id
+        )
+    {
+        let { data, error } = await databaseService.getClient()
+            .from( 'PROFILE' )
+            .select( `
+                id,
+                firstName,
+                lastName,
+                email,
+                phoneNumber,
+                statusId,
+                churchId,
+                church:CHURCH!constraint_profile_church_1 ( id, name, statusId )
+            ` )
+            .eq( 'id', id )
+            .single();
+
+        if ( error !== null )
+        {
+            logError( error );
+        }
+
+        return data;
+    }
 }
 
 // -- VARIABLES

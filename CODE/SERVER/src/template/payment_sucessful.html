@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pagamento Confirmado - ZapBless</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.6;
+      color: #333333;
+      margin: 0;
+      background-color: #ffffff;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+      padding: 40px 20px;
+      text-align: center;
+      border-radius: 8px 8px 0 0;
+      color: #ffffff;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .header span:first-child {
+      color: #60A5FA;
+    }
+
+    .header span:last-child {
+      color: #A78BFA;
+    }
+
+    .header p {
+      margin: 10px 0 0 0;
+      font-size: 16px;
+      color: #E0E7FF;
+    }
+
+    .content {
+      padding: 40px 30px;
+    }
+
+    .success-box {
+      background-color: #F0FDF4;
+      border: 2px solid #16A34A;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .success-box h2 {
+      color: #16A34A;
+      margin: 0 0 10px 0;
+      font-size: 24px;
+    }
+
+    .success-box p {
+      color: #15803D;
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .payment-details, .next-steps {
+      background-color: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 8px;
+      padding: 25px;
+      margin-bottom: 30px;
+    }
+
+    .next-steps {
+      background-color: #EFF6FF;
+      border-color: #DBEAFE;
+    }
+
+    .payment-details h3, .next-steps h3 {
+      color: #1E293B;
+      margin-bottom: 20px;
+      font-size: 18px;
+    }
+
+    .next-steps h3 {
+      color: #1E40AF;
+    }
+
+    .payment-item {
+      margin-bottom: 15px;
+    }
+
+    .label {
+      color: #64748B;
+      display: inline-block;
+      width: 140px;
+    }
+
+    .badge {
+      background-color: #DCFCE7;
+      color: #16A34A;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 20px;
+      color: #1E40AF;
+    }
+
+    ul li {
+      margin-bottom: 8px;
+    }
+
+    .cta {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .cta a {
+      background-color: #3B82F6;
+      color: #ffffff;
+      padding: 15px 30px;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 16px;
+      display: inline-block;
+    }
+
+    .invoice-link {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .invoice-link a {
+      color: #6366F1;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .footer {
+      background-color: #F1F5F9;
+      padding: 30px;
+      text-align: center;
+      border-radius: 0 0 8px 8px;
+      border-top: 1px solid #E2E8F0;
+    }
+
+    .footer p {
+      margin: 0 0 15px 0;
+      font-size: 14px;
+      color: #64748B;
+    }
+
+    .footer p:last-child {
+      font-size: 12px;
+      color: #94A3B8;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1><span>Zap</span><span>Bless</span></h1>
+      <p>Pagamento Confirmado ✅</p>
+    </div>
+
+    <div class="content">
+      <div class="success-box">
+        <div style="font-size: 48px;">🎉</div>
+        <h2>Pagamento Realizado com Sucesso!</h2>
+        <p>Sua assinatura foi ativada e você já pode aproveitar todos os benefícios.</p>
+      </div>
+
+      <p style="font-size: 18px;">Olá <strong>{{customerName}}</strong>,</p>
+      <p>
+        Recebemos seu pagamento e sua assinatura do plano <strong>{{planName}}</strong> foi ativada com sucesso!
+        Agora você tem acesso completo a todas as funcionalidades para fortalecer a comunicação e gestão da sua igreja.
+      </p>
+
+      <div class="payment-details">
+        <h3>Detalhes do Pagamento</h3>
+        <div class="payment-item"><span class="label">Plano:</span> <strong>{{planName}}</strong></div>
+        <div class="payment-item"><span class="label">Valor Pago:</span> <strong style="color: #16A34A;">{{amount}}</strong></div>
+        <div class="payment-item"><span class="label">Próxima Cobrança:</span> <strong>{{nextBillingDate}}</strong></div>
+        <div class="payment-item"><span class="label">Status:</span> <span class="badge">Ativo</span></div>
+      </div>
+
+      <div class="next-steps">
+        <h3>Próximos Passos</h3>
+        <ul>
+          <li>Acesse sua conta no painel administrativo</li>
+          <li>Configure os ministérios da sua igreja</li>
+          <li>Conecte seu WhatsApp Business</li>
+          <li>Comece a enviar mensagens e gerenciar sua comunidade</li>
+        </ul>
+      </div>
+
+      <div class="cta">
+        <a href="https://zapbless.com.br/dashboard">Acessar Painel Administrativo</a>
+      </div>
+
+      <!-- <div class="invoice-link">
+        <a href="{{invoiceUrl}}">📄 Baixar Comprovante de Pagamento</a>
+      </div> -->
+
+      <p>Se tiver alguma dúvida ou precisar de ajuda, nossa equipe de suporte está sempre pronta para atendê-lo.</p>
+      <p>Que Deus abençoe abundantemente sua igreja! 🙏</p>
+    </div>
+
+    <div class="footer">
+      <p><strong>ZapBless</strong> - Conectando sua igreja através da tecnologia</p>
+      <p>📧 suporte@zapbless.com | 📱 WhatsApp: (11) 99999-9999</p>
+      <p>Para gerenciar sua assinatura, acesse seu painel administrativo.<br/>Este é um email automático, não responda a esta mensagem.</p>
+    </div>
+  </div>
+</body>
+</html>

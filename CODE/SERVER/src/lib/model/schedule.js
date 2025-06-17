@@ -13,6 +13,15 @@ export const scheduleSchema = z.object(
         eventId: z.string(),
         payload: z.array( z.any() ),
         statusId: z.string(),
-        recurrenceId: z.string().optional()
+        recurrenceId: z.string().optional(),
+        startAtTimestamp: z.string().datetime().optional(),
+        endAtTimestamp: z.string().datetime().optional()
     }
     );
+
+export const scheduleStatus =
+    {
+        pending: 'pending',
+        sent: 'sent',
+        failed: 'failed'
+    };

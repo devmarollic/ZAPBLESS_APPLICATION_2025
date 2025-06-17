@@ -16,7 +16,8 @@ import
         ministryRoutes,
         eventRoutes,
         dashboardRoutes,
-        subscriptionRoutes
+        subscriptionRoutes,
+        eventTypesRoutes
     } from './lib/routes';
 import { initIO } from './socket';
 import { authMiddleware } from './middleware/auth_middleware';
@@ -26,6 +27,7 @@ import { scheduleWorker } from './lib/worker/schedule_worker';
 import { logError } from 'senselogic-gist';
 import { pagarmeService } from './lib/service/pagarme_service';
 import { enviroment } from './enviroment';
+import { whatsappBotService } from './lib/service/whatsapp_bot_service';
 
 // -- STATEMENTS
 
@@ -70,6 +72,7 @@ fastify.register( ministryRoutes, { prefix: '/ministry' } );
 fastify.register( eventRoutes, { prefix: '/event' } );
 fastify.register( dashboardRoutes, { prefix: '/dashboard' } );
 fastify.register( subscriptionRoutes, { prefix: '/subscriptions' } );
+fastify.register( eventTypesRoutes, { prefix: '/event-type' } );
 
 fastify.setNotFoundHandler(
     async ( request, reply ) =>
@@ -120,7 +123,7 @@ let start =
 
         try
         {
-            whatsappBotManager.initializeAllSessions();
+            // whatsappBotService.startAllWhatsAppsSessions();
             
             await fastify.listen( { port : enviroment.PORT, host : '0.0.0.0' } );
         }

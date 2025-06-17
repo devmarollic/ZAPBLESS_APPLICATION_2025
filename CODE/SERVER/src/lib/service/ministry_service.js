@@ -16,7 +16,13 @@ class MinistryService
         const { data, error } = await supabaseService
             .getClient()
             .from( 'MINISTRY' )
-            .select();
+            .select(
+                `id,`
+                + `churchId,`
+                + `name,`
+                + `description,`
+                + `color`
+            );
 
         if ( error !== null )
         {

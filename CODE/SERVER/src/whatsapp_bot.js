@@ -96,6 +96,13 @@ export async function initWbot(
                     'qr',
                     async ( qr ) =>
                     {
+                        let bot = await getWbot( whatsapp );
+
+                        if ( bot )
+                        {
+                            return;
+                        }
+
                         qrCode.generate( qr, { small: true } );
                         
                         whatsapp.qrcode = qr;
@@ -190,6 +197,8 @@ export async function initWbot(
                         whatsappBot.sendPresenceAvailable();
                         await syncUnreadMessages( whatsappBot );
 
+                        whatsappBot.once( 'ready', () => whatsappBot.removeAllListeners( 'qr' ) );
+
                         resolve( whatsappBot );
                     }
                     );
@@ -233,7 +242,12 @@ export async function getWbot(
     whatsapp
     )
 {
-    let bot = await whatsappBotManager.getBotInstance( whatsapp.churchId );
+    let bot = sessionArray.find( session => session.id === whatsapp.id) ;
+
+    if ( !bot )
+    {
+        bot = await initWbot( whatsapp );
+    }
 
     return bot;
 };

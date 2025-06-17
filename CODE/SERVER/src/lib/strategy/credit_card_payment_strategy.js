@@ -67,8 +67,8 @@ export class CreditCardPaymentStrategy extends PaymentStrategy
     {
         let priceInCents = getRoundInteger(
             subscriptionData.periodId === 'monthly' 
-                ? subscriptionData.plan.monthlyPrice * 100 
-                : subscriptionData.plan.annualPrice * 100
+                ? Number( subscriptionData.plan.monthlyPrice ) * 100 
+                : Number( subscriptionData.plan.annualPrice ) * 100
             );
 
         let cleanCardNumber = paymentData.cardNumber.replace( /\s+/g, '' ).replace( /\D/g, '' );
@@ -98,6 +98,15 @@ export class CreditCardPaymentStrategy extends PaymentStrategy
                                         area_code: customerData.phoneNumber.slice( 0, 2 ),
                                         number: customerData.phoneNumber.slice( 2 )
                                     }
+                            },
+                        address:
+                            {
+                                line_1: customerData.addressLine1,
+                                line_2: customerData.addressLine2,
+                                zip_code: customerData.zipCode,
+                                city: customerData.city,
+                                state: customerData.state,
+                                country: customerData.country || 'BR'
                             }
                     },
                 card:
@@ -106,7 +115,16 @@ export class CreditCardPaymentStrategy extends PaymentStrategy
                         holder_name: paymentData.holderName,
                         exp_month: getInteger( month, 10 ),
                         exp_year: getInteger( fullYear, 10 ),
-                        cvv: paymentData.cvv
+                        cvv: paymentData.cvv,
+                        billing_address:
+                            {
+                                line_1: customerData.addressLine1,
+                                line_2: customerData.addressLine2,
+                                zip_code: customerData.zipCode,
+                                city: customerData.city,
+                                state: customerData.state,
+                                country: customerData.country || 'BR'
+                            }
                     },
                 items:
                     [
@@ -121,7 +139,7 @@ export class CreditCardPaymentStrategy extends PaymentStrategy
                                 }
                         }
                     ],
-                currency: 'BRL',
+                currency: subscriptionData.plan.currencyCode,
                 description: `ZapBless ${ subscriptionData.plan.name }`,
                 start_at: new Date().toISOString(),
                 statement_descriptor: 'ZAPBLESS'
@@ -150,6 +168,11 @@ export class CreditCardPaymentStrategy extends PaymentStrategy
                 body: getJsonText( payload )
             }
             );
+
+
+        console.log( JSON.stringify( payload, null, 2 ) );
+        console.log( this.pagarmeService.getHeaders() );
+
 
         if ( !response.ok )
         {

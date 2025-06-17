@@ -6,6 +6,7 @@ import { getIO } from '../../socket';
 import { AppError } from '../errors/app_error';
 import { initWbot } from '../../whatsapp_bot';
 import { whatsappService } from './whatsapp_service';
+import { whatsappBotManager } from './whatsapp_bot_manager';
 
 // -- FUNCTIONS
 
@@ -43,7 +44,7 @@ class WhatsappBotService
     async startAllWhatsAppsSessions(
         )
     {
-        let whatsappArray = await ListWhatsAppsService();
+        let whatsappArray = await this.listWhatsAppsService();
 
         if ( whatsappArray.length > 0 )
         {
@@ -74,10 +75,10 @@ class WhatsappBotService
       
         try
         {
-            let whatsappBot = await initWbot( whatsapp );
+            const bot = await whatsappBotManager.getBotInstance(whatsapp.churchId);
 
-            this.wbotMessageListener( whatsappBot );
-            this.wbotMonitor( whatsappBot, whatsapp );
+            this.wbotMessageListener( bot );
+            this.wbotMonitor( bot, whatsapp );
         }
         catch ( error )
         {
@@ -85,7 +86,41 @@ class WhatsappBotService
         }
     }
 
-    // ~~~
+    // ~~
+
+    async wbotMessageListener(
+        whatsappBot,
+        whatsapp
+        )
+    {
+        let io = getIO();
+
+        whatsappBot.on(
+            'message_create',
+            async message =>
+            {
+                this.handleMessage( message, whatsappBot );
+            }
+            );
+
+        whatsappBot.on(
+            'media_uploaded',
+            async message =>
+            {
+                this.handleMessage( message, whatsappBot );
+            }
+            );
+
+        whatsappBot.on(
+            'message_ack',
+            async ( message, ack ) =>
+            {
+                this.handleMsgAck( message, ack );
+            }
+            );
+    }
+
+    // ~~
 
 
     async wbotMonitor(
@@ -625,6 +660,24 @@ class WhatsappBotService
         {
             logError( `Error handling whatsapp message: Err: ${ error }` );
         }
+    }
+
+    // ~~
+
+    async listWhatsAppsService(
+        )
+    {
+        let { data, error } = await databaseService
+            .getClient()
+            .from( 'WHATSAPP' )
+            .select();
+
+        if ( error !== null )
+        {
+            logError( error );
+        }
+
+        return data;
     }
 }
 

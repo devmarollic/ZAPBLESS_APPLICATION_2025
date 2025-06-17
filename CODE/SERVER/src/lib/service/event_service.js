@@ -37,7 +37,20 @@ class EventService
         const { data, error } = await supabaseService
             .getClient()
             .from( 'EVENT' )
-            .select()
+            .select( `
+                id,
+                ministryId,
+                title,
+                description,
+                location,
+                statusId,
+                typeId,
+                startAtTimestamp,
+                endAtTimestamp,
+                ministry:MINISTRY!inner ( id, name, color ),
+                status:EVENT_STATUS!inner ( id, name ),
+                type:EVENT_TYPE!inner ( id, name )
+            ` )
             .eq( 'churchId', churchId );
 
         if ( error !== null )

@@ -14,14 +14,14 @@ class GetEventsByChurchUseCase
         userId
         )
     {
-        let profile = await profileService.getProfileById( userId );
+        let profile = await profileService.getProfileWithChurchById( userId );
 
         if ( !profile )
         {
             throw new AppError( 'Profile not found', 404 );
         }
 
-        let events = await eventService.getEventsByChurchId(
+        let events = await eventService.getEventArrayByChurchId(
             profile.churchId
             );
 

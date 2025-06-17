@@ -1,10 +1,10 @@
 // -- IMPORTS
 
-import { HomePageController } from '../controller/home_page_controller';
+import { DashboardPageController } from '../controller/dashboard_page_controller';
 
 // -- CONSTANTS
 
-const homePageController = new HomePageController();
+const dashboardPageController = new DashboardPageController();
 
 // -- FUNCTIONS
 
@@ -15,7 +15,7 @@ export async function dashboardRoutes(
 {
     fastify.get(
         '/get',
-        ( request, response ) => homePageController.processRequest( request, response )
+        ( request, response ) => dashboardPageController.handle( request, response )
         );
 }
 

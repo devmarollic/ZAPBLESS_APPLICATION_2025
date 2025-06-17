@@ -52,27 +52,19 @@ export class SyncWhatsappController extends Controller
                     );
             }
 
-            let bot = await whatsappBotManager.getBotInstance(profile.churchId);
+            let bot = await getWbot(whatsapp);
             
             if (!bot) {
                 bot = await initWbot(whatsapp);
             }
 
-            await whatsappService.setWhatsappById(
-                {
-                    ...whatsapp,
-                    status: bot ? 'CONNECTED' : 'OPENING'
-                },
-                whatsapp.id
-            );
+            const status = bot ? 'CONNECTED' : 'OPENING';
+
+            await whatsappService.setWhatsappById({ status }, whatsapp.id);
 
             return {
-                success: true,
-                whatsapp: {
-                    ...whatsapp,
-                    status: bot ? 'CONNECTED' : 'OPENING'
-                }
-            };
+                success: true
+            }
         } catch (error) {
             logError('Error in sync whatsapp:', error);
             throw error;

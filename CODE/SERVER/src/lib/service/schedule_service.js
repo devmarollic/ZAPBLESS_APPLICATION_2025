@@ -1,6 +1,6 @@
 // -- IMPORTS
 
-import { getRandomTuid } from 'senselogic-gist';
+import { getRandomTuid, logError } from 'senselogic-gist';
 import { supabaseService } from './supabase_service';
 
 // -- TYPES

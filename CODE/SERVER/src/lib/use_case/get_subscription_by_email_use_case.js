@@ -1,8 +1,8 @@
 // -- IMPORTS
 
-import { ZodError } from 'zod';
 import { subscriptionService } from '../service/subscription_service';
-import { z } from 'zod';
+import { z, ZodError } from 'zod';
+import { AppError } from '../errors/app_error';
 
 // -- CONSTANTS
 
@@ -30,6 +30,13 @@ class GetSubscriptionByEmailUseCase
         }
 
         let subscription = await subscriptionService.getSubscriptionByEmail( data.email );
+
+        // -- CASO NÃO EXISTA SUBSCRIPTION, CLIENTE PRECISA SELECIONAR UMA NOVA ASSINATURA
+
+        if ( subscription === null )
+        {
+            throw new AppError( 'SUBSCRIPTION_NOT_FOUND' );
+        }
 
         return subscription;
     }

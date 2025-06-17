@@ -11,3 +11,7 @@ export FRONTEND_URL=http://localhost:8080
 export BASE_URL=http://localhost:8000
 export PAGARME_API_KEY=sk_test_7d446c4af5f94b40944961d1bf03ceae
 export PAGARME_BASE_URL=https://api.pagar.me/core/v
+export EMAIL_HOST=smtp.titan.email
+export EMAIL_PORT=465
+export EMAIL_USER=devfullstack@marollic.com
+export EMAIL_PASS=gyGbot-nuzwam-rubzi8

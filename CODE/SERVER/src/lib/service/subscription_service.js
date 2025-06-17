@@ -76,15 +76,16 @@ class SubscriptionService extends PagarmeService
                     periodId,
                     startAtDateTimestamp,
                     expiresAtDateTimestamp,
-                    CHURCH!inner (
-                        PROFILE!constraint_profile_church_1 (
+                    church:CHURCH!inner (
+                        profile:PROFILE!constraint_profile_church_1 (
                             email
                         )
                     )
                 ` )
-                .eq( 'CHURCH.PROFILE.email', email )
+                .eq( 'church.profile.email', email )
                 .eq( 'statusId', 'pending' )
-                .single();
+                .limit( 1 )
+                .maybeSingle();
 
         if ( error !== null )
         {
@@ -120,6 +121,11 @@ class SubscriptionService extends PagarmeService
                         countryCode,
                         documentNumber,
                         documentType,
+                        addressLine1,
+                        addressLine2,
+                        cityName,
+                        stateCode,
+                        zipCode,
                         profile:PROFILE!constraint_profile_church_1 (
                             id,
                             firstName,

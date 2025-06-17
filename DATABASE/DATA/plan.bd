@@ -6,7 +6,7 @@ PLAN
             ~ Iniciante
             ~ Perfeito para igrejas pequenas
             ~ 1
-            ~ 85
+            ~ 1020
             ~ 99.9
             ~ true
             ~ false
@@ -21,7 +21,7 @@ PLAN
             ~ Crescimento
             ~ Ideal para igrejas em expansão
             ~ 2
-            ~ 127.5
+            ~ 1530
             ~ 149.9
             ~ true
             ~ true
@@ -36,7 +36,7 @@ PLAN
             ~ Comunidade
             ~ Para igrejas grandes e estabelecidas
             ~ 3
-            ~ 170
+            ~ 2040
             ~ 199.9
             ~ true
             ~ false

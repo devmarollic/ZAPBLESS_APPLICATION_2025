@@ -1,6 +1,7 @@
 // -- IMPORTS
 
 import { getJsonObject, getJsonText, logError } from 'senselogic-gist';
+import { mailer } from '../../mailer.js';
 import { subscriptionService } from '../service/subscription_service';
 import { pagarmeService } from '../service/pagarme_service';
 import { PaymentStrategyFactory } from '../strategy/payment_strategy_factory';
@@ -34,8 +35,6 @@ class PaySubscriptionUseCase
                 input.subscriptionId
                 );
 
-            console.log( subscriptionData );
-            
             if ( !subscriptionData )
             {
                 throw new NotFoundError( 'subscription-not-found' );
@@ -65,16 +64,33 @@ class PaySubscriptionUseCase
                     paymentGatewayId: paymentResult.id,
                     paymentMethodId: input.paymentMethod,
                     chargeInfo: paymentResult,
-                    price: paymentResult.items[ 0 ].pricing_scheme.price / 100
+                    price: paymentResult.items[ 0 ].pricing_scheme.price / 100,
                 },
                 input.subscriptionId
+                );
+            let isPaymentSuccessful = paymentResult.status === paymentStatus.success;
+
+            await mailer.sendEmail(
+                subscriptionData.church.profile[ 0 ].email,
+                isPaymentSuccessful ? 'Assinatura ativada com sucesso' : 'Pagamento não autorizado',
+                isPaymentSuccessful ? 'payment_successful' : 'payment_failed',
+                {
+                    customerName: subscriptionData.church.name,
+                    planName: subscriptionData.plan.name,
+                    amount: new Intl.NumberFormat( 'pt-BR', { style: 'currency', currency: subscriptionData.plan.currencyCode } ).format( paymentResult.items[ 0 ].pricing_scheme.price / 100 ),
+                    nextBillingDate: paymentResult.next_billing_date,
+                    invoiceUrl: paymentResult.checkouts?.[ 0 ]?.payment_url,
+                    failureReasonSection: paymentResult.failure_reason,
+                    nextAttemptSection: paymentResult.next_attempt,
+                    retryUrl: paymentResult.retry_url
+                }
                 );
 
             if ( paymentResult.status === paymentStatus.failed )
             {
                 throw new AppError( 'payment-failed' );
             }
-
+            
             return (
                 {
                     subscriptionId: input.subscriptionId,
@@ -149,6 +165,11 @@ class PaySubscriptionUseCase
         let church = subscriptionData.church;
         let profile = church.profile[ 0 ];
 
+        if ( !church.zipCode || !church.cityName || !church.stateCode )
+        {
+            throw new ValidationError( 'church-address-incomplete' );
+        }
+
         return (
             {
                 name: church.name,
@@ -156,7 +177,13 @@ class PaySubscriptionUseCase
                 document: church.documentNumber?.replace(/\D/g, ''),
                 documentType: church.documentType === 'CNPJ' ? 'cnpj' : 'cpf',
                 type: church.documentType === 'CNPJ' ? 'company' : 'individual',
-                phoneNumber: profile.phoneNumber?.replace( /\D/g, '' ) || '11999999999'
+                phoneNumber: profile.phoneNumber?.replace( /\D/g, '' ) || '11999999999',
+                addressLine1: church.addressLine1,
+                addressLine2: church.addressLine2,
+                zipCode: church.zipCode?.replace(/\D/g, ''),
+                city: church.cityName,
+                state: church.stateCode,
+                country: church.countryCode || 'BR'
             }
             );
     }

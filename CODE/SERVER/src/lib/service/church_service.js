@@ -16,6 +16,24 @@ class ChurchService
 
     // -- INQUIRIES
 
+    async getChurchById(
+        churchId
+        )
+    {
+        let { data, error } = await databaseService.getClient()
+            .from( 'CHURCH' )
+            .select()
+            .eq( 'id', churchId )
+            .single();
+        
+        if ( error !== null )
+        {
+            logError( error );
+        }
+
+        return data;
+    }
+
     // -- OPERATIONS
 
     async addChurch(

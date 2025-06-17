@@ -3,6 +3,7 @@
 import { getJsonObject, getJsonText, logError } from 'senselogic-gist';
 import { databaseService } from './database_service';
 import { whatsappService } from './whatsapp_service';
+import fs from 'fs';
 
 // -- TYPES
 
@@ -16,6 +17,11 @@ export class SupabaseStoreService
         }
         )
     {
+        if ( !churchId )
+        {
+            throw new Error( 'churchId is required' );
+        }
+
         this.churchId = churchId;
         this.sessionData = null;
     }
@@ -23,57 +29,61 @@ export class SupabaseStoreService
     // -- OPERATIONS
 
     async sessionExists(
-        options
+        { session }
         )
     {
-        try {
-            let { data, error } = await databaseService
-                .getClient()
-                .from( 'WHATSAPP' )
-                .select( 'session' )
-                .eq( 'churchId', this.churchId )
-                .single();
+        let { data, error } = await databaseService
+            .getClient()
+            .from( 'WHATSAPP' )
+            .select( 'id, sessionData' )
+            .eq( 'clientId', session )
+            .single();
 
-            if ( error !== null )
-            {
-                return false;
-            }
-
-            this.sessionData = data?.session;
-            return data && data.session !== null;
-        } catch (error) {
-            logError(error);
+        if ( error !== null || !data )
+        {
             return false;
         }
+
+        // só consideramos que a sessão existe se há dados válidos
+        return !!( data.sessionData && data.sessionData.base64 );
     }
 
     // ~~
 
     async save(
-        options
+        { session }
         )
     {
-        try {
-            let { session } = options;
-            
-            if ( !session )
-            {
-                return false;
-            }
+        let zipBuffer = fs.readFileSync( session + '.zip' );
+        let base64Zip  = zipBuffer.toString( 'base64' );
 
-            const sessionData = typeof session === 'string' ? session : getJsonText(session);
-            this.sessionData = sessionData;
-            
+        let { data: sessionAlreadyExists } = await databaseService
+            .getClient()
+            .from( 'WHATSAPP' )
+            .select( 'id' )
+            .eq( 'clientId', session )
+            .single();
+
+        if ( sessionAlreadyExists )
+        {
             await databaseService
                 .getClient()
                 .from( 'WHATSAPP' )
-                .update( { session: sessionData } )
-                .eq( 'churchId', this.churchId );
-
-            return true;
-        } catch (error) {
-            logError(error);
-            return false;
+                .update( { sessionData: { base64: base64Zip } } )
+                .eq( 'clientId', session );
+        }
+        else
+        {
+            await databaseService
+                .getClient()
+                .from( 'WHATSAPP' )
+                .insert(
+                    {
+                        churchId: this.churchId,
+                        clientId: session,
+                        sessionData: { base64: base64Zip }
+                    }
+                    );
         }
     }
 
@@ -83,48 +93,46 @@ export class SupabaseStoreService
         options
         )
     {
-        try {
-            if (this.sessionData) {
-                return typeof this.sessionData === 'string' ? 
-                    getJsonObject(this.sessionData) : 
-                    this.sessionData;
-            }
+        let { session, path } = options;
 
-            let whatsapp = await whatsappService.getWhatsappByChurchId( this.churchId );
-
-            if ( !whatsapp || !whatsapp.session )
-            {
-                return null;
-            }
-
-            this.sessionData = whatsapp.session;
-            return typeof whatsapp.session === 'string' ? 
-                getJsonObject(whatsapp.session) : 
-                whatsapp.session;
-        } catch (error) {
-            logError(error);
+        let { data, error } = await databaseService
+            .getClient()
+            .from( 'WHATSAPP' )
+            .select( 'sessionData' )
+            .eq( 'clientId', session )
+            .single();
+        
+        if ( error !== null || !data || !data.sessionData || !data.sessionData.base64 )
+        {
+            // não há sessão armazenada ainda
             return null;
         }
+
+        const base64Zip = data.sessionData.base64;
+        const zipBuffer = Buffer.from( base64Zip, 'base64' );
+
+        fs.writeFileSync( path, zipBuffer );
     }
 
     // ~~
 
     async delete(
-        options
+        { session }
         )
     {
-        try {
-            this.sessionData = null;
-            await databaseService
-                .getClient()
-                .from( 'WHATSAPP' )
-                .update( { session: null } )
-                .eq( 'churchId', this.churchId );
+        let { error } = await databaseService
+            .getClient()
+            .from( 'WHATSAPP' )
+            .delete()
+            .eq( 'clientId', session );
 
-            return true;
-        } catch (error) {
-            logError(error);
+        if ( error !== null )
+        {
+            logError( error );
+
             return false;
         }
+
+        return true;
     }
 }

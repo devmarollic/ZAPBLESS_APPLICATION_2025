@@ -2,6 +2,7 @@
 
 import { getMapById, logError } from 'senselogic-gist';
 import { databaseService } from './database_service';
+import { whatsappBotManager } from './whatsapp_bot_manager';
 
 // -- TYPES
 
@@ -77,6 +78,42 @@ class WhatsappService
         }
 
         return this.cachedWhatsappByIdMap;
+    }
+
+    // ~~
+
+    /**
+     * Retorna todos os registros de whatsapp existentes na base.
+     */
+    async getWhatsappArray(
+        )
+    {
+        let { data, error } =
+            await databaseService.getClient()
+                .from( 'WHATSAPP' )
+                .select();
+
+        if ( error !== null )
+        {
+            logError( error );
+            return [];
+        }
+
+        return data;
+    }
+
+    // ~~
+
+    /**
+     * Recupera (ou inicializa) a instância do bot padrão para a igreja informada.
+     * Essa instância é a utilizada para enviar mensagens via whatsapp.
+     */
+    async getDefaultWhatsAppByChurchId(
+        churchId
+        )
+    {
+        // O WhatsappBotManager garante que, caso ainda não exista, a sessão será criada.
+        return await whatsappBotManager.getBotInstance( churchId );
     }
 
     // -- OPERATIONS
