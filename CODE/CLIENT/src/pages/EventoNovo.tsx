@@ -36,6 +36,9 @@ const eventFormSchema = z.object({
   recurrence_days_of_week: z.array(z.string()).optional(),
   recurrence_day_of_month: z.union([z.number(), z.literal('last')]).optional(),
   recurrence_end_date: z.date().nullable().optional(),
+
+  // Other fields
+  otherTypeReason: z.string().optional(),
 });
 
 const EventoNovo = () => {
@@ -59,6 +62,7 @@ const EventoNovo = () => {
       location: '',
       ministry: undefined,
       typeId: 'worship',
+      otherTypeReason: '',
       isPublic: true,
       recurrence_type: 'none',
       recurrence_interval: 1,

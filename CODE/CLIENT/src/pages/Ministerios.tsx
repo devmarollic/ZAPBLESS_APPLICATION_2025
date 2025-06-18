@@ -123,9 +123,9 @@ const Ministerios = () => {
             {ministries.map((ministry) => (
               <TableRow key={ministry.id}>
                 <TableCell className="font-medium">{ministry.name}</TableCell>
-                <TableCell>{ministry.description}</TableCell>
-                <TableCell>{ministry.leader || 'Não definido'}</TableCell>
-                <TableCell>{ministry.members_count || 0}</TableCell>
+                <TableCell className="line-clamp-4">{ministry.description}</TableCell>
+                <TableCell>{ministry.leaderArray?.[ 0 ]?.profile?.legalName || 'Não definido'}</TableCell>
+                <TableCell>{ministry.memberCountArray?.[ 0 ]?.count || 0}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button

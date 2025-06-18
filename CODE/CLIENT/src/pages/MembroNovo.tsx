@@ -106,7 +106,7 @@ const MembroNovo = () => {
   };
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="md:container mx-auto py-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl md:text-3xl font-bold">Novo Membro</h1>
         <Button variant="outline" onClick={() => navigate('/dashboard/membros')}>

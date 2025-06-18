@@ -1,8 +1,8 @@
-
 // -- IMPORTS
 
 import { logError } from 'senselogic-gist';
 import { supabaseService } from '../service/supabase_service';
+import { ministryMemberRoleSlug } from '../model/ministry_member';
 
 // -- TYPES
 
@@ -61,7 +61,18 @@ class MinistryService
         const { data, error } = await supabaseService
             .getClient()
             .from( 'MINISTRY' )
-            .select()
+            .select(
+                `id,`
+                + `name, `
+                + `description, `
+                + `color,`
+                + `leaderArray:MINISTRY_MEMBER!inner(
+                    profile:PROFILE (
+                        id,
+                        legalName
+                    )
+                )`
+                )
             .eq( 'id', id )
             .single();
 
@@ -82,8 +93,21 @@ class MinistryService
         const { data, error } = await supabaseService
             .getClient()
             .from( 'MINISTRY' )
-            .select()
-            .eq( 'churchId', churchId );
+            .select(
+                `id,`
+                + `name, `
+                + `description, `
+                + `color,`
+                + `leaderArray:MINISTRY_MEMBER!inner(
+                    profile:PROFILE (
+                        id,
+                        legalName
+                    )
+                ),`
+                + `memberCountArray:MINISTRY_MEMBER(count)`
+            )
+            .eq( 'churchId', churchId )
+            .eq( 'leaderArray.roleSlug', ministryMemberRoleSlug.leader );
 
         if ( error !== null )
         {

@@ -10,3 +10,10 @@ export const profileGenderEnum = z.enum(
         'female'
     ]
     );
+
+export const profileGender =
+    {
+        male: 'male',
+        female: 'female'
+    };
+

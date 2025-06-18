@@ -73,7 +73,7 @@ const EventDateTimeForm = ({ control }: EventDateTimeFormProps) => {
           </FormItem>
         )}
       />
-      
+
       <FormField
         control={control}
         name="endTime"

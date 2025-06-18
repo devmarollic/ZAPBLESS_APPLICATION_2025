@@ -1,0 +1,15 @@
+MINISTRY_MEMBER_ROLE
+
+    id name
+
+        leader
+            ~ Líder
+        
+        vide-leader
+            ~ Vice-Líder
+
+        volunteer
+            ~ Voluntário
+
+        member
+            ~ Membro

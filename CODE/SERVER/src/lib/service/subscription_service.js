@@ -3,6 +3,7 @@
 import { getMapByCode, logError } from 'senselogic-gist';
 import { databaseService } from './database_service';
 import { PagarmeService } from './pagarme_service';
+import { applyPagination } from '../../base';
 
 // -- FUNCTIONS
 
@@ -25,8 +26,8 @@ class SubscriptionService extends PagarmeService
         let { data, error } =
             await databaseService.getClient()
                 .from( 'SUBSCRIPTION' )
-                .eq( 'churchId', churchId )
                 .select()
+                .eq( 'churchId', churchId )
                 .single();
 
         if ( error !== null )
@@ -46,8 +47,8 @@ class SubscriptionService extends PagarmeService
         let { data, error } =
             await databaseService.getClient()
                 .from( 'SUBSCRIPTION' )
-                .eq( 'id', subscriptionId )
                 .select()
+                .eq( 'id', subscriptionId )
                 .single();
 
         if ( error !== null )
@@ -145,6 +146,32 @@ class SubscriptionService extends PagarmeService
                 ` )
                 .eq( 'id', subscriptionId )
                 .single();
+
+        if ( error !== null )
+        {
+            logError( error );
+        }
+
+        return data;
+    }
+
+    // ~~
+
+    async getSubscriptionArrayByChurchId(
+        churchId,
+        page,
+        limit
+        )
+    {
+        let { startIndex, endIndex } = applyPagination( page, limit );
+
+        let { data, error } =
+            await databaseService.getClient()
+                .from( 'SUBSCRIPTION' )
+                .select()
+                .eq( 'churchId', churchId )
+                .order( 'creationTimestamp', { ascending: false } )
+                .range( startIndex, endIndex );
 
         if ( error !== null )
         {

@@ -123,7 +123,7 @@ let start =
 
         try
         {
-            // whatsappBotService.startAllWhatsAppsSessions();
+            whatsappBotService.startAllWhatsAppsSessions();
             
             await fastify.listen( { port : enviroment.PORT, host : '0.0.0.0' } );
         }

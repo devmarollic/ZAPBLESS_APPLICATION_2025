@@ -26,7 +26,8 @@ export class ChurchController extends Controller
             {
                 ...body.adminInfo,
                 churchId: church.id,
-                documentType: documentType.cpf
+                documentType: documentType.cpf,
+                roleSlug: 'administrator'
             }
             );
         let startAtDate = new Date();

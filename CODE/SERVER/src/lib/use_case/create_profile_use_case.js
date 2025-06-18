@@ -20,8 +20,6 @@ class CreateProfileUseCase
     {
         let { success, error, data } = await profileSchema.safeParseAsync( input );
 
-        console.log( { success, error, data } );
-
         if ( !success )
         {
             throw new ZodError( error );
@@ -32,7 +30,8 @@ class CreateProfileUseCase
             data.password,
             {
                 first_name: data.firstName,
-                last_name: data.lastName
+                last_name: data.lastName,
+                church_id: data.churchId
             }
             );
 
@@ -57,7 +56,7 @@ class CreateProfileUseCase
             {
                 profileId: profile.id,
                 churchId: profile.churchId,
-                roleSlug: 'administrator'
+                roleSlug: data.roleSlug
             }
             );
 

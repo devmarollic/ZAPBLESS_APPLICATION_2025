@@ -17,6 +17,7 @@ import Membros from './pages/Membros';
 import MembroNovo from './pages/MembroNovo';
 import MembroEditar from './pages/MembroEditar';
 import EnviarMensagem from './pages/EnviarMensagem';
+import StatusMensagens from './pages/StatusMensagens';
 import MeusDados from './pages/MeusDados';
 import GraficosAcesso from './pages/GraficosAcesso';
 import GraficosMensagens from './pages/GraficosMensagens';
@@ -41,10 +42,13 @@ import PoliticaDePrivacidade from './pages/PoliticaDePrivacidade';
 import PoliticaDeCookies from './pages/PoliticaDeCookies';
 import Sobre from './pages/Sobre';
 import Contato from './pages/Contato';
+import MeuPlano from './pages/MeuPlano';
+import Lembretes from './pages/Lembretes';
 
 import { PlanProvider } from './context/PlanContext';
 import { WhatsAppProvider } from './context/WhatsAppContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import GerenciarUsuarios from './pages/GerenciarUsuarios';
 
 const queryClient = new QueryClient();
 
@@ -83,8 +87,9 @@ const App = () => (
                                     <Route index element={<Dashboard />} />
 
                                     {/* Minha Conta */}
-                                    <Route path="meu-plano" element={<Dashboard />} />
+                                    <Route path="meu-plano" element={<MeuPlano />} />
                                     <Route path="meus-dados" element={<MeusDados />} />
+                                    <Route path="gerenciar-usuarios" element={<GerenciarUsuarios />} />
 
                                     {/* Agenda */}
                                     <Route path="calendario" element={<Calendario />} />
@@ -102,6 +107,9 @@ const App = () => (
                                     <Route path="membros/importar" element={<Dashboard />} />
                                     <Route path="membros/exportar" element={<Dashboard />} />
 
+                                    {/* Mensagens */}
+                                    <Route path="mensagens/status" element={<StatusMensagens />} />
+
                                     {/* Avisos */}
                                     <Route path="avisos" element={<Avisos />} />
                                     <Route path="avisos/novo" element={<AvisoNovo />} />
@@ -116,6 +124,9 @@ const App = () => (
                                     <Route path="ministerios/editar/:id" element={<MinisterioEditar />} />
                                     <Route path="ministerios/importar" element={<MinisterioImportar />} />
                                     <Route path="ministerios/exportar" element={<MinisterioExportar />} />
+
+                                    {/* Lembretes */}
+                                    <Route path="lembretes" element={<Lembretes />} />
 
                                     {/* Dashboard/Gráficos */}
                                     <Route path="graficos/acesso" element={<GraficosAcesso />} />

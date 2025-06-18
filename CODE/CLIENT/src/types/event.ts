@@ -1,4 +1,3 @@
-
 export type RecurrenceType = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
 
 export interface RecurrenceRule {
@@ -67,4 +66,8 @@ export type EventFormValues = {
   recurrence_days_of_week?: string[];
   recurrence_day_of_month?: number | 'last';
   recurrence_end_date: Date | null;
+  /**
+   * Texto livre quando o usuário seleciona "outro" como tipo de evento.
+   */
+  otherTypeReason?: string;
 }

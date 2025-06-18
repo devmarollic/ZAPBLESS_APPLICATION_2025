@@ -1,9 +1,8 @@
-
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Control } from "react-hook-form";
+import { Control, useWatch } from "react-hook-form";
 import { EventFormValues } from "@/types/event";
 
 interface Ministry {
@@ -25,6 +24,8 @@ interface EventBasicInfoFormProps {
 }
 
 const EventBasicInfoForm = ({ control, ministries, eventTypes, loadingMinistries = false, loadingEventType = false }: EventBasicInfoFormProps) => {
+  const selectedTypeId = useWatch({ control, name: "typeId" });
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -37,35 +38,6 @@ const EventBasicInfoForm = ({ control, ministries, eventTypes, loadingMinistries
               <FormControl>
                 <Input placeholder="Digite o título do evento" {...field} />
               </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={control}
-          name="typeId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Tipo de evento</FormLabel>
-              <Select 
-                onValueChange={field.onChange} 
-                defaultValue={field.value}
-                disabled={loadingEventType}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder={loadingEventType ? "Carregando..." : "Selecione um ministério"} />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {eventTypes.map((eventType) => (
-                    <SelectItem key={eventType.id} value={eventType.id}>
-                      {eventType.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
               <FormMessage />
             </FormItem>
           )}
@@ -99,6 +71,52 @@ const EventBasicInfoForm = ({ control, ministries, eventTypes, loadingMinistries
             </FormItem>
           )}
         />
+
+
+        <FormField
+          control={control}
+          name="typeId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tipo de evento</FormLabel>
+              <Select 
+                onValueChange={field.onChange} 
+                defaultValue={field.value}
+                disabled={loadingEventType}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder={loadingEventType ? "Carregando..." : "Selecione um ministério"} />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {eventTypes.map((eventType) => (
+                    <SelectItem key={eventType.id} value={eventType.id}>
+                      {eventType.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {selectedTypeId === "other" && (
+          <FormField
+            control={control}
+            name="otherTypeReason"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Digite o tipo de evento</FormLabel>
+                <FormControl>
+                  <Input placeholder="Digite o tipo de evento" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
       </div>
 
       <FormField

@@ -64,27 +64,27 @@ const Calendario = () => {
   }, []);
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto md:p-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto p-4 sm:p-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-4xl font-bold text-blue-600 mb-2">Calendário</h1>
-          <p className="text-gray-600 text-lg">Gerencie os eventos da sua igreja</p>
+          <h1 className="text-2xl sm:text-4xl font-bold text-blue-600 mb-2">Calendário</h1>
+          <p className="text-gray-600 text-sm sm:text-lg">Gerencie os eventos da sua igreja</p>
         </div>
-        <Button className="bg-black hover:bg-gray-800 text-white px-6 py-3 rounded-lg">
-          <Plus className="mr-2 h-5 w-5" /> 
+        <Button className="bg-black hover:bg-gray-800 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg w-full sm:w-auto">
+          <Plus className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> 
           Novo Evento
         </Button>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
         <Card className="shadow-lg">
           <CardHeader className="pb-4">
-            <CardTitle className="text-xl font-bold">Calendário de Eventos</CardTitle>
-            <CardDescription className="text-gray-600">
+            <CardTitle className="text-lg sm:text-xl font-bold">Calendário de Eventos</CardTitle>
+            <CardDescription className="text-gray-600 text-sm">
               Selecione uma data para ver os eventos
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-2 sm:p-6">
             <div className="space-y-4">
               {/* Custom month navigation */}
               <div className="flex items-center justify-between mb-4">
@@ -92,18 +92,18 @@ const Calendario = () => {
                   variant="ghost"
                   size="icon"
                   onClick={() => navigateMonth('prev')}
-                  className="h-8 w-8"
+                  className="h-7 w-7 sm:h-8 sm:w-8"
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
-                <h3 className="font-semibold text-lg capitalize">{monthYear}</h3>
+                <h3 className="font-semibold text-sm sm:text-lg capitalize">{monthYear}</h3>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => navigateMonth('next')}
-                  className="h-8 w-8"
+                  className="h-7 w-7 sm:h-8 sm:w-8"
                 >
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
               </div>
 
@@ -122,34 +122,34 @@ const Calendario = () => {
 
         <Card className="shadow-lg">
           <CardHeader className="pb-4">
-            <CardTitle className="text-xl font-bold">
+            <CardTitle className="text-lg sm:text-xl font-bold">
               {date ? formatarDataCompleta(date) : "Selecione uma data"}
             </CardTitle>
-            <CardDescription className="text-gray-600">
+            <CardDescription className="text-gray-600 text-sm">
               {eventosDodia.length} evento(s) neste dia
             </CardDescription>
           </CardHeader>
-          <CardContent className="min-h-[300px]">
+          <CardContent className="min-h-[200px] sm:min-h-[300px]">
             {eventosDodia.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-500 text-lg">Nenhum evento para este dia</p>
+              <div className="text-center py-8 sm:py-12">
+                <p className="text-gray-500 text-sm sm:text-lg">Nenhum evento para este dia</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {eventosDodia.map((evento) => (
-                  <div key={evento.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                  <div key={evento.id} className="border rounded-lg p-3 sm:p-4 hover:bg-gray-50 transition-colors">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-lg">{evento.title}</h3>
-                      <span className="text-blue-600 font-semibold">
+                      <h3 className="font-semibold text-sm sm:text-lg">{evento.title}</h3>
+                      <span className="text-blue-600 font-semibold text-xs sm:text-sm">
                         {formatarHora(new Date(evento.startAtTimestamp))}
                       </span>
                     </div>
-                    <p className="text-gray-600 mb-3">{evento.description}</p>
+                    <p className="text-gray-600 mb-3 text-xs sm:text-sm">{evento.description}</p>
                     <div className="flex justify-end gap-2">
-                      <Button variant="outline" size="sm" className="text-gray-600 hover:text-gray-800">
+                      <Button variant="outline" size="sm" className="text-gray-600 hover:text-gray-800 text-xs sm:text-sm">
                         Editar
                       </Button>
-                      <Button variant="outline" size="sm" className="text-red-500 hover:text-red-700 hover:bg-red-50">
+                      <Button variant="outline" size="sm" className="text-red-500 hover:text-red-700 hover:bg-red-50 text-xs sm:text-sm">
                         Cancelar
                       </Button>
                     </div>
@@ -158,12 +158,12 @@ const Calendario = () => {
               </div>
             )}
           </CardContent>
-          <div className="border-t p-4">
-            <div className="flex justify-between gap-4">
-              <Button variant="outline" className="flex-1">
+          <div className="border-t p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row justify-between gap-2 sm:gap-4">
+              <Button variant="outline" className="flex-1 text-xs sm:text-sm">
                 Ver todos os eventos
               </Button>
-              <Button asChild className="flex-1 bg-black hover:bg-gray-800">
+              <Button asChild className="flex-1 bg-black hover:bg-gray-800 text-xs sm:text-sm">
                 <Link to="/dashboard/eventos/novo">Novo Evento</Link>
               </Button>
             </div>

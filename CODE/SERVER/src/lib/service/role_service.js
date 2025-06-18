@@ -33,6 +33,49 @@ class UserChurchRoleService
 
         return data;
     }
+
+    // ~~
+
+    async setUserChurchRoleByProfileIdAndChurchId(
+        churchId,
+        profileId,
+        roleSlug
+        )
+    {
+        let { data, error } = await databaseService.getClient()
+            .from( 'USER_CHURCH_ROLE' )
+            .update( { roleSlug } )
+            .eq( 'profileId', profileId )
+            .eq( 'churchId', churchId );
+
+        if ( error !== null )
+        {
+            logError( error );
+        }
+
+        return data;
+    }
+
+    // ~~
+
+    async setOrCreateUserChurchRoleByProfileIdAndChurchId(
+        churchId,
+        profileId,
+        roleSlug
+        )
+    {
+        let { data, error } = await databaseService.getClient()
+            .from( 'USER_CHURCH_ROLE' )
+            .upsert( { roleSlug, profileId, churchId } )
+            .single();
+
+        if ( error !== null )
+        {
+            logError( error );
+        }
+
+        return data;
+    }
 }
 
 // -- VARIABLES

@@ -20,8 +20,10 @@ export class GetMinistriesByChurchController extends Controller
             throw new UnauthenticatedError();
         }
 
+        let churchId = request.profileLogged.user_metadata.church_id;
+
         let ministries = await getMinistriesByChurchUseCase.execute(
-            request.profileLogged.id
+            churchId
             );
 
         return ministries;

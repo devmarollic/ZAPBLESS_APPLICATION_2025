@@ -2,6 +2,9 @@ RECURRENCE_TYPE
 
     id name
 
+        none
+            ~ Sem recorrência
+
         daily
             ~ Diariamente
 

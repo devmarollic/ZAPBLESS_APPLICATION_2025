@@ -46,10 +46,25 @@ class PlanService
        {
            this.cachedPlanArray = await this.getPlanArray();
            this.cachedPlanArrayTimestamp = Date.now();
-           this.cachedPlanByIdMap = getMapById( this.cachedPlanArray, 'id' );
        }
 
        return this.cachedPlanArray;
+    }
+
+    // ~~~
+
+    async getCachedPlanByIdMap(
+        )
+    {
+        if ( this.cachedPlanByIdMap === null
+            || Date.now() > this.cachedPlanByIdMapTimestamp + 300000 )
+        {
+            this.cachedPlanArray = await this.getCachedPlanArray();
+            this.cachedPlanByIdMap = getMapById( this.cachedPlanArray, 'id' );
+            this.cachedPlanByIdMapTimestamp = Date.now();
+        }
+
+        return this.cachedPlanByIdMap;
     }
 
     // ~~

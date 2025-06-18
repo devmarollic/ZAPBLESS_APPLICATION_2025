@@ -14,7 +14,7 @@ export const profileSchema = z.object(
         statusId : profileStatusEnum.optional(),
         firstName: z.string(),
         lastName: z.string(),
-        birthDate: z.coerce.date(),
+        birthDate: z.coerce.date().optional(),
         genderId : profileGenderEnum,
         email: z.string().email(),
         password: z.string().optional(),
@@ -23,7 +23,7 @@ export const profileSchema = z.object(
         countryCode: countryCodeEnum,
         imagePath: z.string().optional().nullable(),
         documentType: documentTypeEnum,
-        documentNumber: z.string(),
+        documentNumber: z.string().optional().nullable(),
         aboutDescription: z.string().optional(),
         legalName: z.string().optional()
     }

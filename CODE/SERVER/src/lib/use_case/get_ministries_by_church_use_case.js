@@ -11,18 +11,11 @@ class GetMinistriesByChurchUseCase
     // -- OPERATIONS
 
     async execute(
-        userId
+        churchId
         )
     {
-        let profile = await profileService.getProfileById( userId );
-
-        if ( !profile )
-        {
-            throw new AppError( 'Profile not found', 404 );
-        }
-
         let ministries = await ministryService.getMinistriesByChurchId(
-            profile.churchId
+            churchId
             );
 
         return ministries;

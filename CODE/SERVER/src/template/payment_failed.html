@@ -222,15 +222,15 @@
         <p>Sua assinatura pode ser suspensa em breve se o pagamento não for realizado.</p>
       </div>
 
-      <p class="greeting">Olá <strong>{{customerName}}</strong>,</p>
+      <p class="greeting">Olá <strong>{{.bs}}</strong>,</p>
 
       <p>Infelizmente, não conseguimos processar o pagamento da sua assinatura do plano <strong>{{planName}}</strong>. Para continuar aproveitando todos os recursos do ZapBless, é necessário regularizar o pagamento.</p>
 
       <div class="section">
         <h3>Detalhes da Tentativa de Pagamento</h3>
-        <div><span class="label">Plano:</span><strong>{{planName}}</strong></div>
-        <div><span class="label">Valor:</span><strong>{{amount}}</strong></div>
-        {{failureReasonSection}}
+        <div><span class="label">Plano:</span><strong>{{.bs}}</strong></div>
+        <div><span class="label">Valor:</span><strong>{{.bs}}</strong></div>
+        {{.bs}}
         <div><span class="label">Status:</span><span class="status">Falhou</span></div>
       </div>
 
@@ -246,11 +246,11 @@
 
       <div class="urgency-box">
         <p><strong>⏰ Ação Necessária:</strong> Regularize o pagamento em até 7 dias para evitar a suspensão da sua conta.</p>
-        {{nextAttemptSection}}
+        {{.bs}}
       </div>
 
       <div class="cta">
-        <a href="{{retryUrl}}" class="retry">Atualizar Forma de Pagamento</a><br />
+        <a href="{{.bs}}" class="retry">Atualizar Forma de Pagamento</a><br />
         <a href="https://zapbless.com.br/suporte" class="support">Falar com o Suporte</a>
       </div>
 

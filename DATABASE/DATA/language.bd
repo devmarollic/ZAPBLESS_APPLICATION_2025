@@ -2,9 +2,9 @@ LANGUAGE
 
     code number name
 
-        pt
+        pt-BR
             ~ 1
-            ~ Português
+            ~ Português (Brasil)
 
         en
             ~ 2

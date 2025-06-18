@@ -16,6 +16,38 @@ class ProfileService
 
     // -- INQUIRIES
 
+    async getProfileArrayByChurchId(
+        churchId
+        )
+    {
+        let { data, error } = await databaseService.getClient()
+            .from( 'PROFILE' )
+            .select(
+                `
+                    id,
+                    legalName,
+                    firstName,
+                    lastName,
+                    email,
+                    phonePrefix,
+                    phoneNumber,
+                    statusId,
+                    creationTimestamp,
+                    roleSlugArray:USER_CHURCH_ROLE( roleSlug )
+                `
+            )
+            .eq( 'churchId', churchId );
+
+        if ( error !== null )
+        {
+            logError( error );
+        }
+
+        return data;
+    }
+
+    // ~~
+
     async getChurchIdByProfileId(
         profileId
         )
@@ -109,6 +141,28 @@ class ProfileService
             .from( 'PROFILE' )
             .select()
             .eq( 'id', id )
+            .single();
+
+        if ( error !== null )
+        {
+            logError( error );
+        }
+
+        return data;
+    }
+
+    // ~~
+
+    async setProfileById(
+        profile,
+        id
+        )
+    {
+        let { data, error } = await databaseService.getClient()
+            .from( 'PROFILE' )
+            .update( profile )
+            .eq( 'id', id )
+            .select()
             .single();
 
         if ( error !== null )

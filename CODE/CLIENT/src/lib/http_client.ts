@@ -78,11 +78,11 @@ export class HttpClient {
         }
     }
 
-    public static async put<TResult>(resource: string, body: string | null): Promise<TResult> {
+    public static async put<TResult>(resource: string, body: object | null): Promise<TResult> {
         const headers = HttpClient.GetHeaders();
         var requestOptions: RequestInit = {
             method: 'PUT',
-            body: body,
+            body: body ? JSON.stringify(body) : null,
             redirect: 'follow',
             headers: headers
         };

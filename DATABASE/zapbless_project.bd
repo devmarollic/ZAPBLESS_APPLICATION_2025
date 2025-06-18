@@ -22,4 +22,5 @@
 @include DATA/subscription_period.bd
 @include DATA/subscription_status.bd
 @include DATA/role.bd
-
+@include DATA/ministry_member_role.bd
+@include DATA/document_type.bd
