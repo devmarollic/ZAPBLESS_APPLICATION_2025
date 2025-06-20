@@ -8,13 +8,14 @@ import SidebarMinisteriosGroup from "./sidebar/SidebarMinisteriosGroup";
 import SidebarDashboardGroup from "./sidebar/SidebarDashboardGroup";
 import SidebarHomeGroup from "./sidebar/SidebarHomeGroup";
 import SidebarLembretesGroup from "./sidebar/SidebarLembretesGroup";
+import AccountDropdown from "./AccountDropdown";
 
 const DashboardSidebar = () => {
     return (
         <Sidebar>
             <SidebarHeader className="flex items-center justify-between px-4">
                 <div className="flex items-center space-x-2">
-                    <a href="/dashboard" className="text-xl font-bold text-zapPurple-600">ZapBless</a>
+                    <AccountDropdown />
                 </div>
                 <SidebarTrigger />
             </SidebarHeader>

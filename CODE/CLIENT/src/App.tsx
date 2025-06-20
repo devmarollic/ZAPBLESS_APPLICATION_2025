@@ -26,6 +26,9 @@ import GraficosAvisos from './pages/GraficosAvisos';
 import GraficosMinisterios from './pages/GraficosMinisterios';
 import Register from './pages/Register';
 import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import ChangePassword from './pages/ChangePassword';
 import Pagamento from './pages/Pagamento';
 import PlanSelection from './pages/PlanSelection';
 import Ministerios from './pages/Ministerios';
@@ -71,6 +74,8 @@ const App = () => (
                             <Route path="/" element={<Index />} />
                             <Route path="/register" element={<Register />} />
                             <Route path="/login" element={<Login />} />
+                            <Route path="/forgot-password" element={<ForgotPassword />} />
+                            <Route path="/reset-password" element={<ResetPassword />} />
                             <Route path="/plan-selection/:email" element={<PlanSelection />} />
                             <Route path="/pagamento" element={<Pagamento />} />
 
@@ -89,6 +94,7 @@ const App = () => (
                                     {/* Minha Conta */}
                                     <Route path="meu-plano" element={<MeuPlano />} />
                                     <Route path="meus-dados" element={<MeusDados />} />
+                                    <Route path="alterar-senha" element={<ChangePassword />} />
                                     <Route path="gerenciar-usuarios" element={<GerenciarUsuarios />} />
 
                                     {/* Agenda */}

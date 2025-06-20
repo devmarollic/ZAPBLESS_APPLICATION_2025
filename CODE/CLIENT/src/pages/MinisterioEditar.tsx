@@ -1,227 +1,201 @@
 
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useQuery } from '@tanstack/react-query';
-import { HttpClient } from '@/lib/http_client';
-import { useToast } from '@/hooks/use-toast';
-import { Ministry } from '@/types/ministry';
-
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from '@/components/ui/form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Save } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { MinistryService, Ministry } from '@/services/ministryService';
 
-const ministerioFormSchema = z.object({
-    name: z.string().min(3, { message: 'O nome deve ter pelo menos 3 caracteres' }),
-    description: z.string().min(10, { message: 'A descrição deve ter pelo menos 10 caracteres' }),
-    leaderId: z.string().optional(),
+const ministryFormSchema = z.object({
+  name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres"),
+  description: z.string().min(10, "A descrição deve ter pelo menos 10 caracteres"),
+  color: z.string().min(4, "Selecione uma cor"),
+  leaderId: z.string().optional(),
 });
 
-type MinisterioFormValues = z.infer<typeof ministerioFormSchema>;
-
-type Member = {
-    id: string;
-    legalName: string;
-    email: string;
-    phoneNumber: string;
-}
+type MinistryFormValues = z.infer<typeof ministryFormSchema>;
 
 const MinisterioEditar = () => {
-    const { id } = useParams<{ id: string }>();
-    const navigate = useNavigate();
-    const { toast } = useToast();
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [ministry, setMinistry] = useState<Ministry | null>(null);
 
-    const form = useForm<MinisterioFormValues>({
-        resolver: zodResolver(ministerioFormSchema),
-        defaultValues: {
-            name: '',
-            description: '',
-            leaderId: ''
-        },
-    });
+  const form = useForm<MinistryFormValues>({
+    resolver: zodResolver(ministryFormSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+      color: '#7C3AED',
+      leaderId: '',
+    },
+  });
 
-    const { data: ministry, isLoading, error } = useQuery({
-        queryKey: ['ministry', id],
-        queryFn: async () => {
-            if (!id) throw new Error('Ministry ID is required');
-            return await HttpClient.get<Ministry>(`/ministry/${id}`);
-        },
-        enabled: !!id
-    });
-
-    const { data: members, isLoading: isLoadingMembers, error: errorMembers } = useQuery({
-        queryKey: ['members'],
-        queryFn: async () => {
-            return await HttpClient.get<Member[]>('/church/members/list');
+  useEffect(() => {
+    const fetchMinistry = async () => {
+      if (!id) return;
+      
+      try {
+        const response = await MinistryService.getMinistry(id);
+        if (response) {
+          setMinistry(response);
+          form.reset({
+            name: response.name,
+            description: response.description,
+            color: response.color,
+            leaderId: response.leaderId || '',
+          });
         }
-    });
-
-    useEffect(() => {
-        if (ministry) {
-            form.reset(
-                {
-                    name: ministry.name,
-                    description: ministry.description,
-                    leaderId: ministry.leaderArray[0].profile.id || ''
-                }
-            );
-        }
-    }, [ministry, form]);
-
-    const onSubmit = async (data: MinisterioFormValues) => {
-        if (!id) return;
-
-        try {
-            await HttpClient.put(`/ministry/${id}`, JSON.stringify(data));
-
-            toast({
-                title: 'Ministério atualizado',
-                description: 'As informações foram atualizadas com sucesso!',
-            });
-
-            navigate('/dashboard/ministerios');
-        } catch (error) {
-            console.error('Failed to update ministry:', error);
-
-            toast({
-                title: 'Erro ao atualizar',
-                description: 'Não foi possível atualizar o ministério. Tente novamente.',
-                variant: 'destructive',
-            });
-        }
+      } catch (error) {
+        console.error("Error fetching ministry:", error);
+        toast({
+          title: "Erro ao carregar ministério",
+          description: "Não foi possível carregar os dados do ministério.",
+          variant: "destructive",
+        });
+        navigate('/dashboard/ministerios');
+      }
     };
 
-    if (isLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-[60vh]">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-zapPurple-600 mx-auto"></div>
-                    <p className="mt-4 text-gray-600">Carregando dados do ministério...</p>
-                </div>
-            </div>
-        );
-    }
+    fetchMinistry();
+  }, [id, form, toast, navigate]);
 
-    if (error) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-4">
-                <h2 className="text-2xl font-bold text-red-600 mb-2">Erro ao carregar ministério</h2>
-                <p className="text-gray-600 mb-4">Não foi possível carregar os dados do ministério.</p>
-                <Button onClick={() => navigate('/dashboard/ministerios')}>Voltar para a lista</Button>
-            </div>
-        );
-    }
+  const onSubmit = async (data: MinistryFormValues) => {
+    if (!id) return;
+    
+    try {
+      setIsLoading(true);
+      
+      const updateData = {
+        name: data.name,
+        description: data.description,
+        color: data.color,
+        leaderId: data.leaderId || undefined,
+      };
+      
+      await MinistryService.updateMinistry(id, updateData);
+      
+      toast({
+        title: "Ministério atualizado",
+        description: "O ministério foi atualizado com sucesso!",
+      });
 
+      navigate('/dashboard/ministerios');
+    } catch (error) {
+      console.error("Error updating ministry:", error);
+      toast({
+        title: "Erro ao atualizar ministério",
+        description: "Não foi possível atualizar o ministério. Tente novamente mais tarde.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (!ministry) {
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold tracking-tight">Editar Ministério</h1>
-                <Button
-                    variant="outline"
-                    onClick={() => navigate('/dashboard/ministerios')}
-                >
-                    <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
-                </Button>
-            </div>
-
-            <div className="rounded-lg border bg-card shadow-sm p-6">
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                        <FormField
-                            control={form.control}
-                            name="name"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Nome do Ministério</FormLabel>
-                                    <FormControl>
-                                        <Input {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <FormField
-                            control={form.control}
-                            name="description"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Descrição</FormLabel>
-                                    <FormControl>
-                                        <Textarea
-                                            className="min-h-[120px]"
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <FormField
-                            control={form.control}
-                            name="leaderId"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Selecione o líder</FormLabel>
-                                    <Select
-                                        onValueChange={field.onChange}
-                                        defaultValue={field.value}
-                                        disabled={isLoadingMembers}
-                                    >
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder={isLoadingMembers ? "Carregando..." : "Selecione um membro"} />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {(members ?? []).map((member) => (
-                                                <SelectItem key={member.id} value={member.id}>
-                                                    {member.legalName}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <div className="flex justify-end">
-                            <Button
-                                type="submit"
-                                className="bg-gradient-to-r from-zapBlue-600 to-zapPurple-600 hover:from-zapBlue-700 hover:to-zapPurple-700"
-                                disabled={form.formState.isSubmitting}
-                            >
-                                {form.formState.isSubmitting ? (
-                                    <>
-                                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-t-transparent" />
-                                        Salvando...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Save className="mr-2 h-4 w-4" /> Salvar
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-                    </form>
-                </Form>
-            </div>
-        </div>
+      <div className="container mx-auto py-6">
+        <div className="text-center">Carregando...</div>
+      </div>
     );
+  }
+
+  return (
+    <div className="md:container mx-auto py-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Editar Ministério</h1>
+        <Button variant="outline" onClick={() => navigate('/dashboard/ministerios')}>
+          Voltar para Ministérios
+        </Button>
+      </div>
+      
+      <Card className="max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle>Editar Ministério</CardTitle>
+          <CardDescription>
+            Atualize as informações do ministério
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome do Ministério</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Digite o nome do ministério" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descrição</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Digite a descrição do ministério"
+                        rows={3}
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="color"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cor</FormLabel>
+                    <FormControl>
+                      <div className="flex gap-2">
+                        <Input type="color" className="w-16 h-10" {...field} />
+                        <Input value={field.value} onChange={field.onChange} placeholder="#7C3AED" />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex gap-4 pt-4">
+                <Button type="submit" disabled={isLoading} className="flex-1">
+                  {isLoading ? "Atualizando..." : "Atualizar Ministério"}
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => navigate('/dashboard/ministerios')}
+                  className="flex-1"
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </div>
+  );
 };
 
 export default MinisterioEditar;

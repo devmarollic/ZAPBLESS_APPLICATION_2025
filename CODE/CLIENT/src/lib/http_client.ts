@@ -7,14 +7,14 @@ export class HttpClient {
 
     public static async post<TResult>(resource: string, body: object): Promise<TResult> {
         const headers = HttpClient.GetHeaders();
-        var requestOptions: RequestInit = {
+        const requestOptions: RequestInit = {
             method: 'POST',
             body: JSON.stringify(body),
             redirect: 'follow',
             headers: headers
         };
 
-        var url = ApplicationSettings.API_URL + resource;
+        const url = ApplicationSettings.API_URL + resource;
 
         try {
             const response = await fetch(url, requestOptions);
@@ -33,7 +33,7 @@ export class HttpClient {
                 
                 return Promise.reject(new Error('Authentication failed'));
             } else {
-                let body = await response.json();
+                const body = await response.json();
 
                 return Promise.reject(new Error(body.message));
             }
@@ -44,14 +44,14 @@ export class HttpClient {
 
     public static async postForm<TResult>(resource: string, body: FormData): Promise<TResult> {
         const headers = HttpClient.GetHeaders(null);
-        var requestOptions: RequestInit = {
+        const requestOptions: RequestInit = {
             method: 'POST',
             body: body,
             redirect: 'follow',
             headers: headers
         };
 
-        var url = ApplicationSettings.API_URL + resource;
+        const url = ApplicationSettings.API_URL + resource;
 
         try {
             const response = await fetch(url, requestOptions);
@@ -80,14 +80,14 @@ export class HttpClient {
 
     public static async put<TResult>(resource: string, body: object | null): Promise<TResult> {
         const headers = HttpClient.GetHeaders();
-        var requestOptions: RequestInit = {
+        const requestOptions: RequestInit = {
             method: 'PUT',
             body: body ? JSON.stringify(body) : null,
             redirect: 'follow',
             headers: headers
         };
 
-        var url = ApplicationSettings.API_URL + resource;
+        const url = ApplicationSettings.API_URL + resource;
 
         try {
             const response = await fetch(url, requestOptions);
@@ -124,14 +124,14 @@ export class HttpClient {
 
     public static async patch<TResult>(resource: string, body: object | null): Promise<TResult> {
         const headers = HttpClient.GetHeaders();
-        var requestOptions: RequestInit = {
+        const requestOptions: RequestInit = {
             method: 'PATCH',
             body: body ? JSON.stringify(body) : null,
             redirect: 'follow',
             headers: headers
         };
 
-        var url = ApplicationSettings.API_URL + resource;
+        const url = ApplicationSettings.API_URL + resource;
 
         try {
             const response = await fetch(url, requestOptions);
@@ -166,13 +166,13 @@ export class HttpClient {
 
     public static async delete<TResult>(resource: string): Promise<TResult> {
         const headers = HttpClient.GetHeaders();
-        var requestOptions: RequestInit = {
+        const requestOptions: RequestInit = {
             method: 'DELETE',
             redirect: 'follow',
             headers: headers
         };
 
-        var url = ApplicationSettings.API_URL + resource;
+        const url = ApplicationSettings.API_URL + resource;
 
         try {
             const response = await fetch(url, requestOptions);
@@ -207,13 +207,13 @@ export class HttpClient {
 
     public static async get<TResult>(resource: string): Promise<TResult> {
         const headers = HttpClient.GetHeaders();
-        var requestOptions: RequestInit = {
+        const requestOptions: RequestInit = {
             method: 'GET',
             redirect: 'follow',
             headers: headers
         };
 
-        var url = ApplicationSettings.API_URL + resource;
+        const url = ApplicationSettings.API_URL + resource;
 
         try {
             const response = await fetch(url, requestOptions);
@@ -239,9 +239,9 @@ export class HttpClient {
     }
 
     private static GetHeaders(contentType: null | string = 'application/json'): Record<string, string> {
-        var token = AuthenticationService.getAccessToken();
+        const token = AuthenticationService.getAccessToken();
 
-        let headers: Record<string, string> = {};
+        const headers: Record<string, string> = {};
 
         if (token != null) {
             headers['Authorization'] = 'Bearer ' + token;
@@ -273,17 +273,17 @@ export class HttpClient {
                 return null;
             }
 
-            const response = await fetch(ApplicationSettings.API_URL + '/refresh-token', {
+            const response = await fetch(ApplicationSettings.API_URL + '/login/refresh-token', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ refresh_token: refreshToken }),
+                body: JSON.stringify({ refreshToken: refreshToken }),
             });
 
             if (response.ok) {
                 const data = await response.json();
-                AuthenticationService.updateTokens(data.access_token, data.refresh_token);
+                AuthenticationService.updateTokens(data?.session?.access_token, data?.session?.refresh_token);
                 
                 HttpClient.refreshSubscribers.forEach(callback => callback(data.access_token));
                 HttpClient.refreshSubscribers = [];

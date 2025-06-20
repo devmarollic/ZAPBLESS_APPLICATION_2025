@@ -56,7 +56,7 @@ class CreateProfileUseCase
             {
                 profileId: profile.id,
                 churchId: profile.churchId,
-                roleSlug: data.roleSlug
+                roleSlug: 'administrator'
             }
             );
 

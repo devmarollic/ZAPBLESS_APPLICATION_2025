@@ -1,9 +1,10 @@
 
-import { Outlet } from "react-router-dom";
-import DashboardSidebar from "./DashboardSidebar";
-import { Menu } from "lucide-react";
-import { SidebarProvider, SidebarTrigger, useSidebar } from "./ui/sidebar";
-import { Button } from "./ui/button";
+import { Outlet } from 'react-router-dom';
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import DashboardSidebar from './DashboardSidebar';
+import AccountDropdown from './AccountDropdown';
+import { Button } from './ui/button';
+import { Menu } from 'lucide-react';
 
 const SidebarToggle = () => {
     // Remove the conditional rendering based on sidebar state
@@ -22,19 +23,28 @@ const SidebarToggle = () => {
 };
 
 const DashboardLayout = () => {
-    return (
-        <SidebarProvider defaultOpen={true}>
-            <div className="flex min-h-screen w-full">
-                <DashboardSidebar />
-                <SidebarToggle />
-                <main className="flex-1 overflow-y-auto">
-                    <div className="container py-6 px-4 md:px-6">
-                        <Outlet />
-                    </div>
-                </main>
+  return (
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full">
+        <DashboardSidebar />
+        <SidebarToggle />
+        <SidebarInset className="flex-1">
+          {/* <header className="flex h-16 shrink-0 items-center justify-between border-b px-4">
+            <div className="flex items-center space-x-4">
+              <h1 className="text-xl font-semibold">
+                <span className="text-zapPurple-600">Zap</span>
+                <span className="text-zapBlue-600">Bless</span>
+              </h1>
             </div>
-        </SidebarProvider>
-    );
+            <AccountDropdown />
+          </header> */}
+          <main className="max-w-[100dvw] flex-1 p-6">
+            <Outlet />
+          </main>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
+  );
 };
 
 export default DashboardLayout;

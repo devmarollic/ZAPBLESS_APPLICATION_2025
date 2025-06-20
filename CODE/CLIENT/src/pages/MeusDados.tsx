@@ -145,7 +145,7 @@ const MeusDados = () => {
     };
 
     return (
-        <div className="container mx-auto py-6 space-y-6">
+        <div className="md:container mx-auto py-6 space-y-6">
             <div>
                 <h1 className="text-3xl font-bold">Meus Dados</h1>
                 <p className="text-muted-foreground">Gerencie suas informações pessoais e da igreja</p>

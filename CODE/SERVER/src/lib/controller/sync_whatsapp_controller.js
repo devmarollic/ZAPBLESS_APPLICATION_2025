@@ -1,6 +1,6 @@
 // -- IMPORTS
 
-import { getRandomTuid, logError } from 'senselogic-gist';
+import { getRandomTuid, getRandomUuid, logError } from 'senselogic-gist';
 import { Controller } from './controller';
 import { profileService } from '../service/profile_service';
 import { SupabaseStoreService } from '../service/supabase_store_service';
@@ -10,6 +10,8 @@ import { whatsappService } from '../service/whatsapp_service';
 import { isNullOrUndefined } from '../../base';
 import { UnauthenticatedError } from '../errors/unauthenticated_error';
 import { whatsappBotManager } from '../../lib/service/whatsapp_bot_manager';
+import { evolutionService } from '../service/evolution_service';
+import { getIO } from '../../socket';
 
 // -- TYPES
 
@@ -22,52 +24,45 @@ export class SyncWhatsappController extends Controller
         reply
         )
     {
-        if ( request.profileLogged === null )
+        let profileLogged = request.profileLogged;
+
+        if ( profileLogged === null )
         {
             throw new UnauthenticatedError();
         }
 
-        try {
-            let userId = request.profileLogged.id;
-            let profile = await profileService.getProfileById( userId );
+        let instanceArray = await evolutionService.getInstanceArray();
+        let cachedInstanceArray = await evolutionService.getCachedInstanceArray();
+        let churchId = profileLogged.user_metadata.church_id;
+        let instanceAlreadyExists = instanceArray.find( instance => instance.name === churchId );
+        let response;
 
-            let whatsapp = await whatsappService.getWhatsappByChurchId( profile.churchId );
+        if ( instanceAlreadyExists )
+        {
+            response = await evolutionService.getInstanceQrCode( instanceAlreadyExists.name );
+        }
+        else
+        {
+            let profile = await profileService.getProfileById( profileLogged.id );
+            let instanceResponse = await evolutionService.createInstance(
+                churchId,
+                'WHATSAPP-BAILEYS',
+                getRandomUuid(),
+                [ profile.phonePrefix, profile.phoneNumber ].filter( Boolean ).join( '' ).trim().replace( /\D+/g, '' )
+            );
 
-            if ( isNullOrUndefined( whatsapp ) )
+            if ( instanceResponse && instanceResponse.instance )
             {
-                whatsapp = await whatsappService.addWhatsapp(
-                    {
-                        id: getRandomTuid(),
-                        name: 'church_' + profile.churchId,
-                        qrcode: '',
-                        status: 'OPENING',
-                        battery: '100',
-                        isPlugged: false,
-                        retries: 0,
-                        greetingMessage: 'Olá',
-                        farewellsMessage: 'Até mais',
-                        isDefault: true,
-                        churchId: profile.churchId
-                    }
+                response = await evolutionService.getInstanceQrCode(
+                    instanceResponse.instance.instanceName
                     );
             }
-
-            let bot = await getWbot(whatsapp);
-            
-            if (!bot) {
-                bot = await initWbot(whatsapp);
+            else
+            {
+                throw new Error( 'Failed to create WhatsApp instance' );
             }
-
-            const status = bot ? 'CONNECTED' : 'OPENING';
-
-            await whatsappService.setWhatsappById({ status }, whatsapp.id);
-
-            return {
-                success: true
-            }
-        } catch (error) {
-            logError('Error in sync whatsapp:', error);
-            throw error;
         }
+
+        return response;
     }   
 }

@@ -2,6 +2,7 @@
 
 import { scheduleService } from '../service/schedule_service';
 import { notificationService } from '../service/notification_service';
+import { evolutionService } from '../service/evolution_service';
 
 // -- TYPES
 
@@ -48,18 +49,20 @@ class ScheduleWorker
             try
             {
                 let now = new Date();
-                let schedules = await scheduleService.getPendingSchedules( now );
+                let scheduleArray = await scheduleService.getPendingSchedules( now );
 
-                for ( let schedule of schedules )
+                for ( let schedule of scheduleArray )
                 {
                     try
                     {
-                        await notificationService.sendNotification( schedule );
+                        // await notificationService.sendNotification( schedule );
+                        let { payload } = schedule;
+
+                        let response = await evolutionService.sendTextByIntanceNameAndNumber( schedule.churchId, payload.number, payload.text );
 
                         await scheduleService.setScheduleById(
                             {
-                                statusId: 'sent',
-                                updateTimestamp: now.toISOString()
+                                statusId: 'sent'
                             },
                             schedule.id
                             );

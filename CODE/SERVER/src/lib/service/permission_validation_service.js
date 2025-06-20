@@ -49,6 +49,8 @@ class PermissionValidationService
             .eq( 'CHURCH.SUBSCRIPTION.statusId', subscriptionStatus.paid )
             .in( 'CHURCH.SUBSCRIPTION.typeId', [ subscriptionType.active, subscriptionType.trial ] )
             .single();
+
+        console.log( userPermissions, permissionsError );
         
         if ( permissionsError !== null )
         {

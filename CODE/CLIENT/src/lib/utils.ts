@@ -11,9 +11,9 @@ export function getMap(
     default_value = null
 ) {
     if (elementArray) {
-        let elementMap = {};
+        const elementMap = {};
 
-        for (let element of elementArray) {
+        for (const element of elementArray) {
             elementMap[element[keyName]] = element;
         }
 

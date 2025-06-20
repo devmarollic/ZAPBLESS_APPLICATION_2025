@@ -52,7 +52,7 @@ const CallToAction = () => {
               <div className="absolute inset-0 flex items-center justify-center p-8">
                 <div className="bg-white rounded-xl shadow-xl overflow-hidden w-full max-w-md">
                   <div className="bg-zapBlue-100 p-4 flex justify-between items-center">
-                    <div className="text-zapBlue-800 font-medium">ZapBless</div>
+                    <div className="text-zapBlue-800 font-medium">Cultuar App</div>
                     <div className="text-xs bg-zapBlue-600 text-white px-2 py-1 rounded-full">
                       Online
                     </div>

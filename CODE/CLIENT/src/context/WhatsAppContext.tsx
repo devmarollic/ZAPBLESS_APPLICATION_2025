@@ -4,6 +4,7 @@ import { createContext, useContext } from 'react';
 
 const WhatsAppContext = createContext({
   isLoading: true,
+  setIsLoading: (isLoading: boolean) => {},
   whatsapps: [],
   church: null,
   ministries: [],
@@ -35,10 +36,10 @@ const WhatsAppContext = createContext({
 });
 
 export function WhatsAppProvider({ children }: { children: React.ReactNode }) {
-    const { isLoading, whatsapps, church, ministries, contacts, whatsapp, setWhatsapp, syncing, setSyncing, qrCode, setQrCode, metrics } = useDashboard();
+    const { isLoading, setIsLoading, whatsapps, church, ministries, contacts, whatsapp, setWhatsapp, syncing, setSyncing, qrCode, setQrCode, metrics } = useDashboard();
 
     return (
-        <WhatsAppContext.Provider value={{ isLoading, whatsapps, church, ministries, contacts, whatsapp, setWhatsapp, syncing, setSyncing, qrCode, setQrCode, metrics }}>
+        <WhatsAppContext.Provider value={{ isLoading, setIsLoading, whatsapps, church, ministries, contacts, whatsapp, setWhatsapp, syncing, setSyncing, qrCode, setQrCode, metrics }}>
             {children}
         </WhatsAppContext.Provider>
     );

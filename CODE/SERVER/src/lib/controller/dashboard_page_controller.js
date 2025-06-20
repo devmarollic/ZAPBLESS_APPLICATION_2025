@@ -13,6 +13,7 @@ import { StatusCodes } from 'http-status-codes';
 import { UnauthenticatedError } from '../errors/unauthenticated_error';
 import { churchService } from '../service/church_service';
 import { ministryService } from '../service/ministry_service';
+import { evolutionService } from '../service/evolution_service';
 
 // -- TYPES
 
@@ -25,14 +26,16 @@ export class DashboardPageController extends PageController
         reply
         )
     {
-        if ( request.profileLogged === null )
+        let profileLogged = request.profileLogged;
+
+        if ( profileLogged === null )
         {
             throw new UnauthenticatedError();
         }
 
-        let profile = await profileService.getProfileById( request.profileLogged.id );
+        let churchId = profileLogged.user_metadata.church_id;
         let [
-                whatsapp,
+                whatsappInstanceArray,
                 church,
                 ministryArray,
                 membersTotalQuery,
@@ -47,53 +50,53 @@ export class DashboardPageController extends PageController
                 contactGrowthQuery
             ] = await Promise.all(
                 [
-                    whatsappService.getWhatsappByChurchId( profile.churchId ),
-                    churchService.getChurchById( profile.churchId ),
-                    ministryService.getMinistriesByChurchId( profile.churchId ),
+                    evolutionService.getCachedInstanceArray(),
+                    churchService.getChurchById( churchId ),
+                    ministryService.getMinistriesByChurchId( churchId ),
                     databaseService.getClient()
                         .from( 'PROFILE' )
                         .select( 'id' )
-                        .eq( 'churchId', profile.churchId ),
+                        .eq( 'churchId', churchId ),
                     databaseService.getClient()
                         .from( 'PROFILE' )
                         .select( 'id' )
-                        .eq( 'churchId', profile.churchId )
+                        .eq( 'churchId', churchId )
                         .gte( 'creationTimestamp', new Date( new Date().getFullYear(), new Date().getMonth(), 1 ).toISOString() ),
                     databaseService.getClient()
                         .from( 'MESSAGE' )
                         .select( 'id' )
-                        .eq( 'churchId', profile.churchId ),
+                        .eq( 'churchId', churchId ),
                     databaseService.getClient()
                         .from( 'MESSAGE' )
                         .select( 'id' )
-                        .eq( 'churchId', profile.churchId )
+                        .eq( 'churchId', churchId )
                         .gte( 'created_at', new Date( new Date().getFullYear(), new Date().getMonth(), 1 ).toISOString() ),
                     databaseService.getClient()
                         .from( 'MINISTRY' )
                         .select( 'id' )
-                        .eq( 'churchId', profile.churchId ),
+                        .eq( 'churchId', churchId ),
                     databaseService.getClient()
                         .from( 'MINISTRY' )
                         .select( 'id' )
-                        .eq( 'churchId', profile.churchId )
+                        .eq( 'churchId', churchId )
                         .gte( 'creationTimestamp', new Date( new Date().getFullYear(), new Date().getMonth(), 1 ).toISOString() ),
                     databaseService.getClient()
                         .from( 'ANNOUNCEMENT' )
                         .select( 'id' )
-                        .eq( 'churchId', profile.churchId ),
+                        .eq( 'churchId', churchId ),
                     databaseService.getClient()
                         .from( 'ANNOUNCEMENT' )
                         .select( 'id' )
-                        .eq( 'churchId', profile.churchId )
+                        .eq( 'churchId', churchId )
                         .gte( 'creationTimestamp', new Date( new Date().getFullYear(), new Date().getMonth(), 1 ).toISOString() ),
                     databaseService.getClient()
                         .from( 'CONTACT' )
                         .select( 'id' )
-                        .eq( 'churchId', profile.churchId ),
+                        .eq( 'churchId', churchId ),
                     databaseService.getClient()
                         .from( 'CONTACT' )
                         .select( 'id' )
-                        .eq( 'churchId', profile.churchId )
+                        .eq( 'churchId', churchId )
                         .gte( 'creationTimestamp', new Date( new Date().getFullYear(), new Date().getMonth(), 1 ).toISOString() )
                 ]
                 );
@@ -109,6 +112,8 @@ export class DashboardPageController extends PageController
 
         let announcementsTotal = announcementsTotalQuery?.data?.length ?? 0;
         let announcementsGrowth = announcementsGrowthQuery?.data?.length ?? 0;
+
+        let whatsapp = whatsappInstanceArray.find( instance => instance.name === profileLogged.user_metadata.church_id );
 
         return (
             {

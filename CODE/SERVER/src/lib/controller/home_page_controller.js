@@ -5,6 +5,7 @@ import { PageController } from './page_controller';
 import { getWbot } from '../../whatsapp_bot';
 import { UnauthenticatedError } from '../errors/unauthenticated_error';
 import { profileService } from '../service/profile_service';
+import { evolutionService } from '../service/evolution_service';
 
 // -- TYPES
 
@@ -17,17 +18,19 @@ export class HomePageController extends PageController
         reply
         )
     {
-        if ( request.profileLogged === null )
+        let profileLogged = request.profileLogged;
+
+        if ( profileLogged === null )
         {
             throw new UnauthenticatedError();
         }
 
-        let profile = await profileService.getProfileById( request.profileLogged.id );
-        let whatsapp = await getWbot( request.profileLogged.id, profile.churchId );
+        let instanceArray = await evolutionService.getCachedInstanceArray();
+        let instance = instanceArray.find( instance => instance.name === profileLogged.user_metadata.church_id );
 
         return (
             {
-                whatsapp
+                whatsapp: instance
             }
             );
     }

@@ -175,6 +175,7 @@ export function useDashboard() {
                 if (data) {
                     if (data.whatsapp) {
                         dispatchWhatsapp({ type: 'UPDATE_SESSION', payload: data.whatsapp });
+                        setWhatsapp(data.whatsapp);
                     }
 
                     if (data.church) {
@@ -246,6 +247,7 @@ export function useDashboard() {
 
     return {
         isLoading,
+        setIsLoading,
         whatsapps,
         church,
         ministries,

@@ -10,11 +10,12 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { MessageSquare, Send, Check, Calendar, Clock } from 'lucide-react';
+import { MessageSquare, Send, Check, Calendar, Clock, Repeat } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import PresetMessages from '@/components/messaging/PresetMessages';
+import MessageRecurrenceForm from '@/components/messaging/MessageRecurrenceForm';
 
 const messageFormSchema = z.object({
     title: z.string().min(3, 'O título deve ter pelo menos 3 caracteres'),
@@ -24,13 +25,23 @@ const messageFormSchema = z.object({
     isScheduled: z.boolean().default(false),
     scheduledDate: z.string().optional(),
     scheduledTime: z.string().optional(),
+    isRecurring: z.boolean().default(false),
+    recurrenceType: z.string().optional(),
+    recurrenceInterval: z.number().optional(),
+    recurrenceDaysOfWeek: z.array(z.string()).optional(),
+    recurrenceDayOfMonth: z.number().optional(),
+    recurrenceTime: z.string().optional(),
+    recurrenceEndDate: z.string().optional(),
 }).refine((data) => {
-    if (data.isScheduled) {
+    if (data.isScheduled && !data.isRecurring) {
         return data.scheduledDate && data.scheduledTime;
+    }
+    if (data.isRecurring) {
+        return data.recurrenceType && data.recurrenceTime;
     }
     return true;
 }, {
-    message: "Data e horário são obrigatórios para mensagens agendadas",
+    message: "Configurações de agendamento ou recorrência são obrigatórias",
     path: ["scheduledDate"],
 });
 
@@ -74,10 +85,19 @@ const EnviarMensagem = () => {
             isScheduled: false,
             scheduledDate: '',
             scheduledTime: '',
+            isRecurring: false,
+            recurrenceType: 'weekly',
+            recurrenceInterval: 1,
+            recurrenceDaysOfWeek: [],
+            recurrenceDayOfMonth: 1,
+            recurrenceTime: '',
+            recurrenceEndDate: '',
         },
     });
 
     const isScheduled = form.watch('isScheduled');
+    const isRecurring = form.watch('isRecurring');
+    const recurrenceType = form.watch('recurrenceType');
 
     const handleSelectPresetMessage = (content: string) => {
         form.setValue('message', content);
@@ -151,10 +171,18 @@ const EnviarMensagem = () => {
             // Simulate API delay
             await new Promise(resolve => setTimeout(resolve, 1500));
 
-            const actionText = data.isScheduled ? 'agendada' : 'enviada';
-            const timeText = data.isScheduled 
-                ? `para ${new Date(data.scheduledDate + 'T' + data.scheduledTime).toLocaleString('pt-BR')}`
-                : '';
+            let actionText = 'enviada';
+            let timeText = '';
+
+            if (data.isRecurring) {
+                actionText = 'configurada como recorrente';
+                const typeText = data.recurrenceType === 'daily' ? 'diariamente' :
+                               data.recurrenceType === 'weekly' ? 'semanalmente' : 'mensalmente';
+                timeText = `será enviada ${typeText} às ${data.recurrenceTime}`;
+            } else if (data.isScheduled) {
+                actionText = 'agendada';
+                timeText = `para ${new Date(data.scheduledDate + 'T' + data.scheduledTime).toLocaleString('pt-BR')}`;
+            }
 
             toast({
                 title: `Mensagem ${actionText}`,
@@ -289,75 +317,90 @@ const EnviarMensagem = () => {
                                         />
                                     )}
 
-                                    <Card>
-                                        <CardHeader className="pb-3">
-                                            <CardTitle className="text-base flex items-center">
-                                                <Calendar className="mr-2 h-4 w-4" />
-                                                Agendamento de Mensagem
-                                            </CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="space-y-4">
-                                            <FormField
-                                                control={form.control}
-                                                name="isScheduled"
-                                                render={({ field }) => (
-                                                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                                                        <div className="space-y-0.5">
-                                                            <FormLabel>Agendar mensagem</FormLabel>
-                                                            <div className="text-sm text-muted-foreground">
-                                                                Enviar a mensagem em data e horário específicos
+                                    {!isRecurring && (
+                                        <Card>
+                                            <CardHeader className="pb-3">
+                                                <CardTitle className="text-base flex items-center">
+                                                    <Calendar className="mr-2 h-4 w-4" />
+                                                    Agendamento de Mensagem
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="space-y-4">
+                                                <FormField
+                                                    control={form.control}
+                                                    name="isScheduled"
+                                                    render={({ field }) => (
+                                                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                                                            <div className="space-y-0.5">
+                                                                <FormLabel>Agendar mensagem</FormLabel>
+                                                                <div className="text-sm text-muted-foreground">
+                                                                    Enviar a mensagem em data e horário específicos
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                        <FormControl>
-                                                            <Switch
-                                                                checked={field.value}
-                                                                onCheckedChange={field.onChange}
-                                                            />
-                                                        </FormControl>
-                                                    </FormItem>
+                                                            <FormControl>
+                                                                <Switch
+                                                                    checked={field.value}
+                                                                    onCheckedChange={(checked) => {
+                                                                        field.onChange(checked);
+                                                                        if (checked) {
+                                                                            form.setValue('isRecurring', false);
+                                                                        }
+                                                                    }}
+                                                                />
+                                                            </FormControl>
+                                                        </FormItem>
+                                                    )}
+                                                />
+
+                                                {isScheduled && (
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <FormField
+                                                            control={form.control}
+                                                            name="scheduledDate"
+                                                            render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormLabel>Data de Envio</FormLabel>
+                                                                    <FormControl>
+                                                                        <Input
+                                                                            type="date"
+                                                                            min={new Date().toISOString().split('T')[0]}
+                                                                            {...field}
+                                                                        />
+                                                                    </FormControl>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            )}
+                                                        />
+
+                                                        <FormField
+                                                            control={form.control}
+                                                            name="scheduledTime"
+                                                            render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormLabel>Horário de Envio</FormLabel>
+                                                                    <FormControl>
+                                                                        <Input
+                                                                            type="time"
+                                                                            {...field}
+                                                                        />
+                                                                    </FormControl>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                    </div>
                                                 )}
-                                            />
+                                            </CardContent>
+                                        </Card>
+                                    )}
 
-                                            {isScheduled && (
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    <FormField
-                                                        control={form.control}
-                                                        name="scheduledDate"
-                                                        render={({ field }) => (
-                                                            <FormItem>
-                                                                <FormLabel>Data de Envio</FormLabel>
-                                                                <FormControl>
-                                                                    <Input
-                                                                        type="date"
-                                                                        min={new Date().toISOString().split('T')[0]}
-                                                                        {...field}
-                                                                    />
-                                                                </FormControl>
-                                                                <FormMessage />
-                                                            </FormItem>
-                                                        )}
-                                                    />
-
-                                                    <FormField
-                                                        control={form.control}
-                                                        name="scheduledTime"
-                                                        render={({ field }) => (
-                                                            <FormItem>
-                                                                <FormLabel>Horário de Envio</FormLabel>
-                                                                <FormControl>
-                                                                    <Input
-                                                                        type="time"
-                                                                        {...field}
-                                                                    />
-                                                                </FormControl>
-                                                                <FormMessage />
-                                                            </FormItem>
-                                                        )}
-                                                    />
-                                                </div>
-                                            )}
-                                        </CardContent>
-                                    </Card>
+                                    {!isScheduled && (
+                                        <MessageRecurrenceForm
+                                            control={form.control}
+                                            isRecurring={isRecurring}
+                                            recurrenceType={recurrenceType || 'weekly'}
+                                        />
+                                    )}
 
                                     <div className="flex flex-col justify-center md:flex-row md:justify-end gap-4 pt-4">
                                         <Button type="button" variant="outline" onClick={handlePreview}>
@@ -371,7 +414,12 @@ const EnviarMensagem = () => {
                                                 <>Processando...</>
                                             ) : (
                                                 <>
-                                                    {isScheduled ? (
+                                                    {isRecurring ? (
+                                                        <>
+                                                            <Repeat className="mr-2 h-4 w-4" />
+                                                            Configurar Recorrência
+                                                        </>
+                                                    ) : isScheduled ? (
                                                         <>
                                                             <Clock className="mr-2 h-4 w-4" />
                                                             Agendar Mensagem
@@ -462,6 +510,18 @@ const EnviarMensagem = () => {
                                         <Check className="mr-2 h-4 w-4 text-green-500" />
                                         <span>Será enviada para <strong>{previewData.recipients}</strong> destinatário(s)</span>
                                     </div>
+                                    
+                                    {isRecurring && form.getValues('recurrenceTime') && (
+                                        <div className="flex items-center text-sm">
+                                            <Repeat className="mr-2 h-4 w-4 text-purple-500" />
+                                            <span>
+                                                Recorrência: <strong>
+                                                    {form.getValues('recurrenceType') === 'daily' ? 'Diariamente' :
+                                                     form.getValues('recurrenceType') === 'weekly' ? 'Semanalmente' : 'Mensalmente'}
+                                                </strong> às <strong>{form.getValues('recurrenceTime')}</strong>
+                                            </span>
+                                        </div>
+                                    )}
                                     
                                     {isScheduled && form.getValues('scheduledDate') && form.getValues('scheduledTime') && (
                                         <div className="flex items-center text-sm">
