@@ -16,6 +16,39 @@ class ProfileService
 
     // -- INQUIRIES
 
+    async getAllProfiles(
+        )
+    {
+        let { data, error } = await databaseService.getClient()
+            .from( 'PROFILE' )
+            .select(
+                `
+                    id,
+                    legalName,
+                    firstName,
+                    lastName,
+                    email,
+                    phonePrefix,
+                    phoneNumber,
+                    statusId,
+                    churchId,
+                    creationTimestamp,
+                    roleSlugArray:USER_CHURCH_ROLE( roleSlug ),
+                    church:CHURCH!constraint_profile_church_1 ( id, name, statusId )
+                `
+            )
+            .order( 'creationTimestamp', { ascending: false } );
+
+        if ( error !== null )
+        {
+            logError( error );
+        }
+
+        return data;
+    }
+
+    // ~~
+
     async getProfileArrayByChurchId(
         churchId
         )
