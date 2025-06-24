@@ -40,6 +40,14 @@ const SidebarAgendaGroup = () => {
               </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Editar/Cancelar evento">
+              <NavLink to="/dashboard/eventos/editar" className={({isActive}) => isActive ? "data-[active=true]" : ""}>
+                <Edit className="h-5 w-5" />
+                <span>Editar/Cancelar evento</span>
+              </NavLink>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

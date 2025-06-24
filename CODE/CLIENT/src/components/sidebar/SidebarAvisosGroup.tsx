@@ -32,6 +32,30 @@ const SidebarAvisosGroup = () => {
               </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Editar/Excluir aviso">
+              <NavLink to="/dashboard/avisos/gerenciar" className={({isActive}) => isActive ? "data-[active=true]" : ""}>
+                <Edit className="h-5 w-5" />
+                <span>Editar/Excluir aviso</span>
+              </NavLink>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Importar avisos">
+              <NavLink to="/dashboard/avisos/importar" className={({isActive}) => isActive ? "data-[active=true]" : ""}>
+                <Import className="h-5 w-5" />
+                <span>Importar avisos</span>
+              </NavLink>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Exportar avisos">
+              <NavLink to="/dashboard/avisos/exportar" className={({isActive}) => isActive ? "data-[active=true]" : ""}>
+                <ArrowUpRight className="h-5 w-5" />
+                <span>Exportar avisos</span>
+              </NavLink>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
