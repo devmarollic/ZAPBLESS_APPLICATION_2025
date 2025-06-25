@@ -1,22 +1,17 @@
 # Estágio de build
-FROM node:22-alpine as builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
-COPY . .
 
-WORKDIR /app/SERVER
-RUN yarn install && \
-    yarn run build && \
-    rm -rf node_modules
+# Copiar apenas os arquivos necessários para build
+COPY SERVER/package*.json ./
+RUN yarn install
 
-COPY --from=builder /app/SERVER/dist .
+# Copiar o resto dos arquivos do servidor
+COPY SERVER/ ./
 
-ENV HOST 0.0.0.0
-ENV PORT 8000
-
-EXPOSE 8000
-
-CMD ["node", "index.js"]
+# Construir a aplicação
+RUN yarn run build
 
 # Estágio de produção
 FROM node:22-alpine
@@ -31,7 +26,7 @@ RUN yarn install --production && \
     yarn cache clean
 
 # Copiar o bundle compilado
-COPY --from=builder /app/SERVER/dist ./dist
+COPY --from=builder /app/dist ./dist
 
 ENV HOST 0.0.0.0
 ENV PORT 8000
