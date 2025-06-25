@@ -1,5 +1,4 @@
 define_environment_variables.bat
-CODE/Dockerfile
 CODE/SERVER/.env
 DATABASE/*.sql
 Thumbs.db
