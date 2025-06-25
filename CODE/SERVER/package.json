@@ -12,10 +12,10 @@
     },
     "scripts": {
         "predev": "mkdir -p dist",
-        "dev": "node esbuild.config.js && nodemon dist/index.js",
+        "dev": "node esbuild.config.js && node --import ./load-env.js dist/index.js",
         "prebuild": "mkdir -p dist",
         "build": "node esbuild.config.js",
-        "start": "node dist/index.js"
+        "start": "node --import ./load-env.js dist/index.js"
     },
     "devDependencies": {
         "esbuild": "^0.20.1",

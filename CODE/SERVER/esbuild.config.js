@@ -16,7 +16,10 @@ await esbuild.build({
     'pagarme',
     'senselogic-gist',
     'zod',
-    '@supabase/*'
+    '@supabase/*',
+    'fs',
+    'path',
+    'dotenv'
   ],
   target: 'node22',
   format: 'esm'
