@@ -1,6 +1,6 @@
-const esbuild = require('esbuild');
+import * as esbuild from 'esbuild';
 
-esbuild.build({
+await esbuild.build({
   entryPoints: ['src/index.js'],
   bundle: true,
   platform: 'node',
@@ -20,5 +20,6 @@ esbuild.build({
     'zod',
     '@supabase/*'
   ],
-  target: 'node18'
+  target: 'node22',
+  format: 'esm'
 }).catch(() => process.exit(1)); 
