@@ -3,7 +3,7 @@
 import Fastify from 'fastify';
 import fastifyCors from '@fastify/cors';
 import fastifyStatic from '@fastify/static';
-import fs from 'fs';
+import fs from 'node:fs';
 import path from 'path';
 import { supabaseService } from './lib/service/supabase_service';
 import

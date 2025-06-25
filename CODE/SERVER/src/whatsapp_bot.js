@@ -10,7 +10,7 @@ import { whatsappBotManager } from './lib/service/whatsapp_bot_manager';
 import { whatsappService } from './lib/service/whatsapp_service';
 import { whatsappSessionService } from './lib/service/whatsapp_session_service';
 import path from 'path';
-import fs from 'fs';
+import fs from 'node:fs';
 
 // -- CONSTANTS
 

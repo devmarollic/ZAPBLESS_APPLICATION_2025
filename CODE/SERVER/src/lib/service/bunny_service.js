@@ -1,6 +1,6 @@
 // -- IMPORTS
 
-import fs from 'fs';
+import fs from 'node:fs';
 import { enviroment } from '../../enviroment';
 
 // -- TYPES

@@ -3,7 +3,7 @@
 import { getJsonObject, getJsonText, logError } from 'senselogic-gist';
 import { databaseService } from './database_service';
 import { whatsappService } from './whatsapp_service';
-import fs from 'fs';
+import fs from 'node:fs';
 
 // -- TYPES
 
