@@ -1,6 +1,5 @@
 // -- IMPORTS
 
-import { verify } from 'jsonwebtoken';
 import { AppError } from '../lib/errors/app_error';
 import { UnauthenticatedError } from '../lib/errors/unauthenticated_error';
 import { createServerClient } from '@supabase/ssr';

@@ -1,7 +1,7 @@
 // -- IMPORTS
 
 import { Server as SocketIO } from 'socket.io';
-import { verify } from 'jsonwebtoken';
+import pkg from 'jsonwebtoken';
 import { AppError } from './lib/errors/app_error';
 import { getJsonText, logError } from 'senselogic-gist';
 import { supabaseService } from './lib/service/supabase_service';
@@ -10,6 +10,7 @@ import { enviroment } from './enviroment';
 // -- VARIABLES
 
 let io;
+let verify = pkg.verify;
 
 // -- FUNCTIONS
 
