@@ -1,46 +1,53 @@
-# ---- STAGE: builder ----
+# Estágio de build
 FROM node:lts-alpine AS builder
+
+# Definir diretório de trabalho
 WORKDIR /app
 
-# 1) Copia package.json e yarn.lock do servidor
-COPY SERVER/package.json SERVER/yarn.lock ./SERVER/
-WORKDIR /app/SERVER
-RUN yarn install --frozen-lockfile
+# Copiar apenas os arquivos de dependência primeiro para aproveitar o cache do Docker
+COPY SERVER/package*.json ./
 
-# 2) Copia o código e gera o bundle
-COPY SERVER/ .
-RUN yarn run build   # ou: npx esbuild --config ../esbuild.config.js
+# Instalar dependências e gerar package-lock.json atualizado
+RUN npm install
 
-# ---- STAGE: client-builder ---- (Opcional: separa cliente)
-FROM node:lts-alpine AS client-builder
-WORKDIR /app
+# Copiar o resto dos arquivos do servidor
+COPY SERVER/ ./
 
-COPY CLIENT/package.json CLIENT/yarn.lock ./CLIENT/
-WORKDIR /app/CLIENT
-RUN yarn install --frozen-lockfile
+# Construir a aplicação
+RUN npm run build
 
-COPY CLIENT/ .
-RUN yarn run build
-
-# ---- STAGE: production ----
+# Estágio de produção
 FROM node:lts-alpine
+
+# Adicionar usuário não-root para segurança
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+# Definir diretório de trabalho
 WORKDIR /app
 
-# Copia package.json e yarn.lock para instalar dependências de produção
-COPY SERVER/package.json SERVER/yarn.lock ./
-RUN yarn install --production --frozen-lockfile
+# Copiar apenas os arquivos necessários do estágio de build
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package*.json ./
 
-# Copia o bundle do servidor
-COPY --from=builder /app/SERVER/dist ./dist
+# Instalar apenas dependências de produção
+RUN npm install --production && \
+    npm cache clean --force
 
-# Copia os assets estáticos do cliente
-COPY --from=client-builder /app/CLIENT/dist ./public
+# Configurar variáveis de ambiente básicas
+ENV NODE_ENV=production \
+    HOST=0.0.0.0 \
+    PORT=8000
 
-ENV HOST=0.0.0.0
-ENV PORT=8000
+# Mudar para usuário não-root
+USER appuser
 
+# Expor porta
 EXPOSE 8000
 
-# Executa a aplicação a partir do diretório dist
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8000/health || exit 1
+
+# Comando para iniciar a aplicação
 CMD ["node", "dist/index.js"]
     
