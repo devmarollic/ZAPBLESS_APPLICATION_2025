@@ -1,5 +1,5 @@
 # Estágio de build
-FROM node:lts-alpine AS builder
+FROM node:20-alpine AS builder
 
 # Definir diretório de trabalho
 WORKDIR /app
@@ -17,7 +17,7 @@ COPY SERVER/ ./
 RUN npm run build
 
 # Estágio de produção
-FROM node:lts-alpine
+FROM node:20-alpine
 
 # Adicionar usuário não-root para segurança
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
