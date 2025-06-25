@@ -1,53 +1,16 @@
-# Estágio de build
-FROM node:20-alpine AS builder
+FROM node:lts-alpine as builder
 
-# Definir diretório de trabalho
 WORKDIR /app
+COPY . .
 
-# Copiar apenas os arquivos de dependência primeiro para aproveitar o cache do Docker
-COPY SERVER/package*.json ./
+WORKDIR /app/SERVER
+RUN yarn install && yarn run build && rm -rf node_modules
 
-# Instalar dependências e gerar package-lock.json atualizado
-RUN npm install
+COPY --from=builder /app/SERVER/dist .
 
-# Copiar o resto dos arquivos do servidor
-COPY SERVER/ ./
+ENV HOST 0.0.0.0
+ENV PORT 8000
 
-# Construir a aplicação
-RUN npm run build
-
-# Estágio de produção
-FROM node:20-alpine
-
-# Adicionar usuário não-root para segurança
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-
-# Definir diretório de trabalho
-WORKDIR /app
-
-# Copiar apenas os arquivos necessários do estágio de build
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/package*.json ./
-
-# Instalar apenas dependências de produção
-RUN npm install --production && \
-    npm cache clean --force
-
-# Configurar variáveis de ambiente básicas
-ENV NODE_ENV=production \
-    HOST=0.0.0.0 \
-    PORT=8000
-
-# Mudar para usuário não-root
-USER appuser
-
-# Expor porta
 EXPOSE 8000
 
-# Healthcheck
-HEALTHCHECK --interval=30s --timeout=3s \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8000/health || exit 1
-
-# Comando para iniciar a aplicação
-CMD ["node", "dist/index.js"]
-    
+CMD ["node", "index.js"]
