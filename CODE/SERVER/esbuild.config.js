@@ -7,6 +7,25 @@ await esbuild.build({
   outfile: 'dist/index.js',
   sourcemap: true,
   external: [
+    // Node.js built-in modules
+    'fs',
+    'path',
+    'events',
+    'stream',
+    'util',
+    'url',
+    'net',
+    'tls',
+    'crypto',
+    'dns',
+    'http',
+    'https',
+    'os',
+    'zlib',
+    'buffer',
+    'string_decoder',
+    'querystring',
+    // Third-party modules
     'fluent-ffmpeg',
     'ffmpeg-static',
     'socket.io',
@@ -17,9 +36,8 @@ await esbuild.build({
     'senselogic-gist',
     'zod',
     '@supabase/*',
-    'fs',
-    'path',
-    'dotenv'
+    'dotenv',
+    'nodemailer'
   ],
   target: 'node22',
   format: 'esm'

@@ -1,14 +1,18 @@
 // -- IMPORTS
 
-import nodemailer from 'nodemailer';
-import fs from 'fs/promises';
-import path from 'path';
-import handlebars from 'handlebars';
+import { createTransport } from 'nodemailer';
+import { readFile } from 'fs/promises';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { compile } from 'handlebars';
 import { logError } from 'senselogic-gist';
 
 // -- VARIABLES
 
-const transporter = nodemailer.createTransport(
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const transporter = createTransport(
     {
         host: process.env.EMAIL_HOST,
         port: process.env.EMAIL_PORT,
@@ -33,10 +37,10 @@ async function sendEmail( to, subject, template, context = {} )
 {
     try
     {
-        let templatePath = path.resolve( process.cwd(), 'src', 'template', `${ template }.html` );
-        let templateSource = await fs.readFile( templatePath, 'utf8' );
-        let compileTemplate = handlebars.compile( templateSource );
-        let htmlBody = compileTemplate( context );
+        let templatePath = resolve(__dirname, '..', 'template', `${template}.html`);
+        let templateSource = await readFile(templatePath, 'utf8');
+        let compileTemplate = compile(templateSource);
+        let htmlBody = compileTemplate(context);
 
         let mailOptions =
             {
@@ -46,19 +50,17 @@ async function sendEmail( to, subject, template, context = {} )
                 html: htmlBody
             };
 
-        await transporter.sendMail( mailOptions );
+        await transporter.sendMail(mailOptions);
     }
-    catch ( error )
+    catch (error)
     {
-        logError( '[Mailer] Failed to send email:', error );
-
+        logError('[Mailer] Failed to send email:', error);
         throw error;
     }
 }
 
 // -- EXPORTS
 
-export let mailer =
-    {
-        sendEmail
-    };
+export const mailer = {
+    sendEmail
+};
