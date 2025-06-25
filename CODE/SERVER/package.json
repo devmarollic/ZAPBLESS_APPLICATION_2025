@@ -6,6 +6,9 @@
     "author": "SenseLogic",
     "license": "LGPL-3.0",
     "repository": "https://github.com/senselogic/FUSION",
+    "engines": {
+        "node": ">=20.0.0"
+    },
     "scripts": {
         "predev": "mkdir -p dist",
         "dev": "node esbuild.config.js && nodemon dist/index.js",
