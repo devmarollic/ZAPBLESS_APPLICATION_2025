@@ -5,6 +5,7 @@ import fastifyCors from '@fastify/cors';
 import fastifyStatic from '@fastify/static';
 import fs from 'node:fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { supabaseService } from './lib/service/supabase_service';
 import
     {
@@ -27,6 +28,9 @@ import { logError } from 'senselogic-gist';
 import { enviroment } from './enviroment';
 
 // -- STATEMENTS
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 let fastify = Fastify( { logger: true } );
 

@@ -7,6 +7,11 @@ import { AppError } from '../errors/app_error';
 import { initWbot } from '../../whatsapp_bot';
 import { whatsappService } from './whatsapp_service';
 import { whatsappBotManager } from './whatsapp_bot_manager';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // -- FUNCTIONS
 

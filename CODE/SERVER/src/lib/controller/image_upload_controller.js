@@ -3,6 +3,11 @@ import { join } from 'path';
 import fs from 'fs/promises';
 import sharp from 'sharp';
 import { format } from 'date-fns';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const fastify = Fastify();
 
