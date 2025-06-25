@@ -1,36 +1,16 @@
-# Estágio de build
-FROM node:22-alpine AS builder
+FROM node:lts-alpine as builder
 
 WORKDIR /app
+COPY . .
 
-# Copiar apenas os arquivos necessários para build
-COPY SERVER/package*.json ./
-RUN yarn install
+WORKDIR /app/SERVER
+RUN yarn install && yarn run build && rm -rf node_modules
 
-# Copiar o resto dos arquivos do servidor
-COPY SERVER/ ./
-
-# Construir a aplicação
-RUN yarn run build
-
-# Estágio de produção
-FROM node:22-alpine
-
-WORKDIR /app
-
-# Copiar package.json e package-lock.json
-COPY SERVER/package*.json ./
-
-# Instalar dependências de produção
-RUN yarn install --production && \
-    yarn cache clean
-
-# Copiar o bundle compilado
-COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/SERVER/dist .
 
 ENV HOST 0.0.0.0
 ENV PORT 8000
 
 EXPOSE 8000
 
-CMD ["node", "dist/index.js"]
+CMD ["node", "index.js"]
