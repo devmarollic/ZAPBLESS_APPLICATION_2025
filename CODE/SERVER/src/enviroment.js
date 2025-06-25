@@ -1,16 +1,18 @@
 // -- IMPORTS
 
-import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import * as dotenv from 'dotenv';
 import { logError } from 'senselogic-gist';
 import { z } from 'zod';
 
 // -- STATEMENTS
 
-dotenv.config(
-    {
-        path: '.env'
-    }
-    );
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const envPath = new URL('../../.env', import.meta.url);
+
+dotenv.config({ path: envPath });
 
 // -- CONSTANTS
 
