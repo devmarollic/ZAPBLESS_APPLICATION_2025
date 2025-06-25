@@ -9,8 +9,6 @@ await esbuild.build({
   external: [
     'fluent-ffmpeg',
     'ffmpeg-static',
-    'whatsapp-web.js',
-    'qrcode-terminal',
     'socket.io',
     'fastify',
     '@fastify/*',

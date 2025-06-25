@@ -22,12 +22,9 @@ import
 import { initIO } from './socket';
 import { authMiddleware } from './middleware/auth_middleware';
 import { errorMiddleware } from './middleware/error_middleware';
-import { whatsappBotManager } from './lib/service/whatsapp_bot_manager';
 import { scheduleWorker } from './lib/worker/schedule_worker';
 import { logError } from 'senselogic-gist';
-import { pagarmeService } from './lib/service/pagarme_service';
 import { enviroment } from './enviroment';
-import { whatsappBotService } from './lib/service/whatsapp_bot_service';
 
 // -- STATEMENTS
 
@@ -100,26 +97,6 @@ let start =
     async () =>
     {
         supabaseService.getClient();
-
-        // await client.subscriptions.create(
-        //     {
-
-        //     }
-        //     );
-        // client.criarPedido2(
-        //     {
-        //         customer: {
-        //           name: 'Fabiano César',
-        //           type: 'individual',
-        //           email: 'fcfabiano.cesar@gmail.com',
-        //           code: '_fWVgU821P6jFFUNAP3_yQ',
-        //           document: '08443276037',
-        //           document_type: 'CPF',
-        //           gender: 'male'
-        //         },
-        //         items: [ { quantity: 1, code: 'basic', description: 'Plano mensal básico', amount: 5990 } ]
-        //       }
-        //     );
 
         try
         {

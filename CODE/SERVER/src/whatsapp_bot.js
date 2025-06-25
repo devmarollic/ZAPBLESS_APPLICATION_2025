@@ -1,7 +1,5 @@
 // -- IMPORTS
 
-import qrCode from 'qrcode-terminal';
-import { Client, RemoteAuth } from 'whatsapp-web.js';
 import { getIO } from './socket';
 import { whatsappBotService } from './lib/service/whatsapp_bot_service';
 import { getJsonObject, getRandomTuid, logError } from 'senselogic-gist';
@@ -68,28 +66,14 @@ export async function initWbot(
                     session = getJsonObject( whatsapp.session );
                 }
 
-                let whatsappBot = new Client(
-                    {
-                        // session: session,
-                        authStrategy: new RemoteAuth(
-                            {
-                                clientId: whatsapp.id,
-                                store,
-                                backupSyncIntervalMs: 300000,
-                                // storeOptions: {
-                                //     useLocalStorage: false,
-                                //     useMemoryStorage: true
-                                // }
-                            }
-                            ),
-                        puppeteer:
-                            {
-                                headless: true,
-                                args: [ '--no-sandbox', '--disable-setuid-sandbox' ]
-                            }
+                let whatsappBot = {
+                    initialize: async () => {
+                        console.log( 'Whatsapp bot initialized' );
+                    },
+                    on: async () => {
+                        console.log( 'Whatsapp bot on' );
                     }
-                    );
-
+                };
                 await whatsappBot.initialize();
 
                 whatsappBot.on(
@@ -103,8 +87,6 @@ export async function initWbot(
                             return;
                         }
 
-                        qrCode.generate( qr, { small: true } );
-                        
                         whatsapp.qrcode = qr;
                         whatsapp.status = 'qrcode';
                         whatsapp.retries = 0;
