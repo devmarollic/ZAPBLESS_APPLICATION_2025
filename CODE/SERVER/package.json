@@ -1,13 +1,14 @@
 {
-    "name": "fusion-project-server",
+    "name": "zapbless-project-server",
     "version": "0.0.1",
-    "description": "Fusion project server",
+    "description": "ZapBless project server",
     "main": "dist/index.js",
-    "author": "SenseLogic",
+    "type": "module",
+    "author": "Fabiano César",
     "license": "LGPL-3.0",
-    "repository": "https://github.com/senselogic/FUSION",
+    "repository": "https://github.com/Marollic/ZAPBLESS_APPLICATION_2025",
     "engines": {
-        "node": ">=20.0.0"
+        "node": ">=22.0.0"
     },
     "scripts": {
         "predev": "mkdir -p dist",
