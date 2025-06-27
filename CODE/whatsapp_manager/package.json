@@ -1,0 +1,36 @@
+{
+  "name": "whatsapp-session",
+  "version": "1.0.0",
+  "description": "Servidor de sessão única do WhatsApp para Docker",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "whatsapp",
+    "api",
+    "baileys",
+    "docker"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.4.0",
+    "@hapi/boom": "^10.0.1",
+    "axios": "^1.6.2",
+    "body-parser": "^1.20.2",
+    "express": "^4.18.2",
+    "pino": "^8.16.0",
+    "qrcode": "^1.5.3",
+    "qrcode-terminal": "^0.12.0",
+    "jimp": "^0.22.10",
+    "sharp": "^0.32.6",
+    "pino-pretty": "^10.2.3",
+    "link-preview-js": "^3.0.5",
+    "node-cache": "^5.1.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+} 

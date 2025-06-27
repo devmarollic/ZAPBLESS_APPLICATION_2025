@@ -31,7 +31,7 @@ export const subscriptionType =
         active: 'active',
         inactive: 'inactive',
         trial: 'trial',
-        cancelled: 'cancelled'
+        canceled: 'canceled'
     };
 
 export const subscriptionPeriod =

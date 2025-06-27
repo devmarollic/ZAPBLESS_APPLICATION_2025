@@ -9,7 +9,7 @@ EVENT_STATUS
         has-passed
             ~ Já aconteceu
 
-        cancelled
+        canceled
             ~ Cancelado
 
         is-happening

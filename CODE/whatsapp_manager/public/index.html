@@ -1,0 +1,209 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp Session Manager</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .status {
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    .open { background-color: #d4edda; color: #155724; }
+    .connecting { background-color: #fff3cd; color: #856404; }
+    .disconnected { background-color: #f8d7da; color: #721c24; }
+    .qr-container {
+      margin: 20px 0;
+      text-align: center;
+    }
+    .qr-code {
+      max-width: 300px;
+      margin: 0 auto;
+    }
+    button {
+      padding: 10px 15px;
+      margin: 5px;
+      cursor: pointer;
+    }
+    .actions {
+      margin: 20px 0;
+    }
+    .send-form {
+      margin-top: 30px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>WhatsApp Session Manager</h1>
+  
+  <div id="status" class="status">Carregando status...</div>
+  
+  <div id="qr-container" class="qr-container" style="display: none;">
+    <h2>Escaneie o QR Code</h2>
+    <img id="qr-code" class="qr-code" src="" alt="QR Code">
+  </div>
+  
+  <div class="actions">
+    <button id="start-btn">Iniciar Sessão</button>
+    <button id="disconnect-btn">Desconectar</button>
+    <button id="refresh-btn">Atualizar Status</button>
+  </div>
+  
+  <div class="send-form">
+    <h2>Enviar Mensagem</h2>
+    <div>
+      <label for="to">Número (com código do país, ex: 5511999999999):</label>
+      <input type="text" id="to" placeholder="5511999999999">
+    </div>
+    <div>
+      <label for="message">Mensagem:</label>
+      <textarea id="message" rows="4" placeholder="Digite sua mensagem"></textarea>
+    </div>
+    <button id="send-btn">Enviar</button>
+  </div>
+
+  <script>
+    // Elementos DOM
+    const statusEl = document.getElementById('status');
+    const qrContainer = document.getElementById('qr-container');
+    const qrCode = document.getElementById('qr-code');
+    const startBtn = document.getElementById('start-btn');
+    const disconnectBtn = document.getElementById('disconnect-btn');
+    const refreshBtn = document.getElementById('refresh-btn');
+    const sendBtn = document.getElementById('send-btn');
+    
+    // Atualiza o status
+    async function updateStatus() {
+      try {
+        const response = await fetch('/status');
+        const data = await response.json();
+        
+        // Atualiza o elemento de status
+        statusEl.textContent = "Sessao: " + data.sessionId + " | Status: " + data.status;
+        statusEl.className = 'status ' + data.status;
+        
+        // Exibe o QR code se disponível
+        if (data.qrCode && data.status === 'connecting') {
+          qrContainer.style.display = 'block';
+          qrCode.src = data.qrCode + '?t=' + Date.now(); // Evita cache
+        } else {
+          qrContainer.style.display = 'none';
+        }
+      } catch (error) {
+        console.error('Erro ao atualizar status:', error);
+        statusEl.textContent = 'Erro ao carregar status';
+        statusEl.className = 'status disconnected';
+      }
+    }
+    
+    // Inicia a sessão
+    async function startSession() {
+      try {
+        startBtn.disabled = true;
+        statusEl.textContent = 'Iniciando sessão...';
+        
+        const response = await fetch('/start', { method: 'POST' });
+        const data = await response.json();
+        
+        if (data.success) {
+          updateStatus();
+        } else {
+          statusEl.textContent = 'Erro ao iniciar sessão: ' + (data.error || 'Desconhecido');
+        }
+      } catch (error) {
+        console.error('Erro ao iniciar sessão:', error);
+        statusEl.textContent = 'Erro ao iniciar sessão';
+      } finally {
+        startBtn.disabled = false;
+      }
+    }
+    
+    // Desconecta a sessão
+    async function disconnect() {
+      try {
+        disconnectBtn.disabled = true;
+        statusEl.textContent = 'Desconectando...';
+        
+        const response = await fetch('/disconnect', { method: 'POST' });
+        const data = await response.json();
+        
+        if (data.success) {
+          updateStatus();
+        } else {
+          statusEl.textContent = 'Erro ao desconectar: ' + (data.error || 'Desconhecido');
+        }
+      } catch (error) {
+        console.error('Erro ao desconectar:', error);
+        statusEl.textContent = 'Erro ao desconectar';
+      } finally {
+        disconnectBtn.disabled = false;
+      }
+    }
+    
+    // Envia mensagem
+    async function sendMessage() {
+      const to = document.getElementById('to').value;
+      const message = document.getElementById('message').value;
+      
+      if (!to || !message) {
+        alert('Preencha o número e a mensagem');
+        return;
+      }
+      
+      try {
+        sendBtn.disabled = true;
+        
+        const response = await fetch('/send/text', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ to, text: message })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          alert('Mensagem enviada com sucesso!');
+          document.getElementById('message').value = '';
+        } else {
+          alert('Erro ao enviar mensagem: ' + (data.error || 'Desconhecido'));
+        }
+      } catch (error) {
+        console.error('Erro ao enviar mensagem:', error);
+        alert('Erro ao enviar mensagem');
+      } finally {
+        sendBtn.disabled = false;
+      }
+    }
+    
+    // Event listeners
+    startBtn.addEventListener('click', startSession);
+    disconnectBtn.addEventListener('click', disconnect);
+    refreshBtn.addEventListener('click', updateStatus);
+    sendBtn.addEventListener('click', sendMessage);
+    
+    // Atualiza o status inicialmente
+    updateStatus();
+    
+    // Atualiza o status a cada 10 segundos
+    setInterval(updateStatus, 10000);
+  </script>
+</body>
+</html>

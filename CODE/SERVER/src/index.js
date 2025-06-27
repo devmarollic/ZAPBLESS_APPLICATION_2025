@@ -26,6 +26,8 @@ import { errorMiddleware } from './middleware/error_middleware';
 import { scheduleWorker } from './lib/worker/schedule_worker';
 import { logError } from 'senselogic-gist';
 import { enviroment } from './enviroment';
+import { subscriptionStatus } from './lib/model/subscription';
+import { subscriptionService } from './lib/service/subscription_service';
 
 // -- STATEMENTS
 
@@ -74,6 +76,42 @@ fastify.register( eventRoutes, { prefix: '/event' } );
 fastify.register( dashboardRoutes, { prefix: '/dashboard' } );
 fastify.register( subscriptionRoutes, { prefix: '/subscriptions' } );
 fastify.register( eventTypesRoutes, { prefix: '/event-type' } );
+fastify.post( '/webhook', async ( request, reply ) =>
+    {
+        let relevantEventSet = new Set( [ 'billing.paid' ] );
+
+        let data = request.body.data;
+        let billing = data.billing;
+        let eventType = request.body.event;
+
+        console.log( JSON.stringify( request.body, null, 2 ) );
+
+        if ( relevantEventSet.has( eventType ) )
+        {
+            switch ( eventType )
+            {
+                case 'billing.paid':
+                    let subscriptionId = billing.products[ 0 ].externalId;
+                    await subscriptionService.setSubscriptionById(
+                        {
+                            paymentGatewayId: billing.id,
+                            paymentMethodId: 'pix',
+                            chargeInfo: data,
+                            price: billing.amount / 100,
+                            statusId: subscriptionStatus.paid
+                        },
+                        subscriptionId
+                        );
+
+                    break;
+
+                default:
+                    console.log( 'Evento não relevante' );
+                    break;
+            }
+        }
+    }
+    );
 
 fastify.setNotFoundHandler(
     async ( request, reply ) =>

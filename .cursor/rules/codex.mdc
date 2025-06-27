@@ -1,0 +1,210 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# JavaScript / Node.js Coding Standard (Codex)
+
+## Goals
+
+This standard inherits the Codex global goals of building:
+
+* **Adequate**, **Efficient**, **Attractive**, **Ergonomic**, **Robust**, **Secure**, **Maintainable**, **Extensible**, and **Consistent** codebases.
+
+## JavaScript-Specific Principles
+
+* Favor **clarity over brevity**: readable code over concise code.
+* All code must be **self-documenting** — if it needs a comment to be understood, refactor it.
+* Avoid using cryptic acronyms, single-letter variables, or abbreviations (except for: `Id`, `Uuid`, `Tuid`).
+* Embrace **camelCase** for all variable, function, and constant names.
+* Use **PascalCase** for all class and constructor names.
+* **Single source of truth**: no repeated logic or redundant states.
+* Prefer **let** instead **const**, use const only for constants.
+* Prefer for statement instead HOF's.
+
+
+## File & Structure Organization
+
+* One class or main object per file.
+* Use file names in `snake_case` that match the main class or service exported.
+* Structure files with the following comment-delimited sections:
+
+  ```js
+  // -- IMPORTS
+
+  // -- CONSTANTS
+
+  // -- TYPES
+
+  // -- VARIABLES
+
+  // -- FUNCTIONS
+
+  // -- STATEMENTS
+
+  ```
+
+* use the following comment-delimited to separate sub-sections:
+
+```js
+
+// ~~
+
+```
+
+* don't use comments messages
+
+### Function Definition
+
+```js
+async function getProductById(
+    productId
+    )
+{
+    let product = await productRepository.findOne( productId );
+
+    return product;
+}
+```
+
+### Function invoke
+
+```js
+let uploadConfigSchema = z.object(
+    {
+        maxFileSize: z.number().default( MAX_FILE_SIZE ),
+        allowedImageTypes: z.array( z.string() ).default( ALLOWED_IMAGE_TYPES ),
+        allowedDocumentTypes: z.array( z.string() ).default( ALLOWED_DOCUMENT_TYPES ),
+        uploadPath: z.string().default( UPLOAD_PATH ),
+        supabaseStorageBucket: z.string(),
+        avifQuality: z.number().min( 1 ).max( 100 ).default( 80 ),
+        avifEffort: z.number().min( 0 ).max( 9 ).default( 4 ),
+    }
+    );
+```
+
+## Naming Conventions
+
+### Variables and Functions
+
+* Use explicit, **non-abbreviated**, and **descriptive names**:
+
+  ```js
+  let productArray;
+  const userByIdMap;
+  function getProductById( productId ) {}
+  ```
+
+* Prefix booleans with `is`, `has`, or `can`:
+
+  ```js
+  let isEnabled;
+  let hasMessages;
+  let canSubmit;
+  ```
+
+* Avoid generic or vague names like `data`, `info`, `value`, `a`, `b`, `n` (except for `x`, `y`, `z`, `w`).
+
+* Include the type/class name in the identifier:
+
+  ```js
+  let addedProductId;
+  let countryCodeArray;
+  ```
+
+### Standard Prefixes/Suffixes
+
+* Prefixes: `first`, `last`, `prior`, `next`, `old`, `new`, `initial`, `final`, `minimum`, `maximum`
+* Suffixes: `Index`, `Count`, `Array`, `Map`, `Id`, `Uuid`, `Text`, `Path`, `Time`
+
+## Style & Formatting
+
+### Indentation and Line Breaks
+
+* **Four spaces** per indentation level.
+* **No tab characters**.
+* **Unix line endings** only (LF).
+* Braces `{}` always on a new line and **aligned vertically**.
+
+### Spacing Rules
+
+* Space **after** `(`, `{`, `[` and **before** `)`, `}`, `]`.
+* One space **after** control keywords: `if`, `for`, `while`, etc.
+* One blank line before `if`, `while`, `for`, `return`.
+* No space between `{}` `[]` `()`.
+
+### Function Declarations
+
+* Declare each parameter **on its own line**.
+* Prefer **standard function declarations** over arrow functions for named functions.
+* Use **arrow functions** only for inline callbacks.
+
+### Return Values
+
+* Wrap **multi-line return values** in parentheses:
+
+  ```js
+  return (
+      {
+          firstName: 'John',
+          lastName: 'Doe'
+      }
+      );
+  ```
+
+### Equality
+
+* Always use `===` and `!==`. Never use `==` or `!=`.
+* Never use falsy checks (`if (!x)`) unless explicitly checking for `null`, `undefined`, etc.
+
+## Good Practices
+
+### Performance
+
+* Avoid unnecessary re-renders or recalculations.
+* Use caching when possible.
+* Defer expensive operations.
+
+### Assertions
+
+* Use `console.assert` for development-only invariant checks.
+* Validate function parameters explicitly where applicable.
+
+### Code Structure
+
+* Keep functions short and focused: **do one thing and do it well**.
+* Extract intermediate values into local variables with clear names.
+* Avoid deeply nested blocks.
+* Prefer composition over inheritance when designing modules.
+
+## Module & Import Guidelines
+
+* Import only what’s needed.
+* Sort imports alphabetically.
+* External modules before local modules.
+* Avoid dynamic `require()` unless necessary.
+
+## Testing
+
+* All core logic must be **unit tested**.
+* Use descriptive test names.
+* Test for **both success and failure** cases.
+
+## Version Control Workflow
+
+* One feature/bugfix per branch.
+* Branches: `feature/*`, `bugfix/*`, `hotfix/*`, `test/*`.
+* Pull requests must be **reviewed and tested**.
+* Merge to `develop`, then to `release`, then to `master`.
+
+## Miscellaneous
+
+* Never ignore lint warnings — fix them immediately.
+* Do not commit commented-out code.
+* Use `slice()` instead of `substring()`.
+* Prefer `let` for scoped variables and `const` for constants.
+* Use `Array.prototype.map()`, `filter()`, `reduce()` mindfully.
+
+---
+
+**Reference Projects:** See `CountryService`, `getAgeInterval`, `getFruitText` for code style examples.

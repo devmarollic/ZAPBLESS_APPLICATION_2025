@@ -5,31 +5,24 @@ import { enviroment } from "../../enviroment";
 
 // -- TYPES
 
-export class PagarmeService
+export class AbacatePayService
 {
     // -- CONSTRUCTORS
 
     constructor(
         )
     {
-        this.baseUrl = enviroment.PAGARME_BASE_URL;
-        
-        // Ensure the base URL includes the version suffix expected by the API
-        if ( this.baseUrl?.endsWith( '/core/v' ) )
-        {
-            this.baseUrl = this.baseUrl + '5';
-        }
-
-        this.apiKey = enviroment.PAGARME_API_KEY;
+        this.baseUrl = enviroment.ABACATE_PAY_BASE_URL || 'https://api.abacatepay.com.br/v1';
+        this.apiKey = enviroment.ABACATE_PAY_API_KEY || 'abc_dev_jNGGNam5YB03yKAuDJ0LgALZ';
 
         if ( !this.apiKey )
         {
-            throw new Error( 'PAGARME_API_KEY missing' );
+            throw new Error( 'ABACATE_PAY_API_KEY missing' );
         }
 
         if ( !this.baseUrl )
         {
-            throw new Error( 'PAGARME_BASE_URL missing' );
+            throw new Error( 'ABACATE_PAY_BASE_URL missing' );
         }
     }
 
@@ -40,7 +33,7 @@ export class PagarmeService
     {
         return (
             {
-                'Authorization': 'Basic ' + Buffer.from( 'sk_test_7d446c4af5f94b40944961d1bf03ceae:' ).toString( 'base64' ),
+                'Authorization': 'Bearer ' + this.apiKey,
                 'Content-Type': 'application/json'
             }
             );
@@ -52,7 +45,7 @@ export class PagarmeService
         subscriptionData
         )
     {
-        let subscription = await fetch( this.baseUrl + '/subscriptions',
+        let subscription = await fetch( this.baseUrl + '/billing/create',
             {
                 method: 'POST',
                 headers: this.getHeaders(),
@@ -66,5 +59,5 @@ export class PagarmeService
 
 // -- VARIABLES
 
-export let pagarmeService
-    = new PagarmeService();
+export let abacatePayService
+    = new AbacatePayService();

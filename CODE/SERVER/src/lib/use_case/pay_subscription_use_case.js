@@ -9,6 +9,7 @@ import { NotFoundError } from '../errors/not_found';
 import { ValidationError } from '../errors/validation_error';
 import { subscriptionStatus } from '../model/subscription';
 import { AppError } from '../errors/app_error';
+import { abacatePayService } from '../service/abacate_pay_service.js';
 
 // -- CONSTANTS
 
@@ -47,7 +48,7 @@ class PaySubscriptionUseCase
 
             let paymentStrategy = PaymentStrategyFactory.createStrategy(
                 input.paymentMethod,
-                pagarmeService
+                input.paymentMethod === 'pix' ? abacatePayService : pagarmeService
                 );
 
             let customerData = this.prepareCustomerData( subscriptionData );
@@ -58,6 +59,11 @@ class PaySubscriptionUseCase
                 customerData
                 );
             let isPaymentFailed = paymentResult.status === paymentStatus.failed;
+
+            if ( input.paymentMethod === 'pix' )
+            {
+                return paymentResult;
+            }
 
             await subscriptionService.setSubscriptionById(
                 {

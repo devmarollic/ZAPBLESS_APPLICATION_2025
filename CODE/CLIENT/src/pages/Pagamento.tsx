@@ -94,7 +94,7 @@ const Pagamento = () => {
         setLoading(true);
         
         try {
-            await HttpClient.post('/subscriptions/' + subscriptionId + '/payment', {
+            let response = await HttpClient.post('/subscriptions/' + subscriptionId + '/payment', {
                 paymentMethod: paymentMethod,
                 paymentData: formData
             });
@@ -106,6 +106,7 @@ const Pagamento = () => {
                     successMessage = 'Pagamento processado com sucesso! Sua assinatura foi ativada.';
                     break;
                 case 'pix':
+                    window.open(response.subscription.data.url, '_self');
                     successMessage = 'PIX gerado com sucesso! Complete o pagamento para ativar sua assinatura.';
                     break;
                 case 'boleto':

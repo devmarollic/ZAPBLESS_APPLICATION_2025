@@ -3,6 +3,7 @@
 import { CreditCardPaymentStrategy } from './credit_card_payment_strategy.js';
 import { DebitCardPaymentStrategy } from './debit_card_payment_strategy.js';
 import { BoletoPaymentStrategy } from './boleto_payment_strategy.js';
+import { PixPaymentStrategy } from './pix_payment_strategy.js';
 
 // -- TYPES
 
@@ -12,19 +13,22 @@ export class PaymentStrategyFactory
 
     static createStrategy(
         paymentMethod,
-        pagarmeService
+        paymentService
         )
     {
         switch ( paymentMethod )
         {
             case 'credit_card':
-                return new CreditCardPaymentStrategy( pagarmeService );
+                return new CreditCardPaymentStrategy( paymentService );
 
             case 'debit_card':
-                return new DebitCardPaymentStrategy( pagarmeService );
+                return new DebitCardPaymentStrategy( paymentService );
 
             case 'boleto':
-                return new BoletoPaymentStrategy( pagarmeService );
+                return new BoletoPaymentStrategy( paymentService );
+
+            case 'pix':
+                return new PixPaymentStrategy( paymentService );
 
             default:
                 throw new Error( `Unsupported payment method: ${ paymentMethod }` );
@@ -36,7 +40,7 @@ export class PaymentStrategyFactory
     static getSupportedMethods(
         )
     {
-        return [ 'credit_card', 'debit_card', 'boleto' ];
+        return [ 'credit_card', 'debit_card', 'boleto', 'pix' ];
     }
 
     // ~~

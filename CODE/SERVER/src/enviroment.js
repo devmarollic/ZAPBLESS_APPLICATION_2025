@@ -21,7 +21,9 @@ const enviromentSchema = z.object(
         PAGARME_API_KEY: z.string(),
         PAGARME_BASE_URL: z.string(),
         PORT: z.coerce.number(),
-        NODE_ENV: z.enum( [ 'development', 'production', 'test' ] )
+        NODE_ENV: z.enum( [ 'development', 'production', 'test' ] ),
+        ABACATE_PAY_API_KEY: z.string(),
+        ABACATE_PAY_BASE_URL: z.string()
     }
     );
 

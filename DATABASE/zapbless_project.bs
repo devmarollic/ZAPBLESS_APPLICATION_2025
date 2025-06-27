@@ -93,7 +93,6 @@ public
     PROFILE | dropped
 
         id : UUID | key, unique, linked auth.users
-        churchId : CHURCH.id | constrained
         isMe : BOOL
         isUser : BOOL
         isGroup : BOOL
@@ -168,14 +167,6 @@ public
         updateTimestamp : TIMESTAMP | generated, updated
 
     SUBSCRIPTION_STATUS | dropped
-
-        id : STRING | key, unique
-        name : STRING
-        number : FLOAT64
-        creationTimestamp : TIMESTAMP | generated
-        updateTimestamp : TIMESTAMP | generated, updated
-
-    SUBSCRIPTION_METHOD
 
         id : STRING | key, unique
         name : STRING
@@ -350,7 +341,7 @@ public
         eventId : EVENT | constrained
         payload : TUPLE[]
         statusId : SCHEDULE_STATUS.id | constrained
-        reccurenceId : RECURRENCE_ID | constrained
+        reccurenceId : RECURRENCE.id | constrained
         errorMessage : STRING
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
@@ -418,6 +409,7 @@ public
 
         id : TUID | key, unique
         profileId : PROFILE.id | constrained
+        churchId : CHURCH.id | constrained
         action : STRING
         entity : STRINNG
         entityId : STRING
@@ -462,7 +454,7 @@ public
     PROFILE_TAG | dropped
 
         profileId : PROFILE.id | constrained
-        tagId : TAG_TYPE.id | constrained
+        tagId : TAG.id | constrained
 
     PLAN_NOTIFICATION_CHANNEL | dropped
 
@@ -483,5 +475,30 @@ public
         greetingMessage : STRING
         farewellsMessage : STRING
         isDefault : BOOL
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    PAYMENT_EVENT_TYPE
+
+        id : STRING | key, unique
+        name : STRING
+        number : FLOAT64
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    PAYMENT_EVENT
+
+        id : TUID | key, unique
+        typeId : PAYMENT_EVENT_TYPE.id | constrained
+        chargeInfo : MAP[]
+        processed : BOOL
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    PAYMENT_METHOD
+        id : UUID/TUID | key, unique
+        churchId : CHURCH.id | constrained
+        isDefault : BOOLEAN
+        gatewayCardId : STRING
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated

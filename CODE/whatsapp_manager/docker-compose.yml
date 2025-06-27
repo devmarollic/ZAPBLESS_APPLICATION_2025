@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  # Serviço de sessão do WhatsApp (você pode criar múltiplos destes com nomes diferentes)
+  whatsapp-session:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: whatsapp-session
+    restart: always
+    ports:
+      - "1234:1234"
+    volumes:
+      - whatsapp-data:/app/data
+    environment:
+      - PORT=1234
+      - SESSION_ID=whatsapp-session-1
+      - SESSION_DIR=/app/data/sessions
+      - DEBUG=false
+    networks:
+      - whatsapp-network
+
+networks:
+  whatsapp-network:
+    driver: bridge
+
+volumes:
+  whatsapp-data: 
