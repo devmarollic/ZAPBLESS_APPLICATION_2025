@@ -76,7 +76,7 @@ const Calendario = () => {
         </Button>
       </div>
 
-      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+      <div className="flex flex-col md:flex-row gap-4 sm:gap-6 lg:grid-cols-2">
         <Card className="shadow-lg">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg sm:text-xl font-bold">Calendário de Eventos</CardTitle>
@@ -120,7 +120,7 @@ const Calendario = () => {
           </CardContent>
         </Card>
 
-        <Card className="shadow-lg">
+        <Card className="shadow-lg grow">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg sm:text-xl font-bold">
               {date ? formatarDataCompleta(date) : "Selecione uma data"}
