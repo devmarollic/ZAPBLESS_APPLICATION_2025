@@ -4,3 +4,7 @@ DATABASE/*.sql
 Thumbs.db
 CODE/SERVER/.wwebjs_auth
 CODE/CLIENT/node_modules
+.DS_Store
+CODE/.DS_Store
+.DS_Store
+CODE/.DS_Store

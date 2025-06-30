@@ -12,18 +12,27 @@ const fs = require('fs');
 const path = require('path');
 const qrcode = require('qrcode');
 const WhatsAppManager = require('./whatsapp');
+const dotenv = require('dotenv');
+const { supabaseService } = require('./supabase_service');
+const { contactService } = require('./contact_service');
+
+dotenv.config(
+    {
+        path: path.join(__dirname, '.env')
+    }
+);
 
 // Configurações
 const PORT = process.env.PORT || 1234;
-const SESSION_ID = process.env.SESSION_ID || `session-${Date.now()}`;
+const SESSION_ID = process.env.SESSION_ID || `session-123`;
 const SESSION_DIR = process.env.SESSION_DIR || './data';
 const DEBUG = process.env.DEBUG === 'true';
 
 // Inicializa o gerenciador WhatsApp
 const whatsapp = new WhatsAppManager({
-  sessionDir: SESSION_DIR,
-  sessionId: SESSION_ID,
-  debug: DEBUG
+    sessionDir: SESSION_DIR,
+    sessionId: SESSION_ID,
+    debug: DEBUG
 });
 
 // Inicializa o servidor Express
@@ -36,210 +45,222 @@ let qrCodePath = null;
 
 // Configura eventos do WhatsApp
 whatsapp.on('qr', async (qr) => {
-  try {
-    console.log('Novo QR code recebido');
-    
-    // Cria o diretório para o QR code se não existir
-    const qrDir = path.join(__dirname, 'public', 'qr');
-    if (!fs.existsSync(qrDir)) {
-      fs.mkdirSync(qrDir, { recursive: true });
+    try {
+        console.log('Novo QR code recebido');
+
+        // Cria o diretório para o QR code se não existir
+        const qrDir = path.join(__dirname, 'public', 'qr');
+        if (!fs.existsSync(qrDir)) {
+            fs.mkdirSync(qrDir, { recursive: true });
+        }
+
+        // Salva o QR code como imagem
+        qrCodePath = path.join(qrDir, `qr-${Date.now()}.png`);
+        await qrcode.toFile(qrCodePath, qr);
+
+        console.log(`QR code salvo em ${qrCodePath}`);
+    } catch (error) {
+        console.error('Erro ao processar QR code:', error);
     }
-    
-    // Salva o QR code como imagem
-    qrCodePath = path.join(qrDir, `qr-${Date.now()}.png`);
-    await qrcode.toFile(qrCodePath, qr);
-    
-    console.log(`QR code salvo em ${qrCodePath}`);
-  } catch (error) {
-    console.error('Erro ao processar QR code:', error);
-  }
 });
 
 whatsapp.on('connection', ({ status }) => {
-  console.log(`Status da conexão alterado para: ${status}`);
-  
-  // Se conectado, remove o QR code
-  if (status === 'open' && qrCodePath) {
-    try {
-      if (fs.existsSync(qrCodePath)) {
-        fs.unlinkSync(qrCodePath);
-      }
-      qrCodePath = null;
-    } catch (error) {
-      console.error('Erro ao remover QR code:', error);
+    console.log(`Status da conexão alterado para: ${status}`);
+
+    // Se conectado, remove o QR code
+    if (status === 'open' && qrCodePath) {
+        try {
+            if (fs.existsSync(qrCodePath)) {
+                fs.unlinkSync(qrCodePath);
+            }
+            qrCodePath = null;
+        } catch (error) {
+            console.error('Erro ao remover QR code:', error);
+        }
     }
-  }
 });
 
 whatsapp.on('message', (message) => {
-  console.log('Nova mensagem recebida:', message.key.remoteJid);
+    console.log('Nova mensagem recebida:', message.key.remoteJid);
+});
+
+whatsapp.on('contacts', (contacts) => {
+    if ( Array.isArray( contacts ) && contacts.length > 0 )
+    {
+        contactService.upsertContact( contacts );
+    }
 });
 
 // Middleware para verificar se o WhatsApp está conectado
 const checkConnection = (req, res, next) => {
-  const state = whatsapp.getConnectionState();
-  if (state.state === 'open') {
-    next();
-  } else {
-    res.status(403).json({ 
-      error: 'WhatsApp não está conectado',
-      state: state.state
-    });
-  }
+    const state = whatsapp.getConnectionState();
+    if (state.state === 'open') {
+        next();
+    } else {
+        res.status(403).json({
+            error: 'WhatsApp não está conectado',
+            state: state.state
+        });
+    }
 };
 
 // Rota principal
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Rota para obter status da sessão
 app.get('/status', (req, res) => {
-  try {
-    const state = whatsapp.getConnectionState();
-    
-    res.json({
-      sessionId: SESSION_ID,
-      status: state.state,
-      qrCode: qrCodePath ? `/qr/${path.basename(qrCodePath)}` : null,
-      hasSession: state.hasSession
-    });
-  } catch (error) {
-    console.error('Erro ao obter status:', error);
-    res.status(500).json({ error: 'Erro ao obter status' });
-  }
+    try {
+        const state = whatsapp.getConnectionState();
+
+        res.json({
+            sessionId: SESSION_ID,
+            status: state.state,
+            qrCode: qrCodePath ? `/qr/${path.basename(qrCodePath)}` : null,
+            hasSession: state.hasSession
+        });
+    } catch (error) {
+        console.error('Erro ao obter status:', error);
+        res.status(500).json({ error: 'Erro ao obter status' });
+    }
 });
 
 // Rota para iniciar a sessão
 app.post('/start', async (req, res) => {
-  try {
-    console.log('Iniciando sessão do WhatsApp...');
-    
-    // Verifica se já está conectado
-    const state = whatsapp.getConnectionState();
-    if (state.state === 'open') {
-      return res.json({ 
-        success: true, 
-        status: 'connected',
-        message: 'WhatsApp já está conectado'
-      });
+    try {
+        console.log('Iniciando sessão do WhatsApp...');
+
+        // Verifica se já está conectado
+        const state = whatsapp.getConnectionState();
+        if (state.state === 'open') {
+            return res.json({
+                success: true,
+                status: 'connected',
+                message: 'WhatsApp já está conectado'
+            });
+        }
+
+        // Inicia a conexão
+        await whatsapp.connect();
+
+        res.json({
+            success: true,
+            status: whatsapp.getConnectionState().state,
+            qrCode: qrCodePath ? `/qr/${path.basename(qrCodePath)}` : null
+        });
+    } catch (error) {
+        console.error('Erro ao iniciar sessão:', error);
+        res.status(500).json({ error: 'Erro ao iniciar sessão' });
     }
-    
-    // Inicia a conexão
-    await whatsapp.connect();
-    
-    res.json({
-      success: true,
-      status: whatsapp.getConnectionState().state,
-      qrCode: qrCodePath ? `/qr/${path.basename(qrCodePath)}` : null
-    });
-  } catch (error) {
-    console.error('Erro ao iniciar sessão:', error);
-    res.status(500).json({ error: 'Erro ao iniciar sessão' });
-  }
 });
 
 // Rota para enviar mensagem de texto
 app.post('/send/text', checkConnection, async (req, res) => {
-  try {
-    const { to, text } = req.body;
-    
-    if (!to || !text) {
-      return res.status(400).json({ error: 'Parâmetros "to" e "text" são obrigatórios' });
+    try {
+        const { to, text } = req.body;
+
+        if (!to || !text) {
+            return res.status(400).json({ error: 'Parâmetros "to" e "text" são obrigatórios' });
+        }
+
+        const result = await whatsapp.sendText(to, text);
+        res.json(result);
+    } catch (error) {
+        console.error('Erro ao enviar mensagem:', error);
+        res.status(500).json({ error: 'Erro ao enviar mensagem' });
     }
-    
-    const result = await whatsapp.sendText(to, text);
-    res.json(result);
-  } catch (error) {
-    console.error('Erro ao enviar mensagem:', error);
-    res.status(500).json({ error: 'Erro ao enviar mensagem' });
-  }
 });
 
 // Rota para enviar mensagem de mídia
 app.post('/send/media', checkConnection, async (req, res) => {
-  try {
-    const { to, mediaType, mediaUrl, caption } = req.body;
-    
-    if (!to || !mediaType || !mediaUrl) {
-      return res.status(400).json({ 
-        error: 'Parâmetros "to", "mediaType" e "mediaUrl" são obrigatórios' 
-      });
+    try {
+        const { to, mediaType, mediaUrl, caption } = req.body;
+
+        if (!to || !mediaType || !mediaUrl) {
+            return res.status(400).json({
+                error: 'Parâmetros "to", "mediaType" e "mediaUrl" são obrigatórios'
+            });
+        }
+
+        const result = await whatsapp.sendMedia(to, mediaType, mediaUrl, caption || '');
+        res.json(result);
+    } catch (error) {
+        console.error('Erro ao enviar mídia:', error);
+        res.status(500).json({ error: 'Erro ao enviar mídia' });
     }
-    
-    const result = await whatsapp.sendMedia(to, mediaType, mediaUrl, caption || '');
-    res.json(result);
-  } catch (error) {
-    console.error('Erro ao enviar mídia:', error);
-    res.status(500).json({ error: 'Erro ao enviar mídia' });
-  }
 });
 
 // Rota para verificar número
 app.post('/check/number', checkConnection, async (req, res) => {
-  try {
-    const { number } = req.body;
-    
-    if (!number) {
-      return res.status(400).json({ error: 'Parâmetro "number" é obrigatório' });
+    try {
+        const { number } = req.body;
+
+        if (!number) {
+            return res.status(400).json({ error: 'Parâmetro "number" é obrigatório' });
+        }
+
+        const result = await whatsapp.checkNumber(number);
+        res.json(result);
+    } catch (error) {
+        console.error('Erro ao verificar número:', error);
+        res.status(500).json({ error: 'Erro ao verificar número' });
     }
-    
-    const result = await whatsapp.checkNumber(number);
-    res.json(result);
-  } catch (error) {
-    console.error('Erro ao verificar número:', error);
-    res.status(500).json({ error: 'Erro ao verificar número' });
-  }
 });
 
 // Rota para desconectar
 app.post('/disconnect', async (req, res) => {
-  try {
-    console.log('Desconectando sessão do WhatsApp...');
-    
-    const result = await whatsapp.disconnect();
-    
-    res.json({ 
-      success: result, 
-      status: whatsapp.getConnectionState().state 
-    });
-  } catch (error) {
-    console.error('Erro ao desconectar:', error);
-    res.status(500).json({ error: 'Erro ao desconectar' });
-  }
+    try {
+        console.log('Desconectando sessão do WhatsApp...');
+
+        const result = await whatsapp.disconnect();
+
+        if ( fs.existsSync( path.join( __dirname, SESSION_DIR ) ) )
+        {
+            fs.rmdirSync( path.join( __dirname, SESSION_DIR ), { recursive: true } );
+        }
+
+        res.json({
+            success: result,
+            status: whatsapp.getConnectionState().state
+        });
+    } catch (error) {
+        console.error('Erro ao desconectar:', error);
+        res.status(500).json({ error: 'Erro ao desconectar' });
+    }
 });
 
 // Rota para obter informações do usuário
 app.get('/user/info', checkConnection, async (req, res) => {
-  try {
-    const userInfo = await whatsapp.getUserInfo();
-    res.json(userInfo);
-  } catch (error) {
-    console.error('Erro ao obter informações do usuário:', error);
-    res.status(500).json({ error: 'Erro ao obter informações do usuário' });
-  }
+    try {
+        const userInfo = await whatsapp.getUserInfo();
+        res.json(userInfo);
+    } catch (error) {
+        console.error('Erro ao obter informações do usuário:', error);
+        res.status(500).json({ error: 'Erro ao obter informações do usuário' });
+    }
 });
 
 // Inicia o servidor
 app.listen(PORT, async () => {
-  console.log(`Servidor WhatsApp rodando na porta ${PORT}`);
-  console.log(`ID da sessão: ${SESSION_ID}`);
-  console.log(`Diretório da sessão: ${SESSION_DIR}`);
-  
-  // Verifica se já existe uma sessão salva
-  const state = whatsapp.getConnectionState();
-  if (state.hasSession) {
-    console.log('Sessão existente encontrada, tentando reconectar...');
-    
-    // Tenta iniciar a sessão automaticamente
-    try {
-      setTimeout(async () => {
-        await whatsapp.connect();
-      }, 2000);
-    } catch (error) {
-      console.error('Erro ao reconectar sessão automaticamente:', error);
+    console.log(`Servidor WhatsApp rodando na porta ${PORT}`);
+    console.log(`ID da sessão: ${SESSION_ID}`);
+    console.log(`Diretório da sessão: ${SESSION_DIR}`);
+
+    // Verifica se já existe uma sessão salva
+    const state = whatsapp.getConnectionState();
+    if (state.hasSession) {
+        console.log('Sessão existente encontrada, tentando reconectar...');
+
+        // Tenta iniciar a sessão automaticamente
+        try {
+            setTimeout(async () => {
+                await whatsapp.connect();
+            }, 2000);
+        } catch (error) {
+            console.error('Erro ao reconectar sessão automaticamente:', error);
+        }
     }
-  }
 });
 
 // Cria uma página HTML simples para visualizar o status
@@ -457,6 +478,6 @@ const indexHtml = `
 // Cria o arquivo index.html
 const publicDir = path.join(__dirname, 'public');
 if (!fs.existsSync(publicDir)) {
-  fs.mkdirSync(publicDir, { recursive: true });
+    fs.mkdirSync(publicDir, { recursive: true });
 }
 fs.writeFileSync(path.join(publicDir, 'index.html'), indexHtml); 

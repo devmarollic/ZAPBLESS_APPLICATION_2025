@@ -93,30 +93,14 @@ public
     PROFILE | dropped
 
         id : UUID | key, unique, linked auth.users
-        isMe : BOOL
-        isUser : BOOL
-        isGroup : BOOL
-        isWAContact : BOOL
-        isMyContact : BOOL
-        isBlocked : BOOL
-        isBusiness : BOOL
-        isEnterprise : BOOL
         firstName : STRING
         lastName : STRING
         legalName : STRING
-        shortName : STRING
         birthDate : DATETIME
         aboutDescription : TEXT
         email : STRING
         phonePrefix : STRING
         phoneNumber : STRING
-        name : STRING
-        pushname : STRING
-        sectionHeader : STRING
-        statusMute : STRING
-        type : STRING
-        verifiedLevel : STRING
-        verifiedName : STRING
         genderId : USER_GENDER.id | constrained
         documentType : DOCUMENT_TYPE.id | constrained
         documentNumber : STRING
@@ -496,9 +480,31 @@ public
         updateTimestamp : TIMESTAMP | generated, updated
 
     PAYMENT_METHOD
-        id : UUID/TUID | key, unique
+        id : TUID | key, unique
         churchId : CHURCH.id | constrained
         isDefault : BOOLEAN
         gatewayCardId : STRING
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
+
+    CONTACT
+
+        id : STRING | key, unique
+        churchId : CHURCH.id | constrained
+        number : STRING
+        isMe : BOOL
+        isUser : BOOL
+        isGroup : BOOL
+        isWAContact : BOOL
+        isMyContact : BOOL
+        isBlocked : BOOL
+        isBusiness : BOOL
+        isEnterprise : BOOL
+        shortName : STRING
+        name : STRING
+        pushname : STRING
+        sectionHeader : STRING
+        statusMute : STRING
+        type : STRING
+        verifiedLevel : STRING
+        verifiedName : STRING
