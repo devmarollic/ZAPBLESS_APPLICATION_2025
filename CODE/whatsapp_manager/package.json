@@ -19,6 +19,7 @@
     "@hapi/boom": "^10.0.1",
     "@supabase/supabase-js": "^2.50.2",
     "@whiskeysockets/baileys": "^6.4.0",
+    "amqplib": "^0.10.8",
     "axios": "^1.6.2",
     "body-parser": "^1.20.2",
     "dotenv": "^17.0.0",

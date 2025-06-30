@@ -17,6 +17,28 @@ services:
       - SESSION_ID=whatsapp-session-1
       - SESSION_DIR=/app/data/sessions
       - DEBUG=false
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+      - RABBITMQ_OUTBOUND_QUEUE=zapbless.outbound
+      - RABBITMQ_INBOUND_QUEUE=zapbless.inbound
+      - CHURCH_ID=${CHURCH_ID:-default-church}
+    depends_on:
+      - rabbitmq
+    networks:
+      - whatsapp-network
+
+  # Serviço RabbitMQ para mensageria
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: whatsapp-rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"   # Porta AMQP
+      - "15672:15672" # Porta de gerenciamento
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=zapbless
+      - RABBITMQ_DEFAULT_PASS=zapbless
     networks:
       - whatsapp-network
 
@@ -25,4 +47,5 @@ networks:
     driver: bridge
 
 volumes:
-  whatsapp-data: 
+  whatsapp-data:
+  rabbitmq-data: 

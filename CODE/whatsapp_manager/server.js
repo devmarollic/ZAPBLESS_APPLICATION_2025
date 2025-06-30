@@ -15,6 +15,7 @@ const WhatsAppManager = require('./whatsapp');
 const dotenv = require('dotenv');
 const { supabaseService } = require('./supabase_service');
 const { contactService } = require('./contact_service');
+const { RabbitMQService } = require('./rabbitmq_service');
 
 dotenv.config(
     {
@@ -27,12 +28,24 @@ const PORT = process.env.PORT || 1234;
 const SESSION_ID = process.env.SESSION_ID || `session-123`;
 const SESSION_DIR = process.env.SESSION_DIR || './data';
 const DEBUG = process.env.DEBUG === 'true';
+const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://localhost';
+const RABBITMQ_OUTBOUND_QUEUE = process.env.RABBITMQ_OUTBOUND_QUEUE || 'zapbless.outbound';
+const RABBITMQ_INBOUND_QUEUE = process.env.RABBITMQ_INBOUND_QUEUE || 'zapbless.inbound';
+const CHURCH_ID = process.env.CHURCH_ID;
 
 // Inicializa o gerenciador WhatsApp
 const whatsapp = new WhatsAppManager({
     sessionDir: SESSION_DIR,
     sessionId: SESSION_ID,
     debug: DEBUG
+});
+
+// Inicializa o serviço RabbitMQ
+const rabbitmq = new RabbitMQService({
+    url: RABBITMQ_URL,
+    outboundQueue: RABBITMQ_OUTBOUND_QUEUE,
+    inboundQueue: RABBITMQ_INBOUND_QUEUE,
+    churchId: CHURCH_ID
 });
 
 // Inicializa o servidor Express
@@ -55,7 +68,7 @@ whatsapp.on('qr', async (qr) => {
         }
 
         // Salva o QR code como imagem
-        qrCodePath = path.join(qrDir, `qr-${Date.now()}.png`);
+        qrCodePath = path.join(qrDir, `qr-${process.env.CHURCH_ID}.png`);
         await qrcode.toFile(qrCodePath, qr);
 
         console.log(`QR code salvo em ${qrCodePath}`);
@@ -80,8 +93,22 @@ whatsapp.on('connection', ({ status }) => {
     }
 });
 
-whatsapp.on('message', (message) => {
+whatsapp.on('message', async (message) => {
     console.log('Nova mensagem recebida:', message.key.remoteJid);
+    
+    try {
+        // Extrai informações relevantes da mensagem
+        const processedMessage = processIncomingMessage(message);
+        
+        // Publica a mensagem na fila inbound
+        if (rabbitmq.connected) {
+            await rabbitmq.publishInboundMessage(processedMessage);
+        } else {
+            console.warn('RabbitMQ não está conectado. Não foi possível publicar a mensagem recebida.');
+        }
+    } catch (error) {
+        console.error('Erro ao processar mensagem recebida:', error);
+    }
 });
 
 whatsapp.on('contacts', (contacts) => {
@@ -241,11 +268,164 @@ app.get('/user/info', checkConnection, async (req, res) => {
     }
 });
 
+// Função para processar mensagens recebidas do WhatsApp
+function processIncomingMessage(message) {
+    try {
+        // Extrai o número de telefone do remetente
+        const senderJid = message.key.remoteJid;
+        const senderNumber = senderJid.replace(/\D/g, '');
+        
+        // Extrai o tipo de mensagem e conteúdo
+        let messageType = 'unknown';
+        let messageContent = null;
+        let caption = null;
+        let mediaUrl = null;
+        
+        // Verifica o tipo de mensagem
+        if (message.message) {
+            if (message.message.conversation) {
+                messageType = 'text';
+                messageContent = message.message.conversation;
+            } else if (message.message.extendedTextMessage) {
+                messageType = 'text';
+                messageContent = message.message.extendedTextMessage.text;
+            } else if (message.message.imageMessage) {
+                messageType = 'image';
+                messageContent = message.message.imageMessage.caption || '';
+                caption = message.message.imageMessage.caption || '';
+                mediaUrl = message.message.imageMessage.url || null;
+            } else if (message.message.videoMessage) {
+                messageType = 'video';
+                messageContent = message.message.videoMessage.caption || '';
+                caption = message.message.videoMessage.caption || '';
+                mediaUrl = message.message.videoMessage.url || null;
+            } else if (message.message.audioMessage) {
+                messageType = 'audio';
+                messageContent = '';
+                mediaUrl = message.message.audioMessage.url || null;
+            } else if (message.message.documentMessage) {
+                messageType = 'document';
+                messageContent = message.message.documentMessage.fileName || '';
+                caption = message.message.documentMessage.caption || '';
+                mediaUrl = message.message.documentMessage.url || null;
+            } else if (message.message.stickerMessage) {
+                messageType = 'sticker';
+                messageContent = '';
+                mediaUrl = message.message.stickerMessage.url || null;
+            } else if (message.message.locationMessage) {
+                messageType = 'location';
+                messageContent = message.message.locationMessage.name || '';
+                const lat = message.message.locationMessage.degreesLatitude;
+                const long = message.message.locationMessage.degreesLongitude;
+                messageContent = JSON.stringify({ name: messageContent, latitude: lat, longitude: long });
+            } else if (message.message.contactMessage || message.message.contactsArrayMessage) {
+                messageType = 'contact';
+                messageContent = JSON.stringify(message.message.contactMessage || message.message.contactsArrayMessage);
+            }
+        }
+        
+        // Monta o objeto da mensagem processada
+        const processedMessage = {
+            messageId: message.key.id,
+            timestamp: message.messageTimestamp * 1000, // Converte para milissegundos
+            from: senderNumber,
+            pushName: message.pushName || null,
+            type: messageType,
+            content: messageContent,
+            rawMessage: message // Inclui a mensagem original para referência
+        };
+        
+        // Adiciona campos específicos para mensagens de mídia
+        if (mediaUrl) {
+            processedMessage.mediaUrl = mediaUrl;
+        }
+        
+        if (caption) {
+            processedMessage.caption = caption;
+        }
+        
+        return processedMessage;
+    } catch (error) {
+        console.error('Erro ao processar mensagem:', error);
+        // Retorna um objeto básico com a mensagem original em caso de erro
+        return {
+            error: true,
+            errorMessage: error.message,
+            rawMessage: message
+        };
+    }
+}
+
+// Função para processar mensagens do RabbitMQ
+async function processOutboundMessage(message) {
+    try {
+        if (!message || !message.type) {
+            console.error('Mensagem inválida recebida do RabbitMQ:', message);
+            return;
+        }
+
+        // Verifica se o WhatsApp está conectado
+        const state = whatsapp.getConnectionState();
+        if (state.state !== 'open') {
+            console.error('WhatsApp não está conectado. Não é possível enviar a mensagem.');
+            throw new Error('WhatsApp não está conectado');
+        }
+
+        console.log(`Processando mensagem do tipo: ${message.type}`);
+
+        switch (message.type) {
+            case 'text':
+                if (!message.to || !message.text) {
+                    throw new Error('Campos "to" e "text" são obrigatórios para mensagens de texto');
+                }
+                await whatsapp.sendText(message.to, message.text);
+                break;
+
+            case 'media':
+                if (!message.to || !message.mediaType || !message.mediaUrl) {
+                    throw new Error('Campos "to", "mediaType" e "mediaUrl" são obrigatórios para mensagens de mídia');
+                }
+                await whatsapp.sendMedia(message.to, message.mediaType, message.mediaUrl, message.caption || '');
+                break;
+
+            default:
+                throw new Error(`Tipo de mensagem não suportado: ${message.type}`);
+        }
+
+        console.log(`Mensagem enviada com sucesso para: ${message.to}`);
+    } catch (error) {
+        console.error('Erro ao processar mensagem do RabbitMQ:', error);
+        throw error;
+    }
+}
+
+// Configura eventos do RabbitMQ
+rabbitmq.on('connected', async () => {
+    console.log('RabbitMQ conectado. Iniciando consumo de mensagens...');
+    try {
+        await rabbitmq.consumeMessages(processOutboundMessage);
+    } catch (error) {
+        console.error('Erro ao iniciar consumo de mensagens:', error);
+    }
+});
+
+rabbitmq.on('error', (error) => {
+    console.error('Erro no RabbitMQ:', error);
+});
+
 // Inicia o servidor
 app.listen(PORT, async () => {
     console.log(`Servidor WhatsApp rodando na porta ${PORT}`);
     console.log(`ID da sessão: ${SESSION_ID}`);
     console.log(`Diretório da sessão: ${SESSION_DIR}`);
+    
+    // Conecta ao RabbitMQ
+    try {
+        console.log('Conectando ao RabbitMQ...');
+        await rabbitmq.connect();
+    } catch (error) {
+        console.error('Erro ao conectar ao RabbitMQ:', error);
+    }
 
     // Verifica se já existe uma sessão salva
     const state = whatsapp.getConnectionState();
@@ -481,3 +661,26 @@ if (!fs.existsSync(publicDir)) {
     fs.mkdirSync(publicDir, { recursive: true });
 }
 fs.writeFileSync(path.join(publicDir, 'index.html'), indexHtml); 
+
+// Configura manipuladores para encerramento gracioso
+process.on('SIGINT', gracefulShutdown);
+process.on('SIGTERM', gracefulShutdown);
+
+async function gracefulShutdown() {
+    console.log('Encerrando servidor...');
+    
+    try {
+        // Fecha a conexão RabbitMQ
+        await rabbitmq.close();
+        console.log('Conexão RabbitMQ fechada');
+        
+        // Desconecta o WhatsApp
+        await whatsapp.disconnect();
+        console.log('WhatsApp desconectado');
+        
+        process.exit(0);
+    } catch (error) {
+        console.error('Erro ao encerrar servidor:', error);
+        process.exit(1);
+    }
+} 

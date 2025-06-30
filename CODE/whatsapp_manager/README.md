@@ -10,11 +10,13 @@ Este projeto fornece uma solução para executar instâncias isoladas do WhatsAp
 - **Reconexão automática**: Tentativas automáticas de reconexão em caso de desconexão
 - **API HTTP**: Endpoints RESTful para enviar mensagens e gerenciar a sessão
 - **Interface web**: Página web simples para visualizar o status da sessão e o QR code
+- **Integração com RabbitMQ**: Consumo de mensagens da fila outbound para envio automático
 
 ## Requisitos
 
 - Docker e Docker Compose
 - Node.js 14+ (para desenvolvimento local)
+- RabbitMQ (incluído no docker-compose)
 
 ## Instalação
 
@@ -33,6 +35,10 @@ environment:
   - SESSION_ID=whatsapp-session-1
   - SESSION_DIR=/app/data/sessions
   - DEBUG=false
+  - RABBITMQ_URL=amqp://rabbitmq:5672
+  - RABBITMQ_OUTBOUND_QUEUE=zapbless.outbound
+  - RABBITMQ_INBOUND_QUEUE=zapbless.inbound
+  - CHURCH_ID=sua-igreja-id
 ```
 
 3. Inicie o container:
@@ -125,6 +131,72 @@ GET /user/info
 
 Retorna informações sobre o usuário conectado.
 
+### Integração com RabbitMQ
+
+O serviço consome mensagens da fila `zapbless.outbound` no RabbitMQ e processa automaticamente as mensagens destinadas à instância específica (identificada pelo `churchId`).
+
+Além disso, todas as mensagens recebidas pelo WhatsApp são publicadas na fila `zapbless.inbound` para processamento por outros serviços.
+
+#### Formato das Mensagens
+
+**Mensagens Outbound (para envio):**
+
+Para enviar mensagens de texto:
+
+```json
+{
+  "churchId": "sua-igreja-id",
+  "type": "text",
+  "to": "5511999999999",
+  "text": "Olá, esta é uma mensagem enviada via RabbitMQ!"
+}
+```
+
+Para enviar mensagens com mídia:
+
+```json
+{
+  "churchId": "sua-igreja-id",
+  "type": "media",
+  "to": "5511999999999",
+  "mediaType": "image",
+  "mediaUrl": "https://exemplo.com/imagem.jpg",
+  "caption": "Legenda da imagem"
+}
+```
+
+**Mensagens Inbound (recebidas):**
+
+Exemplo de mensagem de texto recebida:
+
+```json
+{
+  "churchId": "sua-igreja-id",
+  "messageId": "ABCDEF123456",
+  "timestamp": 1617984512000,
+  "from": "5511999999999",
+  "pushName": "Nome do Contato",
+  "type": "text",
+  "content": "Olá, esta é uma mensagem recebida!"
+}
+```
+
+Exemplo de mensagem de mídia recebida:
+
+```json
+{
+  "churchId": "sua-igreja-id",
+  "messageId": "ABCDEF123456",
+  "timestamp": 1617984512000,
+  "from": "5511999999999",
+  "pushName": "Nome do Contato",
+  "type": "image",
+  "content": "",
+  "caption": "Legenda da imagem",
+  "mediaUrl": "https://exemplo.com/imagem-recebida.jpg"
+}
+```
+
 ## Múltiplas Instâncias
 
 Para executar múltiplas sessões do WhatsApp, você pode:
@@ -146,6 +218,12 @@ whatsapp-session-2:
     - SESSION_ID=whatsapp-session-2
     - SESSION_DIR=/app/data/sessions
     - DEBUG=false
+    - RABBITMQ_URL=amqp://rabbitmq:5672
+    - RABBITMQ_OUTBOUND_QUEUE=zapbless.outbound
+    - RABBITMQ_INBOUND_QUEUE=zapbless.inbound
+    - CHURCH_ID=igreja-id-2
+  depends_on:
+    - rabbitmq
   networks:
     - whatsapp-network
 ```
@@ -156,6 +234,7 @@ whatsapp-session-2:
 volumes:
   whatsapp-data:
   whatsapp-data-2:
+  rabbitmq-data:
 ```
 
 ## Desenvolvimento Local
@@ -168,7 +247,20 @@ Para executar o projeto localmente sem Docker:
 npm install
 ```
 
-2. Execute o servidor:
+2. Configure as variáveis de ambiente:
+
+```bash
+export PORT=1234
+export SESSION_ID=whatsapp-session-local
+export SESSION_DIR=./data/sessions
+export DEBUG=true
+export RABBITMQ_URL=amqp://localhost:5672
+export RABBITMQ_OUTBOUND_QUEUE=zapbless.outbound
+export RABBITMQ_INBOUND_QUEUE=zapbless.inbound
+export CHURCH_ID=sua-igreja-id
+```
+
+3. Execute o servidor:
 
 ```bash
 node server.js
@@ -179,6 +271,7 @@ node server.js
 - [Baileys](https://github.com/WhiskeySockets/Baileys) - Biblioteca para comunicação com o WhatsApp
 - [Express](https://expressjs.com/) - Framework web para Node.js
 - [QRCode](https://www.npmjs.com/package/qrcode) - Geração de QR codes
+- [amqplib](https://www.npmjs.com/package/amqplib) - Cliente RabbitMQ para Node.js
 
 ## Licença
 

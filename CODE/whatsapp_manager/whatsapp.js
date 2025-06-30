@@ -150,7 +150,7 @@ class WhatsAppManager extends events.EventEmitter {
 
                 for (let contact of contactData) {
                     // -- verificação necessário para excluir grupos (@g.us)
-                    if (contact.id.endsWith('@s.whatsapp.net')) {
+                    if (contact.id.endsWith('@s.whatsapp.net') && contact.id !== '0@s.whatsapp.net') {
                         let phoneNumberWithPrefix = contact.id.replace(/\D/g, '');
 
                         filteredContactArray.push({
@@ -165,16 +165,25 @@ class WhatsAppManager extends events.EventEmitter {
             });
 
             this.sock.ev.on('contacts.upsert', async (contacts) => {
-                contactService.upsertContact(contacts);
+                for ( let contact of contacts )
+                {
+                    if ( contact.id
+                         && contact.id.endsWith('@s.whatsapp.net')
+                         && contact.id !== '0@s.whatsapp.net'
+                    )
+                    {
+                        contactService.upsertContact(contact);
+                    }
+                }
             });
 
             this.sock.ev.on('creds.update', saveCreds);
 
-            this.sock.ev.on('messages.upsert', (m) => {
-                if (m.type === 'notify') {
-                    for (const msg of m.messages) {
-                        if (!msg.key.fromMe) {
-                            this.emit('message', msg);
+            this.sock.ev.on('messages.upsert', (message) => {
+                if (message.type === 'notify') {
+                    for (const message_ of message.messages) {
+                        if (!message_.key.fromMe) {
+                            this.emit('message', message_);
                         }
                     }
                 }
