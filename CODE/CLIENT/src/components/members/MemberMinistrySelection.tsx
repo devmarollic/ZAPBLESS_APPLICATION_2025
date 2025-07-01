@@ -9,8 +9,8 @@ import { Ministry, MinistryMembership } from '@/types/member';
 const ministryRoles = [
   { value: "member", label: "Membro" },
   { value: "leader", label: "Líder" },
-  { value: "coordinator", label: "Coordenador" },
-  { value: "assistant", label: "Assistente" },
+  { value: "vice-leader", label: "Vice-líder" },
+  { value: "volunteer", label: "Voluntário" },
 ];
 
 interface MemberMinistrySelectionProps {

@@ -40,8 +40,8 @@ type MemberMembership = {
 const ministryRoles = [
   { value: "member", label: "Membro" },
   { value: "leader", label: "Líder" },
-  { value: "coordinator", label: "Coordenador" },
-  { value: "assistant", label: "Assistente" },
+  { value: "vice-leader", label: "Vice-líder" },
+  { value: "volunteer", label: "Voluntário" },
 ];
 
 const ecclesiasticalTitles = [
