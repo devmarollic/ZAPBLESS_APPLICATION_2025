@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Filter, MessageSquare, Plus, Search } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const membrosData = [
   { id: 1, nome: "Carlos Silva", email: "carlos@exemplo.com", telefone: "(11) 98765-4321", ministerio: "Louvor", status: "Ativo" },
@@ -14,6 +14,7 @@ const membrosData = [
 ];
 
 const Membros = () => {
+    const navigate = useNavigate();
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -80,7 +81,7 @@ const Membros = () => {
                     </td>
                     <td className="py-3">
                       <div className="flex gap-2">
-                        <Button size="sm" variant="outline">Editar</Button>
+                        <Button size="sm" variant="outline" onClick={() => navigate(`/dashboard/membros/editar/${membro.id}`)}>Editar</Button>
                         <Button size="sm" variant="outline">
                           <MessageSquare className="h-4 w-4" />
                         </Button>

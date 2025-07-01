@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -12,15 +11,48 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { MinistryService, Ministry } from '@/services/ministryService';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useQuery } from '@tanstack/react-query';
+import { HttpClient } from '@/lib/http_client';
 
 const ministryFormSchema = z.object({
   name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres"),
   description: z.string().min(10, "A descrição deve ter pelo menos 10 caracteres"),
   color: z.string().min(4, "Selecione uma cor"),
   leaderId: z.string().optional(),
+  memberIds: z.array(z.string()).optional(),
 });
 
 type MinistryFormValues = z.infer<typeof ministryFormSchema>;
+
+type Member = {
+  id: string;
+  legalName: string;
+  email: string;
+  phoneNumber: string;
+}
+
+type MemberMembership = {
+  memberId: string;
+  role: string;
+}
+
+const ministryRoles = [
+  { value: "member", label: "Membro" },
+  { value: "leader", label: "Líder" },
+  { value: "coordinator", label: "Coordenador" },
+  { value: "assistant", label: "Assistente" },
+];
+
+const ecclesiasticalTitles = [
+  { value: "none", label: "Nenhum" },
+  { value: "pastor", label: "Pastor" },
+  { value: "reverend", label: "Reverendo" },
+  { value: "elder", label: "Presbítero" },
+  { value: "deacon", label: "Diácono" },
+  { value: "missionary", label: "Missionário" },
+  { value: "evangelist", label: "Evangelista" },
+];
 
 const MinisterioEditar = () => {
   const { id } = useParams<{ id: string }>();
@@ -28,6 +60,7 @@ const MinisterioEditar = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [ministry, setMinistry] = useState<Ministry | null>(null);
+  const [memberMemberships, setMemberMemberships] = useState<MemberMembership[]>([]);
 
   const form = useForm<MinistryFormValues>({
     resolver: zodResolver(ministryFormSchema),
@@ -36,7 +69,15 @@ const MinisterioEditar = () => {
       description: '',
       color: '#7C3AED',
       leaderId: '',
+      memberIds: [],
     },
+  });
+
+  const { data: members, isLoading: isLoadingMembers } = useQuery({
+    queryKey: ['members'],
+    queryFn: async () => {
+      return await HttpClient.get<Member[]>('/church/members/list');
+    }
   });
 
   useEffect(() => {
@@ -52,7 +93,16 @@ const MinisterioEditar = () => {
             description: response.description,
             color: response.color,
             leaderId: response.leaderId || '',
+            memberIds: [], // TODO: Load existing member associations from API
           });
+          
+          // Initialize member memberships with mock data
+          const mockMemberships: MemberMembership[] = (response.memberIds || []).map(memberId => ({
+            memberId,
+            role: "member",
+            ecclesiasticalTitle: ""
+          }));
+          setMemberMemberships(mockMemberships);
         }
       } catch (error) {
         console.error("Error fetching ministry:", error);
@@ -79,6 +129,8 @@ const MinisterioEditar = () => {
         description: data.description,
         color: data.color,
         leaderId: data.leaderId || undefined,
+        memberIds: memberMemberships.map(m => m.memberId),
+        memberMemberships: memberMemberships,
       };
       
       await MinistryService.updateMinistry(id, updateData);
@@ -101,6 +153,29 @@ const MinisterioEditar = () => {
     }
   };
 
+  const handleMemberToggle = (memberId: string, checked: boolean) => {
+    if (checked) {
+      setMemberMemberships(current => [
+        ...current,
+        { memberId, role: "member", ecclesiasticalTitle: "" }
+      ]);
+    } else {
+      setMemberMemberships(current => 
+        current.filter(membership => membership.memberId !== memberId)
+      );
+    }
+  };
+
+  const updateMemberMembership = (memberId: string, field: 'role' | 'ecclesiasticalTitle', value: string) => {
+    setMemberMemberships(current =>
+      current.map(membership =>
+        membership.memberId === memberId
+          ? { ...membership, [field]: value }
+          : membership
+      )
+    );
+  };
+
   if (!ministry) {
     return (
       <div className="container mx-auto py-6">
@@ -118,7 +193,7 @@ const MinisterioEditar = () => {
         </Button>
       </div>
       
-      <Card className="max-w-2xl mx-auto">
+      <Card className="max-w-4xl mx-auto">
         <CardHeader>
           <CardTitle>Editar Ministério</CardTitle>
           <CardDescription>
@@ -176,6 +251,63 @@ const MinisterioEditar = () => {
                   </FormItem>
                 )}
               />
+
+              <div className="space-y-3">
+                <FormLabel>Membros do Ministério</FormLabel>
+                <div className="border rounded-lg p-4 max-h-96 overflow-y-auto">
+                  {isLoadingMembers ? (
+                    <p className="text-sm text-muted-foreground">Carregando membros...</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {(members ?? []).map((member) => {
+                        const membership = memberMemberships.find(m => m.memberId === member.id);
+                        const isSelected = !!membership;
+                        
+                        return (
+                          <div key={member.id} className="border rounded-lg p-3">
+                            <div className="flex items-center space-x-2 mb-3">
+                              <Checkbox
+                                id={`member-${member.id}`}
+                                checked={isSelected}
+                                onCheckedChange={(checked) => handleMemberToggle(member.id, checked as boolean)}
+                              />
+                              <label 
+                                htmlFor={`member-${member.id}`}
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                              >
+                                {member.legalName}
+                              </label>
+                            </div>
+                            
+                            {isSelected && (
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 ml-6">
+                                <div>
+                                  <FormLabel className="text-xs">Função</FormLabel>
+                                  <Select
+                                    value={membership?.role || "member"}
+                                    onValueChange={(value) => updateMemberMembership(member.id, 'role', value)}
+                                  >
+                                    <SelectTrigger className="h-8">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {ministryRoles.map((role) => (
+                                        <SelectItem key={role.value} value={role.value}>
+                                          {role.label}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
 
               <div className="flex gap-4 pt-4">
                 <Button type="submit" disabled={isLoading} className="flex-1">

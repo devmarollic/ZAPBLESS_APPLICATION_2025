@@ -16,6 +16,7 @@ const dotenv = require('dotenv');
 const { supabaseService } = require('./supabase_service');
 const { contactService } = require('./contact_service');
 const { RabbitMQService } = require('./rabbitmq_service');
+const { whatsappService } = require('./whatsapp_service');
 
 dotenv.config(
     {
@@ -31,13 +32,15 @@ const DEBUG = process.env.DEBUG === 'true';
 const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://localhost';
 const RABBITMQ_OUTBOUND_QUEUE = process.env.RABBITMQ_OUTBOUND_QUEUE || 'zapbless.outbound';
 const RABBITMQ_INBOUND_QUEUE = process.env.RABBITMQ_INBOUND_QUEUE || 'zapbless.inbound';
+const RABBITMQ_DISCONNECTED_SESSIONS_QUEUE = process.env.RABBITMQ_DISCONNECTED_SESSIONS_QUEUE || 'zapbless.disconnected.sessions';
 const CHURCH_ID = process.env.CHURCH_ID;
 
 // Inicializa o gerenciador WhatsApp
 const whatsapp = new WhatsAppManager({
     sessionDir: SESSION_DIR,
     sessionId: SESSION_ID,
-    debug: DEBUG
+    debug: DEBUG,
+    whatsappService: whatsappService.getWhatsapp()
 });
 
 // Inicializa o serviço RabbitMQ
@@ -45,6 +48,7 @@ const rabbitmq = new RabbitMQService({
     url: RABBITMQ_URL,
     outboundQueue: RABBITMQ_OUTBOUND_QUEUE,
     inboundQueue: RABBITMQ_INBOUND_QUEUE,
+    disconnectedSessionsQueue: RABBITMQ_DISCONNECTED_SESSIONS_QUEUE,
     churchId: CHURCH_ID
 });
 
@@ -77,6 +81,10 @@ whatsapp.on('qr', async (qr) => {
     }
 });
 
+whatsapp.on('pairingCode', (pairingCode) => {
+    console.log('Código de emparelhamento recebido:', pairingCode);
+});
+
 whatsapp.on('connection', ({ status }) => {
     console.log(`Status da conexão alterado para: ${status}`);
 
@@ -93,13 +101,35 @@ whatsapp.on('connection', ({ status }) => {
     }
 });
 
+whatsapp.on('disconnect', async ({ reason, lastDisconnect }) => {
+    console.log('Disconectado:', reason, lastDisconnect);
+
+    try {
+        if (rabbitmq.connected) {
+            // await rabbitmq.publishDisconnectedSession(reason, lastDisconnect);
+            await rabbitmq.publishOutboundMessage(
+                {
+                    type: 'disconnect',
+                    reason: reason,
+                    lastDisconnect: lastDisconnect,
+                    churchId: CHURCH_ID
+                }
+            );
+        } else {
+            console.warn('RabbitMQ não está conectado. Não foi possível publicar a desconexão.');
+        }
+    } catch (error) {
+        console.error('Erro ao processar desconexão:', error);
+    }
+});
+
 whatsapp.on('message', async (message) => {
     console.log('Nova mensagem recebida:', message.key.remoteJid);
-    
+
     try {
         // Extrai informações relevantes da mensagem
         const processedMessage = processIncomingMessage(message);
-        
+
         // Publica a mensagem na fila inbound
         if (rabbitmq.connected) {
             await rabbitmq.publishInboundMessage(processedMessage);
@@ -112,9 +142,8 @@ whatsapp.on('message', async (message) => {
 });
 
 whatsapp.on('contacts', (contacts) => {
-    if ( Array.isArray( contacts ) && contacts.length > 0 )
-    {
-        contactService.upsertContact( contacts );
+    if (Array.isArray(contacts) && contacts.length > 0) {
+        contactService.upsertContact(contacts);
     }
 });
 
@@ -242,9 +271,8 @@ app.post('/disconnect', async (req, res) => {
 
         const result = await whatsapp.disconnect();
 
-        if ( fs.existsSync( path.join( __dirname, SESSION_DIR ) ) )
-        {
-            fs.rmdirSync( path.join( __dirname, SESSION_DIR ), { recursive: true } );
+        if (fs.existsSync(path.join(__dirname, SESSION_DIR))) {
+            fs.rmdirSync(path.join(__dirname, SESSION_DIR), { recursive: true });
         }
 
         res.json({
@@ -268,19 +296,44 @@ app.get('/user/info', checkConnection, async (req, res) => {
     }
 });
 
+// Rota para obter foto de perfil de um contato
+app.get('/profile/picture/:number', checkConnection, async (req, res) => {
+    try {
+        const { number } = req.params;
+        
+        if (!number) {
+            return res.status(400).json({ error: 'Número de telefone é obrigatório' });
+        }
+        
+        const result = await whatsapp.getProfilePicture(number);
+        res.json(result);
+    } catch (error) {
+        console.error('Erro ao obter foto de perfil:', error);
+        res.status(500).json({ error: 'Erro ao obter foto de perfil' });
+    }
+});
+
+app.get('/health', (req, res) => {
+    let status = whatsapp.getConnectionState().state;
+
+    res.json({
+        status: status
+    });
+});
+
 // Função para processar mensagens recebidas do WhatsApp
 function processIncomingMessage(message) {
     try {
         // Extrai o número de telefone do remetente
         const senderJid = message.key.remoteJid;
         const senderNumber = senderJid.replace(/\D/g, '');
-        
+
         // Extrai o tipo de mensagem e conteúdo
         let messageType = 'unknown';
         let messageContent = null;
         let caption = null;
         let mediaUrl = null;
-        
+
         // Verifica o tipo de mensagem
         if (message.message) {
             if (message.message.conversation) {
@@ -323,7 +376,7 @@ function processIncomingMessage(message) {
                 messageContent = JSON.stringify(message.message.contactMessage || message.message.contactsArrayMessage);
             }
         }
-        
+
         // Monta o objeto da mensagem processada
         const processedMessage = {
             messageId: message.key.id,
@@ -334,16 +387,16 @@ function processIncomingMessage(message) {
             content: messageContent,
             rawMessage: message // Inclui a mensagem original para referência
         };
-        
+
         // Adiciona campos específicos para mensagens de mídia
         if (mediaUrl) {
             processedMessage.mediaUrl = mediaUrl;
         }
-        
+
         if (caption) {
             processedMessage.caption = caption;
         }
-        
+
         return processedMessage;
     } catch (error) {
         console.error('Erro ao processar mensagem:', error);
@@ -418,7 +471,7 @@ app.listen(PORT, async () => {
     console.log(`Servidor WhatsApp rodando na porta ${PORT}`);
     console.log(`ID da sessão: ${SESSION_ID}`);
     console.log(`Diretório da sessão: ${SESSION_DIR}`);
-    
+
     // Conecta ao RabbitMQ
     try {
         console.log('Conectando ao RabbitMQ...');
@@ -660,7 +713,7 @@ const publicDir = path.join(__dirname, 'public');
 if (!fs.existsSync(publicDir)) {
     fs.mkdirSync(publicDir, { recursive: true });
 }
-fs.writeFileSync(path.join(publicDir, 'index.html'), indexHtml); 
+fs.writeFileSync(path.join(publicDir, 'index.html'), indexHtml);
 
 // Configura manipuladores para encerramento gracioso
 process.on('SIGINT', gracefulShutdown);
@@ -668,16 +721,16 @@ process.on('SIGTERM', gracefulShutdown);
 
 async function gracefulShutdown() {
     console.log('Encerrando servidor...');
-    
+
     try {
         // Fecha a conexão RabbitMQ
         await rabbitmq.close();
         console.log('Conexão RabbitMQ fechada');
-        
+
         // Desconecta o WhatsApp
         await whatsapp.disconnect();
         console.log('WhatsApp desconectado');
-        
+
         process.exit(0);
     } catch (error) {
         console.error('Erro ao encerrar servidor:', error);

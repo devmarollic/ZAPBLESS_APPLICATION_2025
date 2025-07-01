@@ -1,6 +1,7 @@
 // -- IMPORTS
 
 import { supabaseService } from './supabase_service.js';
+import { getMap } from './utils.js';
 
 // -- TYPES
 
@@ -11,6 +12,9 @@ class ContactService
     constructor(
         )
     {
+        this.cachedContactArray = null;
+        this.cachedContactArrayTimestamp = null;
+        this.cachedContactByNumberMap = null;
     }
 
     // -- INQUIRIES
@@ -20,7 +24,8 @@ class ContactService
     {
         let { data, error } = await supabaseService.getClient()
             .from( 'CONTACT' )
-            .select();
+            .select()
+            .eq( 'churchId', process.env.CHURCH_ID );
 
         if ( error !== null )
         {
@@ -28,6 +33,36 @@ class ContactService
         }
 
         return data;
+    }
+
+    // ~~
+
+    async getCachedContactArray(
+        )
+    {
+        if ( this.cachedContactArray === null
+             || this.cachedContactArrayTimestamp < Date.now() - 1000 * 60 * 60 * 24 )
+        {
+            this.cachedContactArray = await this.getContactArray();
+            this.cachedContactArrayTimestamp = Date.now();
+        }
+
+        return this.cachedContactArray;
+    }
+
+    // ~~
+
+    async getCachedContactByNumberMap(
+        )
+    {
+        if ( this.cachedContactByNumberMap === null
+             || this.cachedContactByNumberMapTimestamp < Date.now() - 1000 * 60 * 60 * 24 )
+        {
+            this.cachedContactByNumberMap = getMap( await this.getCachedContactArray(), 'number' );
+            this.cachedContactByNumberMapTimestamp = Date.now();
+        }
+
+        return this.cachedContactByNumberMap;
     }
 
     // ~~
@@ -49,7 +84,7 @@ class ContactService
         return data;
     }
 
-    // ~~
+    // -- OPERATIONS
 
     async upsertContact(
         contact
@@ -57,7 +92,7 @@ class ContactService
     {
         let { data, error } = await supabaseService.getClient()
             .from( 'CONTACT' )
-            .upsert( contact );
+            .upsert( contact, { onConflict: 'number, churchId' } );
 
         if ( error !== null )
         {
@@ -65,6 +100,16 @@ class ContactService
         }
 
         return data;
+    }
+
+    // ~~
+
+    clearCache(
+        )
+    {
+        this.cachedContactArray = null;
+        this.cachedContactArrayTimestamp = null;
+        this.cachedContactByNumberMap = null;
     }
 }
 

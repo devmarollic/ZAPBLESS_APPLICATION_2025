@@ -22,11 +22,13 @@ import { ArrowLeft, Save } from 'lucide-react';
 import { AuthenticationService } from '@/lib/authentication_service';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuery } from '@tanstack/react-query';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const ministerioFormSchema = z.object({
     name: z.string().min(3, { message: 'O nome deve ter pelo menos 3 caracteres' }),
     description: z.string().min(10, { message: 'A descrição deve ter pelo menos 10 caracteres' }),
     leaderId: z.string(),
+    memberIds: z.array(z.string()).optional(),
 });
 
 type MinisterioFormValues = z.infer<typeof ministerioFormSchema>;
@@ -47,7 +49,8 @@ const MinisterioNovo = () => {
         defaultValues: {
             name: '',
             description: '',
-            leaderId: ''
+            leaderId: '',
+            memberIds: []
         },
     });
 
@@ -78,6 +81,15 @@ const MinisterioNovo = () => {
             return await HttpClient.get<Member[]>('/church/members/list');
         }
     });
+
+    const handleMemberToggle = (memberId: string, checked: boolean) => {
+        const currentMembers = form.getValues('memberIds') || [];
+        if (checked) {
+            form.setValue('memberIds', [...currentMembers, memberId]);
+        } else {
+            form.setValue('memberIds', currentMembers.filter(id => id !== memberId));
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -154,6 +166,32 @@ const MinisterioNovo = () => {
                                 </FormItem>
                             )}
                         />
+
+                        <div className="space-y-3">
+                            <FormLabel>Membros do Ministério</FormLabel>
+                            <div className="border rounded-lg p-4 max-h-48 overflow-y-auto">
+                                {isLoadingMembers ? (
+                                    <p className="text-sm text-muted-foreground">Carregando membros...</p>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {(members ?? []).map((member) => (
+                                            <div key={member.id} className="flex items-center space-x-2">
+                                                <Checkbox
+                                                    id={`member-${member.id}`}
+                                                    onCheckedChange={(checked) => handleMemberToggle(member.id, checked as boolean)}
+                                                />
+                                                <label 
+                                                    htmlFor={`member-${member.id}`}
+                                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                                >
+                                                    {member.legalName}
+                                                </label>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
 
                         <div className="flex justify-end">
                             <Button

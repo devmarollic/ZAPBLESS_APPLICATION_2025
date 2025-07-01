@@ -261,7 +261,7 @@ export const PaymentFailureEmailTemplate: React.FC<PaymentFailureEmailProps> = (
           fontSize: '14px',
           color: '#64748B'
         }}>
-          📧 suporte@zapbless.com | 📱 WhatsApp: (11) 99999-9999
+          📧 suporte@zapbless.com.br | 📱 WhatsApp: (11) 99999-9999
         </p>
         
         <div style={{

@@ -17,8 +17,52 @@ const path = require('path');
 const qrcode = require('qrcode-terminal');
 const events = require('events');
 const NodeCache = require('node-cache');
-const { getUuidFromText } = require('./utils');
+const { getUuidFromText, getRandomTuid } = require('./utils');
 const { contactService } = require('./contact_service');
+const { whatsappService } = require('./whatsapp_service');
+
+class WhatsappSessionMapper {
+    static toDomain(
+        whatsapp
+    ) {
+        return (
+            {
+                id: whatsapp?.id ?? getRandomTuid(),
+                churchId: whatsapp?.churchId ?? process.env.CHURCH_ID,
+                name: whatsapp?.name ?? process.env.CHURCH_NAME,
+                connection: whatsapp?.status ?? 'disconnected',
+                qr: whatsapp?.qrcode ?? null,
+                retries: whatsapp?.retries ?? 0,
+                battery: whatsapp?.battery ?? 0,
+                isPlugged: whatsapp?.isPlugged ?? false,
+                greetingMessage: whatsapp?.greetingMessage ?? null,
+                farewellsMessage: whatsapp?.farewellsMessage ?? null,
+                isDefault: whatsapp?.isDefault ?? false,
+                lastDisconnect: null
+            }
+        );
+    }
+
+    static toPersistence(
+        whatsapp
+    ) {
+        return (
+            {
+                id: getRandomTuid(),
+                churchId: whatsapp.churchId,
+                name: whatsapp.name,
+                status: whatsapp.connection ?? 'disconnected',
+                qrcode: whatsapp.qr,
+                retries: whatsapp.retries,
+                battery: whatsapp.battery,
+                isPlugged: whatsapp.isPlugged,
+                greetingMessage: whatsapp.greetingMessage,
+                farewellsMessage: whatsapp.farewellsMessage,
+                isDefault: whatsapp.isDefault
+            }
+        );
+    }
+}
 
 class WhatsAppManager extends events.EventEmitter {
     /**
@@ -50,11 +94,7 @@ class WhatsAppManager extends events.EventEmitter {
         this.msgRetryCounterCache = new NodeCache();
 
         // Estado da conexão
-        this.state = {
-            qr: null,
-            connection: 'disconnected',
-            lastDisconnect: null
-        };
+        this.state = WhatsappSessionMapper.toDomain(config.whatsapp);
 
         // Socket do WhatsApp
         this.sock = null;
@@ -97,6 +137,7 @@ class WhatsAppManager extends events.EventEmitter {
 
                     if (reason === DisconnectReason.badSession) {
                         this.logger.info('Bad Session File, Please Delete and Scan Again');
+                        this.emit('disconnect', { reason, lastDisconnect });
                     }
                     else if (reason === DisconnectReason.connectionClosed
                         || reason === DisconnectReason.connectionLost
@@ -105,13 +146,11 @@ class WhatsAppManager extends events.EventEmitter {
                     }
                     else if (reason === DisconnectReason.connectionReplaced) {
                         this.logger.info('Connection Replaced, Another New Session Opened, Please Close Current Session First');
+                        this.emit('disconnect', { reason, lastDisconnect })
                     }
                     else if (reason === DisconnectReason.loggedOut) {
                         this.logger.info('Logged Out');
                         this.emit('logout');
-                    }
-                    else if (reason === DisconnectReason.restartRequired) {
-                        this.logger.info('Device Logged Out, Please Login Again');
                     }
                     else if (reason === DisconnectReason.restartRequired) {
                         this.logger.info('Restart Required, Restarting...');
@@ -123,6 +162,7 @@ class WhatsAppManager extends events.EventEmitter {
                     }
                     else {
                         this.sock.end(`Unknown DisconnectReason: ${reason}|${lastDisconnect.error}`);
+                        this.emit('disconnect', { reason, lastDisconnect });
                     }
                 }
 
@@ -141,9 +181,20 @@ class WhatsAppManager extends events.EventEmitter {
                     }
                     this.emit('qr', qr);
                 }
+
+                await whatsappService.upsertWhatsapp(
+                    WhatsappSessionMapper.toPersistence(
+                        {
+                            ...this.state,
+                            connection,
+                            qr,
+                            lastDisconnect: null
+                        }
+                    )
+                );
             });
 
-            this.sock.ev.on('messaging-history.set', (data) => {
+            this.sock.ev.on('messaging-history.set', async (data) => {
                 const contactData = data.contacts;
 
                 let filteredContactArray = [];
@@ -153,10 +204,20 @@ class WhatsAppManager extends events.EventEmitter {
                     if (contact.id.endsWith('@s.whatsapp.net') && contact.id !== '0@s.whatsapp.net') {
                         let phoneNumberWithPrefix = contact.id.replace(/\D/g, '');
 
+                        // Tenta obter a foto de perfil
+                        let profilePicture = null;
+                        try {
+                            profilePicture = await this.sock.profilePictureUrl(contact.id, 'image');
+                        } catch (error) {
+                            // Foto de perfil não disponível, continua sem ela
+                        }
+
                         filteredContactArray.push({
                             ...contact,
+                            id: getRandomTuid(),
                             number: phoneNumberWithPrefix,
-                            churchId: process.env.CHURCH_ID
+                            churchId: process.env.CHURCH_ID,
+                            imgUrl: profilePicture
                         });
                     }
                 }
@@ -165,14 +226,31 @@ class WhatsAppManager extends events.EventEmitter {
             });
 
             this.sock.ev.on('contacts.upsert', async (contacts) => {
-                for ( let contact of contacts )
-                {
-                    if ( contact.id
-                         && contact.id.endsWith('@s.whatsapp.net')
-                         && contact.id !== '0@s.whatsapp.net'
-                    )
-                    {
-                        contactService.upsertContact(contact);
+                for (let contact of contacts) {
+                    if (contact.id
+                        && contact.id.endsWith('@s.whatsapp.net')
+                        && contact.id !== '0@s.whatsapp.net'
+                    ) {
+                        let phoneNumberWithPrefix = contact.id.replace(/\D/g, '');
+
+                        // Tenta obter a foto de perfil
+                        let profilePicture = null;
+
+                        try {
+                            profilePicture = await this.sock.profilePictureUrl(contact.id, 'image');
+                        } catch (error) {
+                            // Foto de perfil não disponível, continua sem ela
+                        }
+
+                        contactService.upsertContact(
+                            {
+                                ...contact,
+                                id: getRandomTuid(),
+                                number: phoneNumberWithPrefix,
+                                churchId: process.env.CHURCH_ID,
+                                imgUrl: profilePicture
+                            }
+                        );
                     }
                 }
             });
@@ -207,6 +285,13 @@ class WhatsAppManager extends events.EventEmitter {
             await this.sock.logout();
             this.sock = null;
             this.state.connection = 'disconnected';
+
+            await whatsappService.upsertWhatsapp(
+                WhatsappSessionMapper.toPersistence(
+                    this.state,
+                )
+            );
+
             this.emit('connection', { status: 'disconnected' });
             return true;
         } catch (error) {
@@ -397,7 +482,7 @@ class WhatsAppManager extends events.EventEmitter {
 
         try {
             const jid = this._formatNumber(number);
-            const ppUrl = await this.sock.profilePictureUrl(jid);
+            const ppUrl = await this.sock.profilePictureUrl(jid, 'image');
             return { url: ppUrl };
         } catch (error) {
             this.logger.error('Erro ao obter foto de perfil:', error);

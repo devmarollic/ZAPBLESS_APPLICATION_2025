@@ -98,8 +98,8 @@ const Contato = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-lg">Email</h3>
-                    <p className="text-gray-600 mt-1">contato@zapbless.com</p>
-                    <p className="text-gray-600">suporte@zapbless.com</p>
+                    <p className="text-gray-600 mt-1">contato@zapbless.com.br</p>
+                    <p className="text-gray-600">suporte@zapbless.com.br</p>
                   </div>
                 </div>
                 
@@ -121,8 +121,7 @@ const Contato = () => {
                   <div>
                     <h3 className="font-semibold text-lg">Endereço</h3>
                     <p className="text-gray-600 mt-1">
-                      Av. Paulista, 1000 - Bela Vista <br />
-                      São Paulo - SP, 01310-100 <br />
+                      Av. Marques de São Vicente, 446 - São Paulo, SP <br />
                       Brasil
                     </p>
                   </div>

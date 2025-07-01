@@ -89,7 +89,7 @@ const Sobre = () => {
           <h2 className="text-2xl font-semibold mb-6">Nossa História</h2>
           <div className="bg-gray-50 p-8 rounded-lg border border-gray-100">
             <p className="text-gray-700 mb-4">
-              A ZapBless surgiu em 2022, quando um grupo de profissionais de tecnologia, também 
+              A ZapBless surgiu em 2025, quando um grupo de profissionais de tecnologia, também 
               membros ativos de suas comunidades religiosas, identificaram uma dificuldade comum: 
               a comunicação eficiente entre igrejas e seus membros.
             </p>
@@ -113,24 +113,14 @@ const Sobre = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {[
               {
-                name: "Carlos Silva",
+                name: "Djalma Mariano",
                 role: "Fundador e CEO",
-                bio: "Engenheiro de software com mais de 15 anos de experiência e líder de jovens em sua igreja local."
+                bio: "Engenheiro com mais de 15 anos de experiência e líder de jovens em sua igreja local."
               },
               {
-                name: "Márcia Santos",
-                role: "Diretora de Produto",
-                bio: "Especialista em UX com paixão por criar interfaces intuitivas e acessíveis para todos os públicos."
-              },
-              {
-                name: "Paulo Rodrigues",
-                role: "Desenvolvedor Chefe",
-                bio: "Programador experiente com foco em segurança de dados e performance de aplicações web."
-              },
-              {
-                name: "Ana Oliveira",
-                role: "Suporte ao Cliente",
-                bio: "Dedicada a garantir a melhor experiência para nossos usuários com atendimento personalizado."
+                name: "Fabiano César",
+                role: "Desenvolvedor",
+                bio: "Especialista em desenvolvimento de software com paixão por criar interfaces intuitivas e acessíveis para todos os públicos."
               }
             ].map((member, index) => (
               <div key={index} className="bg-white p-5 rounded-lg shadow-md border border-gray-100 text-center">
@@ -158,7 +148,7 @@ const Sobre = () => {
             <div className="space-y-2 mb-6">
               <p><strong>Email:</strong> contato@zapbless.com.br</p>
               <p><strong>Telefone:</strong> (11) 4002-8922</p>
-              <p><strong>Endereço:</strong> Av. Paulista, 1000 - São Paulo, SP</p>
+              <p><strong>Endereço:</strong> Av. Marques de São Vicente, 446 - São Paulo, SP</p>
             </div>
             <Button className="bg-gradient-to-r from-zapBlue-600 to-zapPurple-600 hover:from-zapBlue-700 hover:to-zapPurple-700 rounded-full">
               Enviar Mensagem

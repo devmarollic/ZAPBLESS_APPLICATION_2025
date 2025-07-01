@@ -109,7 +109,7 @@ const App = () => (
                                     <Route path="membros/mensagem" element={<EnviarMensagem />} />
                                     <Route path="membros/novo" element={<MembroNovo />} />
                                     <Route path="membros/gerenciar" element={<Dashboard />} />
-                                    <Route path="membros/editar" element={<MembroEditar />} />
+                                    <Route path="membros/editar/:id" element={<MembroEditar />} />
                                     <Route path="membros/importar" element={<Dashboard />} />
                                     <Route path="membros/exportar" element={<Dashboard />} />
 

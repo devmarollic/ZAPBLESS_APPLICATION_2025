@@ -489,8 +489,9 @@ public
 
     CONTACT
 
-        id : STRING | key, unique
+        id : TUID | key, unique
         churchId : CHURCH.id | constrained
+        ecclesiasticalTitle : STRING
         number : STRING
         isMe : BOOL
         isUser : BOOL
@@ -508,3 +509,13 @@ public
         type : STRING
         verifiedLevel : STRING
         verifiedName : STRING
+
+    CONTACT_MINISTRY
+
+        contactId : CONTACT.id | constrained
+        churchId : CHURCH.id | constrained
+        roleSlug : MINISTRY_MEMBER_ROLE.id | constrained
+        joinedAtTimestamp : TIMESTAMP | generated
+        leftAtTimestamp : TIMESTAMP
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated

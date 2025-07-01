@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { CreditCard, Lock, Check, QrCode, FileText, Banknote } from 'lucide-react';
 import { usePlanContext } from '@/context/PlanContext';
 import { HttpClient } from '@/lib/http_client';
@@ -106,7 +105,9 @@ const Pagamento = () => {
                     successMessage = 'Pagamento processado com sucesso! Sua assinatura foi ativada.';
                     break;
                 case 'pix':
-                    window.open(response.subscription.data.url, '_self');
+                    if (response && typeof response === 'object' && 'data' in response && response.data && typeof response.data === 'object' && 'url' in response.data) {
+                        window.open(response.data.url as string, '_self');
+                    }
                     successMessage = 'PIX gerado com sucesso! Complete o pagamento para ativar sua assinatura.';
                     break;
                 case 'boleto':

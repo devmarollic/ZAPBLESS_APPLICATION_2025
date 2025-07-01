@@ -222,7 +222,7 @@ export const PaymentSuccessEmailTemplate: React.FC<PaymentSuccessEmailProps> = (
           fontSize: '14px',
           color: '#64748B'
         }}>
-          📧 suporte@zapbless.com | 📱 WhatsApp: (11) 99999-9999
+          📧 suporte@zapbless.com.br | 📱 WhatsApp: (11) 99999-9999
         </p>
         
         <p style={{

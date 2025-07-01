@@ -22,6 +22,7 @@ class RabbitMQService extends events.EventEmitter {
         this.url = config.url || 'amqp://localhost';
         this.outboundQueue = config.outboundQueue || 'zapbless.outbound';
         this.inboundQueue = config.inboundQueue || 'zapbless.inbound';
+        this.disconnectedSessionsQueue
         this.churchId = config.churchId;
         
         this.connection = null;
@@ -176,6 +177,38 @@ class RabbitMQService extends events.EventEmitter {
     }
 
     /**
+     * Publica uma mensagem na fila disconnected sessions
+     * @param {Object} reason Razão da desconexão
+     * @param {Object} lastDisconnect Última desconexão
+     * @returns {Promise<boolean>}
+     */
+    async publishDisconnectedSession(reason, lastDisconnect) {
+        if (!this.connected || !this.channel) {
+            throw new Error('Não conectado ao RabbitMQ');
+        }
+        
+        try {
+            const messageWithChurchId = {
+                reason,
+                lastDisconnect,
+                churchId: this.churchId
+            };
+            
+            const buffer = Buffer.from(JSON.stringify(messageWithChurchId));
+            
+            await this.channel.sendToQueue(this.disconnectedSessionsQueue, buffer, {
+                persistent: true
+            });
+            
+            console.log(`Mensagem publicada na fila ${this.disconnectedSessionsQueue}:`, messageWithChurchId);
+            return true;
+        } catch (error) {
+            console.error('Erro ao publicar mensagem:', error);
+            return false;
+        }
+    }
+
+    /**
      * Fecha a conexão com o RabbitMQ
      * @returns {Promise<void>}
      */
@@ -193,6 +226,31 @@ class RabbitMQService extends events.EventEmitter {
             console.log('Conexão RabbitMQ fechada');
         } catch (error) {
             console.error('Erro ao fechar conexão RabbitMQ:', error);
+        }
+    }
+
+    async publishOutboundMessage(message) {
+        if (!this.connected || !this.channel) {
+            throw new Error('Não conectado ao RabbitMQ');
+        }
+        
+        try {
+            const messageWithChurchId = {
+                ...message,
+                churchId: this.churchId
+            };
+
+            const buffer = Buffer.from(JSON.stringify(messageWithChurchId));
+
+            await this.channel.sendToQueue(this.outboundQueue, buffer, {
+                persistent: true
+            });
+
+            console.log(`Mensagem publicada na fila ${this.outboundQueue}:`, messageWithChurchId);
+            return true;
+        } catch (error) {
+            console.error('Erro ao publicar mensagem:', error);
+            return false;
         }
     }
 }

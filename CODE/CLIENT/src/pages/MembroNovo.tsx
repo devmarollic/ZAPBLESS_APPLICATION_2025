@@ -17,6 +17,9 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Calendar as CalendarIcon, Save, User } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useQuery } from '@tanstack/react-query';
+import { HttpClient } from '@/lib/http_client';
 
 const memberFormSchema = z.object({
   name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres"),
@@ -32,12 +35,11 @@ const memberFormSchema = z.object({
 
 type MemberFormValues = z.infer<typeof memberFormSchema>;
 
-const mockMinistries = [
-  { id: "1", name: "Louvor" },
-  { id: "2", name: "Jovens" },
-  { id: "3", name: "Infantil" },
-  { id: "4", name: "Células" },
-];
+type Ministry = {
+  id: string;
+  name: string;
+  description: string;
+}
 
 const memberStatus = [
   { value: "active", label: "Ativo" },
@@ -62,6 +64,13 @@ const MembroNovo = () => {
       status: 'active',
       ministries: [],
     },
+  });
+
+  const { data: ministries, isLoading: isLoadingMinistries } = useQuery({
+    queryKey: ['ministries'],
+    queryFn: async () => {
+      return await HttpClient.get<Ministry[]>('/ministry/list');
+    }
   });
 
   const onSubmit = async (data: MemberFormValues) => {
@@ -230,21 +239,28 @@ const MembroNovo = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <FormLabel>Ministérios</FormLabel>
-                  <div className="mt-2 space-y-2">
-                    {mockMinistries.map((ministry) => (
-                      <div key={ministry.id} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          id={`ministry-${ministry.id}`}
-                          className="h-4 w-4 rounded border-gray-300 text-indigo-600"
-                          checked={selectedMinistries.includes(ministry.id)}
-                          onChange={() => handleMinistryChange(ministry.id)}
-                        />
-                        <label htmlFor={`ministry-${ministry.id}`} className="ml-2 text-sm">
-                          {ministry.name}
-                        </label>
+                  <div className="mt-2 border rounded-lg p-4 max-h-48 overflow-y-auto">
+                    {isLoadingMinistries ? (
+                      <p className="text-sm text-muted-foreground">Carregando ministérios...</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {(ministries ?? []).map((ministry) => (
+                          <div key={ministry.id} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`ministry-${ministry.id}`}
+                              checked={selectedMinistries.includes(ministry.id)}
+                              onCheckedChange={() => handleMinistryChange(ministry.id)}
+                            />
+                            <label 
+                              htmlFor={`ministry-${ministry.id}`} 
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              {ministry.name}
+                            </label>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
                 
