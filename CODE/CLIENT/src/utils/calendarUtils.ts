@@ -1,3 +1,4 @@
+
 import { Event } from "@/types/event";
 
 export const gerarCalendario = (ano: number = 2025, mes: number = 4) => {
@@ -134,27 +135,50 @@ export const aplicarFiltros = (
   let eventosFiltrados = [...eventos];
   
   // Filtrar por data
-  eventosFiltrados = filtrarEventosPorData(eventosFiltrados, dataInicio, dataFim);
+  if (dataInicio || dataFim) {
+    eventosFiltrados = eventosFiltrados.filter(evento => {
+      const eventoData = new Date(evento.startAtTimestamp);
+      
+      if (dataInicio && dataFim) {
+        return eventoData >= dataInicio && eventoData <= dataFim;
+      } else if (dataInicio) {
+        return eventoData >= dataInicio;
+      } else if (dataFim) {
+        return eventoData <= dataFim;
+      }
+      return true;
+    });
+  }
   
   // Filtrar por mês/ano específico se fornecido
   if (mesAtual !== undefined && anoAtual !== undefined) {
     eventosFiltrados = eventosFiltrados.filter(
-      evento => new Date(evento.startAtTimestamp).getMonth() === mesAtual && new Date(evento.startAtTimestamp).getFullYear() === anoAtual
+      evento => {
+        const eventoData = new Date(evento.startAtTimestamp);
+        return eventoData.getMonth() === mesAtual && eventoData.getFullYear() === anoAtual;
+      }
     );
   }
   
   // Filtrar por categorias
-  if (categorias && categorias.length > 0) {
-    eventosFiltrados = eventosFiltrados.filter(evento => 
-      categorias.includes('todas') || categorias.some(cat => 
-        evento.typeId?.toLowerCase() === cat.toLowerCase() || 
-        (evento.statusId === 'is-coming' && cat.toLowerCase() === 'cultos') ||
-        (evento.statusId === 'is-coming' && cat.toLowerCase() === 'reunioes') ||
-        (evento.statusId === 'is-coming' && cat.toLowerCase() === 'eventos especiais') ||
-        (evento.statusId === 'is-coming' && cat.toLowerCase() === 'grupos')
-      )
-    );
+  if (categorias && categorias.length > 0 && !categorias.includes('todas')) {
+    eventosFiltrados = eventosFiltrados.filter(evento => {
+      return categorias.some(cat => {
+        switch (cat.toLowerCase()) {
+          case 'cultos':
+            return evento.typeId === 'worship';
+          case 'reunioes':
+            return evento.typeId === 'meeting';
+          case 'eventos especiais':
+            return evento.typeId === 'special';
+          case 'grupos':
+            return evento.typeId === 'group';
+          default:
+            return evento.typeId?.toLowerCase() === cat.toLowerCase();
+        }
+      });
+    });
   }
   
-  return eventos;
+  return eventosFiltrados;
 };

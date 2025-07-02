@@ -14,7 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { EventFormValues, RecurrenceType } from '@/types/event';
-import { EventService } from '@/services/eventService';
+import { EventService, CreateEventRequest, RecurrenceData, ReminderData } from '@/services/eventService';
 import { MinistryService, Ministry, MinistryListResponse } from '@/services/ministryService';
 import EventBasicInfoForm from '@/components/events/EventBasicInfoForm';
 import EventDateTimeForm from '@/components/events/EventDateTimeForm';
@@ -65,6 +65,10 @@ const EventoNovo = () => {
   const [eventTypes, setEventTypes] = useState<EventType[]>([]);
   const [loadingMinistries, setLoadingMinistries] = useState(true);
   const [loadingEventTypes, setLoadingEventTypes] = useState(true);
+  
+  // Leaders and vice-leaders state
+  const [leaders, setLeaders] = useState<string[]>([]);
+  const [viceLeaders, setViceLeaders] = useState<string[]>([]);
   
   // New states for advanced features
   const [enableReminders, setEnableReminders] = useState(false);
@@ -220,35 +224,53 @@ const EventoNovo = () => {
           const [endHours, endMinutes] = eventItem.endTime.split(':');
           endDateTime.setHours(parseInt(endHours), parseInt(endMinutes), 0, 0);
           
-          const eventData = {
-            churchId: "sample-church-id", // This should come from user context
-            ministryId: data.ministry || "",
+          // Build recurrence data if needed
+          let recurrenceData: RecurrenceData | undefined;
+          if (data.recurrence_type !== 'none') {
+            const dayOfWeekArray = data.recurrence_days_of_week?.map(day => {
+              const dayMap: { [key: string]: number } = {
+                'sunday': 0, 'monday': 1, 'tuesday': 2, 'wednesday': 3,
+                'thursday': 4, 'friday': 5, 'saturday': 6
+              };
+              return dayMap[day] || 0;
+            }) || [];
+
+            recurrenceData = {
+              typeId: data.recurrence_type,
+              interval: data.recurrence_interval,
+              dayOfWeekArray: dayOfWeekArray,
+              dayOfMonthArray: [],
+              endAtTimestamp: data.recurrence_end_date ? data.recurrence_end_date.toISOString() : endDateTime.toISOString()
+            };
+          }
+
+          // Build reminders data if enabled
+          let remindersData: ReminderData[] = [];
+          if (enableReminders && selectedReminderGroups.length > 0) {
+            remindersData = [{
+              notificationMediumId: "whatsapp",
+              templateId: "event_reminder",
+              offset: "-1d",
+              variables: {
+                customMessage: reminderText || "Não esqueça do nosso evento!"
+              }
+            }];
+          }
+          
+          const eventData: CreateEventRequest = {
+            churchId: "Q3dmp5fTjBJcvr63HaBHkg", // This should come from user context
             title: data.title,
-            description: data.description,
-            location: {
-              type: "Point" as const,
-              coordinates: [0, 0] as [number, number] // This should be geocoded from the location string
-            },
+            statusId: "is-coming",
             typeId: data.typeId || "worship",
-            statusId: "is-coming", // Default status or should be selected in form
+            description: data.description,
+            location: data.location,
             startAtTimestamp: startDateTime.toISOString(),
             endAtTimestamp: endDateTime.toISOString(),
-            isPublic: data.isPublic,
-            recurrence_type: data.recurrence_type,
-            recurrence_interval: data.recurrence_interval,
-            recurrence_days_of_week: data.recurrence_days_of_week,
-            recurrence_day_of_month: data.recurrence_day_of_month,
-            recurrence_end_date: data.recurrence_end_date,
-            // Novos campos de recorrência
-            recurrence_daily_times: data.recurrence_daily_times,
-            recurrence_week_of_month: data.recurrence_week_of_month,
-            recurrence_day_of_week: data.recurrence_day_of_week,
-            recurrence_yearly_pattern: data.recurrence_yearly_pattern,
-            recurrence_month: data.recurrence_month,
-            otherTypeReason: data.otherTypeReason,
-            remindersEnabled: enableReminders,
-            reminderGroups: selectedReminderGroups,
-            reminderText: reminderText,
+            recurrenceTypeId: data.recurrence_type !== 'none' ? data.recurrence_type : undefined,
+            recurrence: recurrenceData,
+            reminders: remindersData.length > 0 ? remindersData : undefined,
+            leaders: leaders,
+            viceLeaders: viceLeaders,
           };
           
           await EventService.createEvent(eventData);
@@ -263,35 +285,53 @@ const EventoNovo = () => {
         const [endHours, endMinutes] = data.endTime.split(':');
         endDateTime.setHours(parseInt(endHours), parseInt(endMinutes), 0, 0);
         
-        const eventData = {
-          churchId: "sample-church-id", // This should come from user context
-          ministryId: data.ministry || "",
+        // Build recurrence data if needed
+        let recurrenceData: RecurrenceData | undefined;
+        if (data.recurrence_type !== 'none') {
+          const dayOfWeekArray = data.recurrence_days_of_week?.map(day => {
+            const dayMap: { [key: string]: number } = {
+              'sunday': 0, 'monday': 1, 'tuesday': 2, 'wednesday': 3,
+              'thursday': 4, 'friday': 5, 'saturday': 6
+            };
+            return dayMap[day] || 0;
+          }) || [];
+
+          recurrenceData = {
+            typeId: data.recurrence_type,
+            interval: data.recurrence_interval,
+            dayOfWeekArray: dayOfWeekArray,
+            dayOfMonthArray: [],
+            endAtTimestamp: data.recurrence_end_date ? data.recurrence_end_date.toISOString() : endDateTime.toISOString()
+          };
+        }
+
+        // Build reminders data if enabled
+        let remindersData: ReminderData[] = [];
+        if (enableReminders && selectedReminderGroups.length > 0) {
+          remindersData = [{
+            notificationMediumId: "whatsapp",
+            templateId: "event_reminder",
+            offset: "-1d",
+            variables: {
+              customMessage: reminderText || "Não esqueça do nosso evento!"
+            }
+          }];
+        }
+        
+        const eventData: CreateEventRequest = {
+          churchId: "Q3dmp5fTjBJcvr63HaBHkg", // This should come from user context
           title: data.title,
-          description: data.description,
-          location: {
-            type: "Point" as const,
-            coordinates: [0, 0] as [number, number] // This should be geocoded from the location string
-          },
+          statusId: "is-coming",
           typeId: data.typeId || "worship",
-          statusId: "is-coming", // Default status or should be selected in form
+          description: data.description,
+          location: data.location,
           startAtTimestamp: startDateTime.toISOString(),
           endAtTimestamp: endDateTime.toISOString(),
-          isPublic: data.isPublic,
-          recurrence_type: data.recurrence_type,
-          recurrence_interval: data.recurrence_interval,
-          recurrence_days_of_week: data.recurrence_days_of_week,
-          recurrence_day_of_month: data.recurrence_day_of_month,
-          recurrence_end_date: data.recurrence_end_date,
-          // Novos campos de recorrência
-          recurrence_daily_times: data.recurrence_daily_times,
-          recurrence_week_of_month: data.recurrence_week_of_month,
-          recurrence_day_of_week: data.recurrence_day_of_week,
-          recurrence_yearly_pattern: data.recurrence_yearly_pattern,
-          recurrence_month: data.recurrence_month,
-          otherTypeReason: data.otherTypeReason,
-          remindersEnabled: enableReminders,
-          reminderGroups: selectedReminderGroups,
-          reminderText: reminderText,
+          recurrenceTypeId: data.recurrence_type !== 'none' ? data.recurrence_type : undefined,
+          recurrence: recurrenceData,
+          reminders: remindersData.length > 0 ? remindersData : undefined,
+          leaders: leaders,
+          viceLeaders: viceLeaders,
         };
         
         await EventService.createEvent(eventData);
@@ -419,7 +459,14 @@ const EventoNovo = () => {
                   </div>
                   
                   <EventLocationForm control={form.control} />
-                  <EventLeadersForm control={form.control} ministries={ministries} />
+                  <EventLeadersForm 
+                    control={form.control} 
+                    ministries={ministries}
+                    leaders={leaders}
+                    viceLeaders={viceLeaders}
+                    onLeadersChange={setLeaders}
+                    onViceLeadersChange={setViceLeaders}
+                  />
                   <EventVisibilityForm control={form.control} />
                 </form>
               </Form>

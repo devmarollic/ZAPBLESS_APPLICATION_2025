@@ -226,7 +226,6 @@ public
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
-
     PERMISSION | dropped
 
         id : STRING | key, unique
@@ -274,6 +273,7 @@ public
     RECURRENCE | dropped
 
         id : TUID | key, unique
+        eventId : EVENT.id | constrained
         typeId : RECURRENCE_TYPE.id | constrained
         interval : FLOAT64
         dayOfWeekArray : LIST[]
@@ -322,10 +322,10 @@ public
         notificationTypeId : NOTIFICATION_TYPE.id | constrained
         notificationMediumId : NOTIFICATION_MEDIUM| constrained
         scheduleAtTimestamp : DATETIME
-        eventId : EVENT | constrained
+        eventId : EVENT.id | constrained
         payload : TUPLE[]
         statusId : SCHEDULE_STATUS.id | constrained
-        reccurenceId : RECURRENCE.id | constrained
+        recurrenceId : RECURRENCE.id | constrained
         errorMessage : STRING
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
@@ -517,5 +517,25 @@ public
         roleSlug : MINISTRY_MEMBER_ROLE.id | constrained
         joinedAtTimestamp : TIMESTAMP | generated
         leftAtTimestamp : TIMESTAMP
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    MESSAGE_TEMPLATE_CATEGORY
+
+        id : STRING = "{{name:slug_case}}" | key, unique
+        name : STRING
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    MESSAGE_TEMPLATE
+
+        id : TUID | key, unique
+        churchId : CHURCH.id | constrained
+        name : STRING
+        categoryId : MESSAGE_TEMPLATE_CATEGORY.id
+        languageTag : LANGUAGE.code | constrained
+        content : STRING
+        allowCategoryChange : BOOL
+        isActive : BOOL
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated

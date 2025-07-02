@@ -12,8 +12,9 @@ import CalendarAgendaView from "@/components/events/CalendarAgendaView";
 import EventDetailsCard from "@/components/events/EventDetailsCard";
 import { gerarCalendario, aplicarFiltros } from "@/utils/calendarUtils";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { HttpClient } from "@/lib/http_client";
+import { EventService } from "@/services/eventService";
 import { Event } from "@/types/event";
+import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, format } from "date-fns";
 
 const Eventos = () => {
   const [anoAtual, setAnoAtual] = useState(2025);
@@ -25,7 +26,7 @@ const Eventos = () => {
     to: undefined
   });
   const [events, setEvents] = useState<Event[]>([]);
-  const [selectedEvent, setSelectedEvent] = useState<typeof events[0] | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isEventDetailsOpen, setIsEventDetailsOpen] = useState(false);
   
   const calendario = gerarCalendario(anoAtual, mesAtual);
@@ -52,7 +53,6 @@ const Eventos = () => {
   };
 
   const handleRangeChange = (range: { from: Date | undefined; to: Date | undefined }) => {
-    // Update the calendar view based on the selected date range
     setDateRange(range);
     if (range.from) {
       setMesAtual(range.from.getMonth());
@@ -64,7 +64,7 @@ const Eventos = () => {
     setSelectedCategories(categories);
   };
 
-  const handleEventClick = (event: typeof events[0]) => {
+  const handleEventClick = (event: Event) => {
     setSelectedEvent(event);
     setIsEventDetailsOpen(true);
   };
@@ -72,6 +72,71 @@ const Eventos = () => {
   const handleCloseEventDetails = () => {
     setIsEventDetailsOpen(false);
     setSelectedEvent(null);
+  };
+
+  // Get date range based on current view
+  const getDateRangeForView = () => {
+    const currentDate = new Date(anoAtual, mesAtual, 1);
+    
+    switch (visualizacao) {
+      case "monthly":
+      case "grid":
+      case "list":
+        return {
+          from: startOfMonth(currentDate),
+          to: endOfMonth(currentDate)
+        };
+      case "weekly":
+      case "agenda":
+        const weekStart = startOfWeek(currentDate);
+        const weekEnd = endOfWeek(currentDate);
+        return {
+          from: weekStart,
+          to: weekEnd
+        };
+      default:
+        return {
+          from: startOfMonth(currentDate),
+          to: endOfMonth(currentDate)
+        };
+    }
+  };
+
+  // Convert API response to Event type
+  const convertApiEventToEvent = (apiEvent: any): Event => {
+    return {
+      id: apiEvent.id,
+      title: apiEvent.title,
+      description: apiEvent.description,
+      churchId: apiEvent.churchId,
+      location: apiEvent.location,
+      date: new Date(apiEvent.startAtTimestamp),
+      startAtTimestamp: apiEvent.startAtTimestamp,
+      endAtTimestamp: apiEvent.endAtTimestamp,
+      ministryId: apiEvent.ministryId,
+      isPublic: apiEvent.isPublic,
+      statusId: apiEvent.statusId,
+      typeId: apiEvent.typeId,
+      // Add legacy fields for compatibility with existing components
+      titulo: apiEvent.title,
+      data: new Date(apiEvent.startAtTimestamp),
+      horario: format(new Date(apiEvent.startAtTimestamp), 'HH:mm'),
+      local: apiEvent.location,
+      tipo: apiEvent.typeId,
+      cor: getEventColor(apiEvent.typeId),
+    };
+  };
+
+  // Get event color based on type
+  const getEventColor = (typeId: string) => {
+    const colorMap: Record<string, string> = {
+      'worship': 'purple',
+      'meeting': 'blue',
+      'special': 'red',
+      'group': 'green',
+      'other': 'orange'
+    };
+    return colorMap[typeId] || 'gray';
   };
 
   // Render the appropriate view based on visualizacao state
@@ -110,15 +175,36 @@ const Eventos = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      const response = await HttpClient.get<Event[]>('/event/list');
-      if (response) {
-        setEvents(response);
+  // Fetch events with date range filter
+  const fetchEvents = async () => {
+    try {
+      const dateRange = getDateRangeForView();
+      
+      // Build query parameters
+      const params = new URLSearchParams();
+      params.append('statusId', 'is-coming');
+      
+      if (dateRange.from) {
+        params.append('startDate', format(dateRange.from, 'yyyy-MM-dd'));
       }
+      if (dateRange.to) {
+        params.append('endDate', format(dateRange.to, 'yyyy-MM-dd'));
+      }
+
+      const response = await EventService.getEvents('is-coming');
+      if (response) {
+        const convertedEvents = response.map(convertApiEventToEvent);
+        setEvents(convertedEvents);
+      }
+    } catch (error) {
+      console.error('Error fetching events:', error);
     }
+  };
+
+  // Fetch events when view or date changes
+  useEffect(() => {
     fetchEvents();
-  }, []);
+  }, [visualizacao, mesAtual, anoAtual]);
 
   return (
     <div className="space-y-4 md:space-y-6">

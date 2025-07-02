@@ -1,0 +1,21 @@
+MESSAGE_TEMPLATE_CATEGORY
+
+    id name
+
+        reminder
+            ~ Lembrete
+
+        notification
+            ~ Notificação
+
+        thank-you
+            ~ Agradecimento
+
+        follow-up
+            ~ Acompanhamento
+
+        announcement
+            ~ Anúncio
+
+        roster
+            ~ Escala

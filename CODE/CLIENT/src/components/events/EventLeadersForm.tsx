@@ -1,8 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Control, useWatch } from "react-hook-form";
@@ -27,12 +25,21 @@ interface Ministry {
 interface EventLeadersFormProps {
   control: Control<EventFormValues>;
   ministries: Ministry[];
+  leaders: string[];
+  viceLeaders: string[];
+  onLeadersChange: (leaders: string[]) => void;
+  onViceLeadersChange: (viceLeaders: string[]) => void;
 }
 
-const EventLeadersForm = ({ control, ministries }: EventLeadersFormProps) => {
+const EventLeadersForm = ({ 
+  control, 
+  ministries, 
+  leaders, 
+  viceLeaders, 
+  onLeadersChange, 
+  onViceLeadersChange 
+}: EventLeadersFormProps) => {
   const selectedMinistry = useWatch({ control, name: "ministry" });
-  const [leaders, setLeaders] = useState<User[]>([]);
-  const [viceLeaders, setViceLeaders] = useState<User[]>([]);
   const [availableUsers, setAvailableUsers] = useState<User[]>([]);
 
   // Mock users data - in real app, this would come from an API
@@ -83,47 +90,51 @@ const EventLeadersForm = ({ control, ministries }: EventLeadersFormProps) => {
           user.roleSlug === 'vice-leader' && Math.random() > 0.5
         );
         
-        setLeaders(ministryLeaders);
-        setViceLeaders(ministryViceLeaders);
+        onLeadersChange(ministryLeaders.map(l => l.id));
+        onViceLeadersChange(ministryViceLeaders.map(l => l.id));
       }
     } else {
-      setLeaders([]);
-      setViceLeaders([]);
+      onLeadersChange([]);
+      onViceLeadersChange([]);
     }
-  }, [selectedMinistry, ministries, availableUsers]);
+  }, [selectedMinistry, ministries, availableUsers, onLeadersChange, onViceLeadersChange]);
 
   const addLeader = (userId: string) => {
     const user = availableUsers.find(u => u.id === userId);
-    if (user && !leaders.find(l => l.id === userId)) {
-      setLeaders([...leaders, user]);
+    if (user && !leaders.includes(userId)) {
+      onLeadersChange([...leaders, userId]);
     }
   };
 
   const removeLeader = (userId: string) => {
-    setLeaders(leaders.filter(l => l.id !== userId));
+    onLeadersChange(leaders.filter(l => l !== userId));
   };
 
   const addViceLeader = (userId: string) => {
     const user = availableUsers.find(u => u.id === userId);
-    if (user && !viceLeaders.find(l => l.id === userId)) {
-      setViceLeaders([...viceLeaders, user]);
+    if (user && !viceLeaders.includes(userId)) {
+      onViceLeadersChange([...viceLeaders, userId]);
     }
   };
 
   const removeViceLeader = (userId: string) => {
-    setViceLeaders(viceLeaders.filter(l => l.id !== userId));
+    onViceLeadersChange(viceLeaders.filter(l => l !== userId));
   };
 
   const getAvailableLeaders = () => {
     return availableUsers.filter(user => 
-      user.roleSlug === 'leader' && !leaders.find(l => l.id === user.id)
+      user.roleSlug === 'leader' && !leaders.includes(user.id)
     );
   };
 
   const getAvailableViceLeaders = () => {
     return availableUsers.filter(user => 
-      user.roleSlug === 'vice-leader' && !viceLeaders.find(l => l.id === user.id)
+      user.roleSlug === 'vice-leader' && !viceLeaders.includes(user.id)
     );
+  };
+
+  const getLeaderById = (id: string) => {
+    return availableUsers.find(user => user.id === id);
   };
 
   return (
@@ -150,21 +161,26 @@ const EventLeadersForm = ({ control, ministries }: EventLeadersFormProps) => {
           </div>
           
           <div className="flex flex-wrap gap-2">
-            {leaders.map((leader) => (
-              <Badge key={leader.id} variant="secondary" className="flex items-center gap-1">
-                <Crown className="h-3 w-3" />
-                {leader.firstName} {leader.lastName}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-4 w-4 p-0 ml-1"
-                  onClick={() => removeLeader(leader.id)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </Badge>
-            ))}
+            {leaders.map((leaderId) => {
+              const leader = getLeaderById(leaderId);
+              if (!leader) return null;
+              
+              return (
+                <Badge key={leaderId} variant="secondary" className="flex items-center gap-1">
+                  <Crown className="h-3 w-3" />
+                  {leader.firstName} {leader.lastName}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-4 w-4 p-0 ml-1"
+                    onClick={() => removeLeader(leaderId)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </Badge>
+              );
+            })}
             {leaders.length === 0 && (
               <p className="text-sm text-muted-foreground">Nenhum líder selecionado</p>
             )}
@@ -192,21 +208,26 @@ const EventLeadersForm = ({ control, ministries }: EventLeadersFormProps) => {
           </div>
           
           <div className="flex flex-wrap gap-2">
-            {viceLeaders.map((viceLeader) => (
-              <Badge key={viceLeader.id} variant="outline" className="flex items-center gap-1">
-                <UserCog className="h-3 w-3" />
-                {viceLeader.firstName} {viceLeader.lastName}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-4 w-4 p-0 ml-1"
-                  onClick={() => removeViceLeader(viceLeader.id)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </Badge>
-            ))}
+            {viceLeaders.map((viceLeaderId) => {
+              const viceLeader = getLeaderById(viceLeaderId);
+              if (!viceLeader) return null;
+              
+              return (
+                <Badge key={viceLeaderId} variant="outline" className="flex items-center gap-1">
+                  <UserCog className="h-3 w-3" />
+                  {viceLeader.firstName} {viceLeader.lastName}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-4 w-4 p-0 ml-1"
+                    onClick={() => removeViceLeader(viceLeaderId)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </Badge>
+              );
+            })}
             {viceLeaders.length === 0 && (
               <p className="text-sm text-muted-foreground">Nenhum vice-líder selecionado</p>
             )}

@@ -19,16 +19,16 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Save } from 'lucide-react';
-import { AuthenticationService } from '@/lib/authentication_service';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuery } from '@tanstack/react-query';
-import { Checkbox } from '@/components/ui/checkbox';
+import MinistryMemberSelection from '@/components/members/MinistryMemberSelection';
 
 const ministerioFormSchema = z.object({
     name: z.string().min(3, { message: 'O nome deve ter pelo menos 3 caracteres' }),
     description: z.string().min(10, { message: 'A descrição deve ter pelo menos 10 caracteres' }),
-    leaderId: z.string(),
-    memberIds: z.array(z.string()).optional(),
+    leaderId: z.string().optional(),
+    viceLeaderId: z.string().optional(),
+    color: z.string().min(4, 'Selecione uma cor'),
 });
 
 type MinisterioFormValues = z.infer<typeof ministerioFormSchema>;
@@ -40,23 +40,46 @@ type Member = {
     phoneNumber: string;
 }
 
+interface MemberMembership {
+    memberId: string;
+    role: string;
+}
+
 const MinisterioNovo = () => {
     const navigate = useNavigate();
     const { toast } = useToast();
+    const [memberMemberships, setMemberMemberships] = React.useState<MemberMembership[]>([]);
 
     const form = useForm<MinisterioFormValues>({
         resolver: zodResolver(ministerioFormSchema),
         defaultValues: {
             name: '',
             description: '',
-            leaderId: '',
-            memberIds: []
+            leaderId: 'none',
+            viceLeaderId: 'none',
+            color: '#7C3AED',
         },
+    });
+
+    const { data: members, isLoading: isLoadingMembers } = useQuery({
+        queryKey: ['members'],
+        queryFn: async () => {
+            return await HttpClient.get<Member[]>('/church/members/list');
+        }
     });
 
     const onSubmit = async (data: MinisterioFormValues) => {
         try {
-            await HttpClient.post('/ministry/add', data);
+            const payload = {
+                name: data.name,
+                description: data.description,
+                leaderId: data.leaderId === 'none' ? undefined : data.leaderId,
+                viceLeaderId: data.viceLeaderId === 'none' ? undefined : data.viceLeaderId,
+                color: data.color,
+                memberMemberships: memberMemberships,
+            };
+
+            await HttpClient.post('/ministry/add', payload);
 
             toast({
                 title: 'Ministério criado',
@@ -75,20 +98,27 @@ const MinisterioNovo = () => {
         }
     };
 
-    const { data: members, isLoading: isLoadingMembers, error: errorMembers } = useQuery({
-        queryKey: ['members'],
-        queryFn: async () => {
-            return await HttpClient.get<Member[]>('/church/members/list');
-        }
-    });
-
-    const handleMemberToggle = (memberId: string, checked: boolean) => {
-        const currentMembers = form.getValues('memberIds') || [];
+    const handleMemberToggle = (memberId: string, checked: boolean, role: string = 'member') => {
         if (checked) {
-            form.setValue('memberIds', [...currentMembers, memberId]);
+            setMemberMemberships(current => [
+                ...current,
+                { memberId, role }
+            ]);
         } else {
-            form.setValue('memberIds', currentMembers.filter(id => id !== memberId));
+            setMemberMemberships(current => 
+                current.filter(membership => membership.memberId !== memberId)
+            );
         }
+    };
+
+    const handleUpdateMembership = (memberId: string, field: 'role', value: string) => {
+        setMemberMemberships(current =>
+            current.map(membership =>
+                membership.memberId === memberId
+                    ? { ...membership, [field]: value }
+                    : membership
+            )
+        );
     };
 
     return (
@@ -140,58 +170,90 @@ const MinisterioNovo = () => {
 
                         <FormField
                             control={form.control}
-                            name="leaderId"
+                            name="color"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Selecione o líder</FormLabel>
-                                    <Select
-                                        onValueChange={field.onChange}
-                                        defaultValue={field.value}
-                                        disabled={isLoadingMembers}
-                                    >
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder={isLoadingMembers ? "Carregando..." : "Selecione um membro"} />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {(members ?? []).map((member) => (
-                                                <SelectItem key={member.id} value={member.id}>
-                                                    {member.legalName}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                    <FormLabel>Cor</FormLabel>
+                                    <FormControl>
+                                        <div className="flex gap-2">
+                                            <Input type="color" className="w-16 h-10" {...field} />
+                                            <Input value={field.value} onChange={field.onChange} placeholder="#7C3AED" />
+                                        </div>
+                                    </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
 
-                        <div className="space-y-3">
-                            <FormLabel>Membros do Ministério</FormLabel>
-                            <div className="border rounded-lg p-4 max-h-48 overflow-y-auto">
-                                {isLoadingMembers ? (
-                                    <p className="text-sm text-muted-foreground">Carregando membros...</p>
-                                ) : (
-                                    <div className="space-y-2">
-                                        {(members ?? []).map((member) => (
-                                            <div key={member.id} className="flex items-center space-x-2">
-                                                <Checkbox
-                                                    id={`member-${member.id}`}
-                                                    onCheckedChange={(checked) => handleMemberToggle(member.id, checked as boolean)}
-                                                />
-                                                <label 
-                                                    htmlFor={`member-${member.id}`}
-                                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                                >
-                                                    {member.legalName}
-                                                </label>
-                                            </div>
-                                        ))}
-                                    </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="leaderId"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Líder</FormLabel>
+                                        <Select
+                                            onValueChange={field.onChange}
+                                            defaultValue={field.value}
+                                            disabled={isLoadingMembers}
+                                        >
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder={isLoadingMembers ? "Carregando..." : "Selecione um líder"} />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="none">Nenhum líder</SelectItem>
+                                                {(members ?? []).map((member) => (
+                                                    <SelectItem key={member.id} value={member.id}>
+                                                        {member.legalName}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
                                 )}
-                            </div>
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="viceLeaderId"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Vice-Líder</FormLabel>
+                                        <Select
+                                            onValueChange={field.onChange}
+                                            defaultValue={field.value}
+                                            disabled={isLoadingMembers}
+                                        >
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder={isLoadingMembers ? "Carregando..." : "Selecione um vice-líder"} />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="none">Nenhum vice-líder</SelectItem>
+                                                {(members ?? []).map((member) => (
+                                                    <SelectItem key={member.id} value={member.id}>
+                                                        {member.legalName}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                         </div>
+
+                        <MinistryMemberSelection
+                            members={members}
+                            isLoadingMembers={isLoadingMembers}
+                            memberMemberships={memberMemberships}
+                            onMemberToggle={handleMemberToggle}
+                            onUpdateMembership={handleUpdateMembership}
+                        />
 
                         <div className="flex justify-end">
                             <Button

@@ -7,6 +7,7 @@ export interface Ministry {
   description: string;
   color: string;
   leaderId?: string;
+  viceLeaderId?: string;
   leader?: string;
   members_count?: number;
   memberIds?: string[];
@@ -38,7 +39,12 @@ export interface CreateMinistryDto {
   description: string;
   color: string;
   leaderId?: string;
+  viceLeaderId?: string;
   memberIds?: string[];
+  memberMemberships?: Array<{
+    memberId: string;
+    role: string;
+  }>;
 }
 
 export interface UpdateMinistryDto {
@@ -46,7 +52,12 @@ export interface UpdateMinistryDto {
   description?: string;
   color?: string;
   leaderId?: string;
+  viceLeaderId?: string;
   memberIds?: string[];
+  memberMemberships?: Array<{
+    memberId: string;
+    role: string;
+  }>;
 }
 
 export class MinistryService {

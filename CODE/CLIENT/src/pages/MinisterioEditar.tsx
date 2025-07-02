@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -11,16 +12,16 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { MinistryService, Ministry } from '@/services/ministryService';
-import { Checkbox } from '@/components/ui/checkbox';
 import { useQuery } from '@tanstack/react-query';
 import { HttpClient } from '@/lib/http_client';
+import MinistryMemberSelection from '@/components/members/MinistryMemberSelection';
 
 const ministryFormSchema = z.object({
-  name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres"),
-  description: z.string().min(10, "A descrição deve ter pelo menos 10 caracteres"),
-  color: z.string().min(4, "Selecione uma cor"),
+  name: z.string().min(3, 'O nome deve ter pelo menos 3 caracteres'),
+  description: z.string().min(10, 'A descrição deve ter pelo menos 10 caracteres'),
+  color: z.string().min(4, 'Selecione uma cor'),
   leaderId: z.string().optional(),
-  memberIds: z.array(z.string()).optional(),
+  viceLeaderId: z.string().optional(),
 });
 
 type MinistryFormValues = z.infer<typeof ministryFormSchema>;
@@ -32,27 +33,10 @@ type Member = {
   phoneNumber: string;
 }
 
-type MemberMembership = {
+interface MemberMembership {
   memberId: string;
   role: string;
 }
-
-const ministryRoles = [
-  { value: "member", label: "Membro" },
-  { value: "leader", label: "Líder" },
-  { value: "vice-leader", label: "Vice-líder" },
-  { value: "volunteer", label: "Voluntário" },
-];
-
-const ecclesiasticalTitles = [
-  { value: "none", label: "Nenhum" },
-  { value: "pastor", label: "Pastor" },
-  { value: "reverend", label: "Reverendo" },
-  { value: "elder", label: "Presbítero" },
-  { value: "deacon", label: "Diácono" },
-  { value: "missionary", label: "Missionário" },
-  { value: "evangelist", label: "Evangelista" },
-];
 
 const MinisterioEditar = () => {
   const { id } = useParams<{ id: string }>();
@@ -69,7 +53,7 @@ const MinisterioEditar = () => {
       description: '',
       color: '#7C3AED',
       leaderId: '',
-      memberIds: [],
+      viceLeaderId: '',
     },
   });
 
@@ -92,15 +76,14 @@ const MinisterioEditar = () => {
             name: response.name,
             description: response.description,
             color: response.color,
-            leaderId: response.leaderId || '',
-            memberIds: [], // TODO: Load existing member associations from API
+            leaderId: response.leaderId || 'none',
+            viceLeaderId: response.viceLeaderId || 'none',
           });
           
           // Initialize member memberships with mock data
           const mockMemberships: MemberMembership[] = (response.memberIds || []).map(memberId => ({
             memberId,
-            role: "member",
-            ecclesiasticalTitle: ""
+            role: "member"
           }));
           setMemberMemberships(mockMemberships);
         }
@@ -128,7 +111,8 @@ const MinisterioEditar = () => {
         name: data.name,
         description: data.description,
         color: data.color,
-        leaderId: data.leaderId || undefined,
+        leaderId: data.leaderId === 'none' ? undefined : data.leaderId,
+        viceLeaderId: data.viceLeaderId === 'none' ? undefined : data.viceLeaderId,
         memberIds: memberMemberships.map(m => m.memberId),
         memberMemberships: memberMemberships,
       };
@@ -153,11 +137,11 @@ const MinisterioEditar = () => {
     }
   };
 
-  const handleMemberToggle = (memberId: string, checked: boolean) => {
+  const handleMemberToggle = (memberId: string, checked: boolean, role: string = 'member') => {
     if (checked) {
       setMemberMemberships(current => [
         ...current,
-        { memberId, role: "member", ecclesiasticalTitle: "" }
+        { memberId, role }
       ]);
     } else {
       setMemberMemberships(current => 
@@ -166,7 +150,7 @@ const MinisterioEditar = () => {
     }
   };
 
-  const updateMemberMembership = (memberId: string, field: 'role' | 'ecclesiasticalTitle', value: string) => {
+  const handleUpdateMembership = (memberId: string, field: 'role', value: string) => {
     setMemberMemberships(current =>
       current.map(membership =>
         membership.memberId === memberId
@@ -202,7 +186,7 @@ const MinisterioEditar = () => {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
                 control={form.control}
                 name="name"
@@ -252,62 +236,75 @@ const MinisterioEditar = () => {
                 )}
               />
 
-              <div className="space-y-3">
-                <FormLabel>Membros do Ministério</FormLabel>
-                <div className="border rounded-lg p-4 max-h-96 overflow-y-auto">
-                  {isLoadingMembers ? (
-                    <p className="text-sm text-muted-foreground">Carregando membros...</p>
-                  ) : (
-                    <div className="space-y-4">
-                      {(members ?? []).map((member) => {
-                        const membership = memberMemberships.find(m => m.memberId === member.id);
-                        const isSelected = !!membership;
-                        
-                        return (
-                          <div key={member.id} className="border rounded-lg p-3">
-                            <div className="flex items-center space-x-2 mb-3">
-                              <Checkbox
-                                id={`member-${member.id}`}
-                                checked={isSelected}
-                                onCheckedChange={(checked) => handleMemberToggle(member.id, checked as boolean)}
-                              />
-                              <label 
-                                htmlFor={`member-${member.id}`}
-                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                              >
-                                {member.legalName}
-                              </label>
-                            </div>
-                            
-                            {isSelected && (
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 ml-6">
-                                <div>
-                                  <FormLabel className="text-xs">Função</FormLabel>
-                                  <Select
-                                    value={membership?.role || "member"}
-                                    onValueChange={(value) => updateMemberMembership(member.id, 'role', value)}
-                                  >
-                                    <SelectTrigger className="h-8">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {ministryRoles.map((role) => (
-                                        <SelectItem key={role.value} value={role.value}>
-                                          {role.label}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="leaderId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Líder</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        disabled={isLoadingMembers}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={isLoadingMembers ? "Carregando..." : "Selecione um líder"} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="none">Nenhum líder</SelectItem>
+                          {(members ?? []).map((member) => (
+                            <SelectItem key={member.id} value={member.id}>
+                              {member.legalName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                </div>
+                />
+
+                <FormField
+                  control={form.control}
+                  name="viceLeaderId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Vice-Líder</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        disabled={isLoadingMembers}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={isLoadingMembers ? "Carregando..." : "Selecione um vice-líder"} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="none">Nenhum vice-líder</SelectItem>
+                          {(members ?? []).map((member) => (
+                            <SelectItem key={member.id} value={member.id}>
+                              {member.legalName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
+
+              <MinistryMemberSelection
+                members={members}
+                isLoadingMembers={isLoadingMembers}
+                memberMemberships={memberMemberships}
+                onMemberToggle={handleMemberToggle}
+                onUpdateMembership={handleUpdateMembership}
+              />
 
               <div className="flex gap-4 pt-4">
                 <Button type="submit" disabled={isLoading} className="flex-1">

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Bell, Plus, Calendar, Clock, AlertTriangle, CheckCircle, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import TemplateManager from '@/components/templates/TemplateManager';
 
 type ReminderCategory = 'culto' | 'reuniao' | 'evento' | 'aniversario' | 'outros';
 
@@ -61,6 +61,7 @@ const Lembretes = () => {
     const { toast } = useToast();
     const [reminders, setReminders] = useState<Reminder[]>(mockReminders);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState<'reminders' | 'templates'>('reminders');
     const [newReminder, setNewReminder] = useState({
         title: '',
         description: '',
@@ -155,194 +156,221 @@ const Lembretes = () => {
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold">Lembretes</h1>
-                    <p className="text-muted-foreground">Gerencie seus lembretes e tarefas</p>
+                    <p className="text-muted-foreground">Gerencie seus lembretes e templates de mensagens</p>
                 </div>
                 
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger asChild>
-                        <Button>
-                            <Plus className="mr-2 h-4 w-4" />
-                            Novo Lembrete
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Criar Novo Lembrete</DialogTitle>
-                            <DialogDescription>
-                                Preencha os dados do lembrete
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="text-sm font-medium">Título *</label>
-                                <Input
-                                    value={newReminder.title}
-                                    onChange={(e) => setNewReminder({...newReminder, title: e.target.value})}
-                                    placeholder="Digite o título do lembrete"
-                                />
-                            </div>
-                            
-                            <div>
-                                <label className="text-sm font-medium">Descrição</label>
-                                <Textarea
-                                    value={newReminder.description}
-                                    onChange={(e) => setNewReminder({...newReminder, description: e.target.value})}
-                                    placeholder="Digite a descrição do lembrete"
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="text-sm font-medium">Categoria</label>
-                                    <Select 
-                                        value={newReminder.category} 
-                                        onValueChange={(value: ReminderCategory) => setNewReminder({...newReminder, category: value})}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="culto">Culto</SelectItem>
-                                            <SelectItem value="reuniao">Reunião</SelectItem>
-                                            <SelectItem value="evento">Evento</SelectItem>
-                                            <SelectItem value="aniversario">Aniversário</SelectItem>
-                                            <SelectItem value="outros">Outros</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div>
-                                    <label className="text-sm font-medium">Prioridade</label>
-                                    <Select 
-                                        value={newReminder.priority} 
-                                        onValueChange={(value: 'low' | 'medium' | 'high') => setNewReminder({...newReminder, priority: value})}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="low">Baixa</SelectItem>
-                                            <SelectItem value="medium">Média</SelectItem>
-                                            <SelectItem value="high">Alta</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="text-sm font-medium">Data *</label>
-                                    <Input
-                                        type="date"
-                                        value={newReminder.dueDate}
-                                        onChange={(e) => setNewReminder({...newReminder, dueDate: e.target.value})}
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="text-sm font-medium">Horário *</label>
-                                    <Input
-                                        type="time"
-                                        value={newReminder.dueTime}
-                                        onChange={(e) => setNewReminder({...newReminder, dueTime: e.target.value})}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex justify-end gap-2">
-                                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                                    Cancelar
-                                </Button>
-                                <Button onClick={handleCreateReminder}>
-                                    Criar Lembrete
-                                </Button>
-                            </div>
-                        </div>
-                    </DialogContent>
-                </Dialog>
+                <div className="flex gap-2">
+                    <Button
+                        variant={activeTab === 'reminders' ? 'default' : 'outline'}
+                        onClick={() => setActiveTab('reminders')}
+                    >
+                        <Bell className="mr-2 h-4 w-4" />
+                        Lembretes
+                    </Button>
+                    <Button
+                        variant={activeTab === 'templates' ? 'default' : 'outline'}
+                        onClick={() => setActiveTab('templates')}
+                    >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Templates
+                    </Button>
+                </div>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center">
-                        <Bell className="mr-2 h-5 w-5" />
-                        Seus Lembretes
-                    </CardTitle>
-                    <CardDescription>
-                        Lista de todos os seus lembretes
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Título</TableHead>
-                                <TableHead>Categoria</TableHead>
-                                <TableHead>Data/Hora</TableHead>
-                                <TableHead>Prioridade</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Ações</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {reminders.map((reminder) => (
-                                <TableRow key={reminder.id}>
-                                    <TableCell>
+            {activeTab === 'reminders' && (
+                <>
+                    <div className="flex justify-end">
+                        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                            <DialogTrigger asChild>
+                                <Button>
+                                    <Plus className="mr-2 h-4 w-4" />
+                                    Novo Lembrete
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Criar Novo Lembrete</DialogTitle>
+                                    <DialogDescription>
+                                        Preencha os dados do lembrete
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-sm font-medium">Título *</label>
+                                        <Input
+                                            value={newReminder.title}
+                                            onChange={(e) => setNewReminder({...newReminder, title: e.target.value})}
+                                            placeholder="Digite o título do lembrete"
+                                        />
+                                    </div>
+                                    
+                                    <div>
+                                        <label className="text-sm font-medium">Descrição</label>
+                                        <Textarea
+                                            value={newReminder.description}
+                                            onChange={(e) => setNewReminder({...newReminder, description: e.target.value})}
+                                            placeholder="Digite a descrição do lembrete"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <div className="font-medium">{reminder.title}</div>
-                                            {reminder.description && (
-                                                <div className="text-sm text-muted-foreground">{reminder.description}</div>
-                                            )}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge className={getCategoryColor(reminder.category)}>
-                                            {reminder.category}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center">
-                                            <Calendar className="mr-1 h-4 w-4" />
-                                            <span className="text-sm">
-                                                {new Date(reminder.dueDate).toLocaleDateString('pt-BR')} às {reminder.dueTime}
-                                            </span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge className={getPriorityColor(reminder.priority)}>
-                                            {getPriorityIcon(reminder.priority)}
-                                            <span className="ml-1 capitalize">{reminder.priority}</span>
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant={reminder.status === 'completed' ? 'default' : 'secondary'}>
-                                            {reminder.status === 'completed' ? 'Concluído' : 'Pendente'}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex gap-2">
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                onClick={() => handleToggleStatus(reminder.id)}
+                                            <label className="text-sm font-medium">Categoria</label>
+                                            <Select 
+                                                value={newReminder.category} 
+                                                onValueChange={(value: ReminderCategory) => setNewReminder({...newReminder, category: value})}
                                             >
-                                                {reminder.status === 'completed' ? 'Reabrir' : 'Concluir'}
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                onClick={() => handleDeleteReminder(reminder.id)}
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
+                                                <SelectTrigger>
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="culto">Culto</SelectItem>
+                                                    <SelectItem value="reuniao">Reunião</SelectItem>
+                                                    <SelectItem value="evento">Evento</SelectItem>
+                                                    <SelectItem value="aniversario">Aniversário</SelectItem>
+                                                    <SelectItem value="outros">Outros</SelectItem>
+                                                </SelectContent>
+                                            </Select>
                                         </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
+
+                                        <div>
+                                            <label className="text-sm font-medium">Prioridade</label>
+                                            <Select 
+                                                value={newReminder.priority} 
+                                                onValueChange={(value: 'low' | 'medium' | 'high') => setNewReminder({...newReminder, priority: value})}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="low">Baixa</SelectItem>
+                                                    <SelectItem value="medium">Média</SelectItem>
+                                                    <SelectItem value="high">Alta</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-sm font-medium">Data *</label>
+                                            <Input
+                                                type="date"
+                                                value={newReminder.dueDate}
+                                                onChange={(e) => setNewReminder({...newReminder, dueDate: e.target.value})}
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="text-sm font-medium">Horário *</label>
+                                            <Input
+                                                type="time"
+                                                value={newReminder.dueTime}
+                                                onChange={(e) => setNewReminder({...newReminder, dueTime: e.target.value})}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="flex justify-end gap-2">
+                                        <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                                            Cancelar
+                                        </Button>
+                                        <Button onClick={handleCreateReminder}>
+                                            Criar Lembrete
+                                        </Button>
+                                    </div>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+                    </div>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center">
+                                <Bell className="mr-2 h-5 w-5" />
+                                Seus Lembretes
+                            </CardTitle>
+                            <CardDescription>
+                                Lista de todos os seus lembretes
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Título</TableHead>
+                                        <TableHead>Categoria</TableHead>
+                                        <TableHead>Data/Hora</TableHead>
+                                        <TableHead>Prioridade</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead>Ações</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {reminders.map((reminder) => (
+                                        <TableRow key={reminder.id}>
+                                            <TableCell>
+                                                <div>
+                                                    <div className="font-medium">{reminder.title}</div>
+                                                    {reminder.description && (
+                                                        <div className="text-sm text-muted-foreground">{reminder.description}</div>
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge className={getCategoryColor(reminder.category)}>
+                                                    {reminder.category}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center">
+                                                    <Calendar className="mr-1 h-4 w-4" />
+                                                    <span className="text-sm">
+                                                        {new Date(reminder.dueDate).toLocaleDateString('pt-BR')} às {reminder.dueTime}
+                                                    </span>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge className={getPriorityColor(reminder.priority)}>
+                                                    {getPriorityIcon(reminder.priority)}
+                                                    <span className="ml-1 capitalize">{reminder.priority}</span>
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge variant={reminder.status === 'completed' ? 'default' : 'secondary'}>
+                                                    {reminder.status === 'completed' ? 'Concluído' : 'Pendente'}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex gap-2">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={() => handleToggleStatus(reminder.id)}
+                                                    >
+                                                        {reminder.status === 'completed' ? 'Reabrir' : 'Concluir'}
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={() => handleDeleteReminder(reminder.id)}
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                    </Card>
+                </>
+            )}
+
+            {activeTab === 'templates' && (
+                <TemplateManager />
+            )}
         </div>
     );
 };

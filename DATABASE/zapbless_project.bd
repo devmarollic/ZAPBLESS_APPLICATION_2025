@@ -24,3 +24,4 @@
 @include DATA/role.bd
 @include DATA/ministry_member_role.bd
 @include DATA/document_type.bd
+@include DATA/message_template_category.bd
