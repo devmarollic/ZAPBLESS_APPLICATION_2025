@@ -23,10 +23,10 @@ const CalendarGrid = ({
 }: CalendarGridProps) => {
   const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
   const nomeMes = new Date(anoAtual, mesAtual).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-console.log({eventos})
+
   const obterEventosDoDia = (data: Date) => {
     return eventos.filter(evento => {
-      const eventoData = new Date(evento.data);
+      const eventoData = new Date(evento.date);
       return eventoData.toDateString() === data.toDateString();
     });
   };
@@ -79,15 +79,15 @@ console.log({eventos})
                       variant="outline"
                       className={`
                         text-xs p-1 w-full justify-start truncate
-                        ${evento.cor === 'green' ? 'border-green-300 bg-green-50 text-green-800' : ''}
-                        ${evento.cor === 'blue' ? 'border-blue-300 bg-blue-50 text-blue-800' : ''}
-                        ${evento.cor === 'purple' ? 'border-purple-300 bg-purple-50 text-purple-800' : ''}
-                        ${evento.cor === 'red' ? 'border-red-300 bg-red-50 text-red-800' : ''}
-                        ${evento.cor === 'orange' ? 'border-orange-300 bg-orange-50 text-orange-800' : ''}
+                        ${evento.ministry?.color === 'green' ? 'border-green-300 bg-green-50 text-green-800' : ''}
+                        ${evento.ministry?.color === 'blue' ? 'border-blue-300 bg-blue-50 text-blue-800' : ''}
+                        ${evento.ministry?.color === 'purple' ? 'border-purple-300 bg-purple-50 text-purple-800' : ''}
+                        ${evento.ministry?.color === 'red' ? 'border-red-300 bg-red-50 text-red-800' : ''}
+                        ${evento.ministry?.color === 'orange' ? 'border-orange-300 bg-orange-50 text-orange-800' : ''}
                         hover:opacity-80 transition-opacity
                       `}
                     >
-                      {evento.titulo}
+                      {evento.title}
                     </Badge>
                   </div>
                 ))}

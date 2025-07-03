@@ -21,7 +21,7 @@ import {
 import { Event } from "@/types/event";
 
 interface EventDetailsCardProps {
-  event: Event;
+  event: Event | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -29,17 +29,7 @@ interface EventDetailsCardProps {
 const EventDetailsCard = ({ event, isOpen, onClose }: EventDetailsCardProps) => {
   if (!event) return null;
 
-  const getEventTypeLabel = (tipo: string) => {
-    const types: Record<string, string> = {
-      'culto': 'Culto',
-      'reuniao': 'Reunião',
-      'grupo': 'Grupo de Estudo',
-      'especial': 'Evento Especial'
-    };
-    return types[tipo] || tipo;
-  };
-
-  const getEventTypeColor = (cor: string) => {
+  const getEventTypeColor = (color?: string) => {
     const colors: Record<string, string> = {
       'green': 'bg-green-100 text-green-800',
       'purple': 'bg-purple-100 text-purple-800',
@@ -47,7 +37,7 @@ const EventDetailsCard = ({ event, isOpen, onClose }: EventDetailsCardProps) => 
       'red': 'bg-red-100 text-red-800',
       'orange': 'bg-orange-100 text-orange-800'
     };
-    return colors[cor] || 'bg-gray-100 text-gray-800';
+    return colors[color || 'gray'] || 'bg-gray-100 text-gray-800';
   };
 
   return (
@@ -66,14 +56,14 @@ const EventDetailsCard = ({ event, isOpen, onClose }: EventDetailsCardProps) => 
               <div>
                 <CardTitle className="text-lg">{event.title}</CardTitle>
                 <CardDescription className="mt-1">
-                  {format(event.startAtTimestamp, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                  {format(new Date(event.startAtTimestamp), "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR })}
                 </CardDescription>
               </div>
               <div className="flex gap-2">
-                <Badge className={event.ministry.color}>
-                  {event.type.name}
+                <Badge className={getEventTypeColor(event.ministry?.color)}>
+                  {event.eventType?.name || 'Evento'}
                 </Badge>
-                {event.recurrence && (
+                {event.id?.includes('-') && (
                   <Badge variant="outline" className="gap-1">
                     <Repeat className="h-3 w-3" />
                     Recorrente
@@ -84,12 +74,12 @@ const EventDetailsCard = ({ event, isOpen, onClose }: EventDetailsCardProps) => 
           </CardHeader>
           
           <CardContent className="px-0 space-y-3">
-            {event.startAtTimestamp && (
-              <div className="flex items-center gap-3">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{event.startAtTimestamp}</span>
-              </div>
-            )}
+            <div className="flex items-center gap-3">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm">
+                {format(new Date(event.startAtTimestamp), 'HH:mm')} - {format(new Date(event.endAtTimestamp), 'HH:mm')}
+              </span>
+            </div>
             
             {event.location && (
               <div className="flex items-center gap-3">
@@ -97,17 +87,23 @@ const EventDetailsCard = ({ event, isOpen, onClose }: EventDetailsCardProps) => 
                 <span className="text-sm">{event.location}</span>
               </div>
             )}
-{/*             
-            {event.quantidade && (
+
+            {event.ministry && (
               <div className="flex items-center gap-3">
                 <Users className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{event.quantidade} participantes esperados</span>
+                <span className="text-sm">{event.ministry.name}</span>
               </div>
-            )} */}
+            )}
+
+            {event.description && (
+              <div className="pt-2">
+                <p className="text-sm text-muted-foreground">{event.description}</p>
+              </div>
+            )}
             
             <div className="pt-2">
               <p className="text-xs text-muted-foreground">
-                ID do evento: {event.id}
+                Status: {event.eventStatus?.name || 'Ativo'}
               </p>
             </div>
           </CardContent>

@@ -48,11 +48,11 @@ export interface Event {
     name: string;
     color: string;
   };
-  status?: {
+  eventStatus?: {
     id: string;
     name: string;
   };
-  type?: {
+  eventType?: {
     id: string;
     name: string;
   }
@@ -70,7 +70,7 @@ export type EventFormValues = {
   isPublic: boolean;
   recurrence_type: RecurrenceType;
   recurrence_interval: number;
-  recurrence_days_of_week?: string[];
+  recurrence_days_of_week?: number[];
   recurrence_day_of_month?: number | 'last' | 'week-pattern';
   recurrence_end_date: Date | null;
   // Novos campos para configurações avançadas

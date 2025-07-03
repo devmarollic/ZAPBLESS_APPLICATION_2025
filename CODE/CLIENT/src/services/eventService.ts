@@ -2,11 +2,11 @@
 import { HttpClient } from '@/lib/http_client';
 
 export interface RecurrenceData {
-  typeId: string;
   interval: number;
   dayOfWeekArray: number[];
   dayOfMonthArray: number[];
   endAtTimestamp: string;
+  typeId: string;
 }
 
 export interface ReminderData {
@@ -50,18 +50,35 @@ export interface UpdateEventRequest {
 export interface EventResponse {
   id: string;
   churchId: string;
+  ministryId?: string;
   title: string;
-  statusId: string;
-  typeId: string;
   description: string;
   location: string;
+  statusId: string;
+  typeId: string;
+  otherTypeReason?: string;
   startAtTimestamp: string;
   endAtTimestamp: string;
+  isPublic: boolean;
   recurrenceTypeId?: string;
-  recurrence?: RecurrenceData;
-  reminders?: ReminderData[];
-  leaders?: string[];
-  viceLeaders?: string[];
+  creationTimestamp: string;
+  updateTimestamp: string;
+  church: {
+    name: string;
+  };
+  ministry?: {
+    name?: string;
+  } | null;
+  eventStatus: {
+    name: string;
+  };
+  eventType: {
+    name: string;
+  };
+  recurrenceType?: {
+    name: string;
+  };
+  recurrence?: RecurrenceData[];
 }
 
 export interface CreateEventResponse {
@@ -72,7 +89,15 @@ export interface CreateEventResponse {
 
 export class EventService {
   static async createEvent(eventData: CreateEventRequest): Promise<CreateEventResponse> {
-    return HttpClient.post<CreateEventResponse>('/events', eventData);
+    let response = await fetch('http://localhost:3001/events', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(eventData),
+    });
+    let data = await response.json();
+    return data as CreateEventResponse;
   }
 
   static async getEvents(statusId?: string, startDate?: string, endDate?: string): Promise<EventResponse[]> {
@@ -89,7 +114,6 @@ export class EventService {
     }
     
     const query = params.toString() ? `?${params.toString()}` : '';
-    // return HttpClient.get<EventResponse[]>(`/events${query}`);
     let response = await fetch(`http://localhost:3001/events${query}`);
     let data = await response.json();
     return data as EventResponse[];

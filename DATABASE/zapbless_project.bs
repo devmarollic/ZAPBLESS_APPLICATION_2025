@@ -292,7 +292,7 @@ public
         description : STRING
         location : GEOMETRY
         statusId : EVENT_STATUS.id | constrained
-        typeId :  EVENT_TYPE.id | constrained
+        typeId : EVENT_TYPE.id | constrained
         otherTypeReason : STRING
         startAtTimestamp : DATETIME
         endAtTimestamp : DATETIME

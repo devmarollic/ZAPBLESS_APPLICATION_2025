@@ -288,7 +288,7 @@ const EventoNovo = () => {
         // Build recurrence data if needed
         let recurrenceData: RecurrenceData | undefined;
         if (data.recurrence_type !== 'none') {
-          const dayOfWeekArray = data.recurrence_days_of_week?.map(day => {
+          const dayOfWeekArray = selectedDays?.map(day => {
             const dayMap: { [key: string]: number } = {
               'sunday': 0, 'monday': 1, 'tuesday': 2, 'wednesday': 3,
               'thursday': 4, 'friday': 5, 'saturday': 6
