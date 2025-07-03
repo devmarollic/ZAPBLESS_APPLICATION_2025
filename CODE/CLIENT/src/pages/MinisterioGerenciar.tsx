@@ -180,7 +180,7 @@ const MinisterioGerenciar = () => {
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        onClick={() => navigate(`/dashboard/ministerios/${ministry.id}/editar`)}
+                                                        onClick={() => navigate(`/dashboard/ministerios/editar/${ministry.id}`)}
                                                     >
                                                         <Pencil className="h-4 w-4" />
                                                     </Button>

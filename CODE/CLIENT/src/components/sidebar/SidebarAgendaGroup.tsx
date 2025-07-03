@@ -17,14 +17,6 @@ const SidebarAgendaGroup = () => {
       <SidebarGroupContent>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Calendário">
-              <NavLink to="/dashboard/calendario" className={({isActive}) => isActive ? "data-[active=true]" : ""}>
-                <Calendar className="h-5 w-5" />
-                <span>Calendário</span>
-              </NavLink>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Eventos">
               <NavLink to="/dashboard/eventos" className={({isActive}) => isActive ? "data-[active=true]" : ""}>
                 <Calendar className="h-5 w-5" />
@@ -37,14 +29,6 @@ const SidebarAgendaGroup = () => {
               <NavLink to="/dashboard/eventos/novo" className={({isActive}) => isActive ? "data-[active=true]" : ""}>
                 <Plus className="h-5 w-5" />
                 <span>Novo evento</span>
-              </NavLink>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Editar/Cancelar evento">
-              <NavLink to="/dashboard/eventos/editar" className={({isActive}) => isActive ? "data-[active=true]" : ""}>
-                <Edit className="h-5 w-5" />
-                <span>Editar/Cancelar evento</span>
               </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
