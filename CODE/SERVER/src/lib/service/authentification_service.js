@@ -3,6 +3,8 @@
 import { logError } from 'senselogic-gist';
 import { supabaseService } from './supabase_service';
 import { UnauthenticatedError } from '../errors/unauthenticated_error';
+import { enviroment } from '../../enviroment';
+import { AppError } from '../errors/app_error';
 
 // -- TYPES
 
@@ -101,6 +103,68 @@ class AuthentificationService
         }
 
         return data;
+    }
+
+    // ~~~
+
+    async sendOtp(
+        email
+        )
+    {
+        let { data, error } = await supabaseService.getClient()
+            .auth
+            .signInWithOtp(
+                {
+                    email,
+                    options:
+                        {
+                            emailRedirectTo: enviroment.FRONTEND_URL
+                        }
+                }
+                );
+
+        if ( error !== null )
+        {
+            logError( error );
+
+            throw new AppError( 'Failed to send OTP' );
+        }
+
+        return data;
+    }
+
+    // ~~
+
+    async verifyOtp(
+        {
+            email,
+            otp
+        }
+        )
+    {
+        let { data, error } = await supabaseService.getClient()
+            .auth
+            .verifyOtp(
+                {
+                    email: email,
+                    token: otp,
+                    type: 'email'
+                }
+            );
+
+        if ( error !== null )
+        {
+            logError( error );
+
+            throw new AppError( 'Failed to verify OTP' );
+        }
+
+        return (
+            {
+                user: data.user,
+                session: data.session
+            }
+            );
     }
 }
 

@@ -1,0 +1,6 @@
+setx ZAPBLESS_PROJECT_SUPABASE_DATABASE_HOST "db.fraztnjxvrhzqcmoadga.supabase.co"
+setx ZAPBLESS_PROJECT_SUPABASE_DATABASE_PASSWORD "ZAPBLESS"
+setx ZAPBLESS_PROJECT_SUPABASE_DATABASE_URL "https://fraztnjxvrhzqcmoadga.supabase.co"
+setx ZAPBLESS_PROJECT_SUPABASE_DATABASE_KEY "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyYXp0bmp4dnJoenFjbW9hZGdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc1MDEyODIsImV4cCI6MjA2MzA3NzI4Mn0.8g3-SzFelI7YesBuhgLenMWAMuwxcxfR7xxQq77Vpqs"
+setx ZAPBLESS_PROJECT_SUPABASE_STORAGE_URL "https://fraztnjxvrhzqcmoadga.supabase.co/storage/v1/s3"
+pause

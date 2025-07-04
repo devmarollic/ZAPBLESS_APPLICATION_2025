@@ -23,7 +23,8 @@ const enviromentSchema = z.object(
         PORT: z.coerce.number(),
         NODE_ENV: z.enum( [ 'development', 'production', 'test' ] ),
         ABACATE_PAY_API_KEY: z.string(),
-        ABACATE_PAY_BASE_URL: z.string()
+        ABACATE_PAY_BASE_URL: z.string(),
+        GOOGLE_OAUTH_URL_CALLBACK: z.string()
     }
     );
 

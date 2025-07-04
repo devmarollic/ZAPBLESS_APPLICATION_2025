@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -7,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import { Eye, EyeOff, Mail } from 'lucide-react';
 import { HttpClient } from '@/lib/http_client';
 import { AuthenticationService } from '@/lib/authentication_service';
@@ -15,6 +15,8 @@ import { Link } from 'react-router-dom';
 import { AuthenticationResult } from '@/lib/authentication_result';
 import { ErrorConstants } from '@/lib/error_contants';
 import { usePlanContext } from '@/context/PlanContext';
+import OTPEmailLogin from '@/components/auth/OTPEmailLogin';
+import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
 
 const loginSchema = z.object({
     email: z.string().email({ message: 'Email inválido' }),
@@ -28,12 +30,14 @@ type Subscription = {
 }
 
 type LoginFormData = z.infer<typeof loginSchema>;
+type LoginMode = 'traditional' | 'otp' | 'social';
 
 const Login = () => {
     const navigate = useNavigate();
     const { toast } = useToast();
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [loginMode, setLoginMode] = useState<LoginMode>('social');
     const { setSelectedPlan, setIsAnnual, setSubscriptionId } = usePlanContext();
 
     const {
@@ -58,6 +62,10 @@ const Login = () => {
         } catch (error) {
             return false;
         }
+    };
+
+    const handleLoginSuccess = () => {
+        navigate('/dashboard');
     };
 
     const onSubmit = async (data: LoginFormData) => {
@@ -123,73 +131,130 @@ const Login = () => {
                     <p className="text-gray-600">Entre na sua conta para continuar</p>
                 </div>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                    <div className="space-y-2">
-                        <Label htmlFor="email" className="text-gray-700">
-                            Email
-                        </Label>
+                {loginMode === 'social' && (
+                    <div className="space-y-6">
+                        <SocialLoginButtons onSuccess={handleLoginSuccess} />
+                        
                         <div className="relative">
-                            <Input
-                                id="email"
-                                type="email"
-                                placeholder="seuemail@igreja.com"
-                                className={`pl-10 ${errors.email ? "border-red-500" : ""}`}
-                                {...register("email")}
-                                disabled={isLoading}
-                            />
-                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500" />
+                            <div className="absolute inset-0 flex items-center">
+                                <Separator className="w-full" />
+                            </div>
+                            <div className="relative flex justify-center text-xs uppercase">
+                                <span className="bg-white px-2 text-gray-500">ou</span>
+                            </div>
                         </div>
-                        {errors.email && (
-                            <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
-                        )}
-                    </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="password" className="text-gray-700">
-                            Senha
-                        </Label>
-                        <div className="relative">
-                            <Input
-                                id="password"
-                                type={showPassword ? "text" : "password"}
-                                placeholder="••••••••"
-                                className={`pl-10 ${errors.password ? "border-red-500" : ""}`}
-                                {...register("password")}
-                                disabled={isLoading}
-                            />
-                            <button
+                        <div className="space-y-3">
+                            <Button
                                 type="button"
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                                onClick={() => setShowPassword(!showPassword)}
+                                variant="outline"
+                                className="w-full flex items-center gap-3 py-6"
+                                onClick={() => setLoginMode('otp')}
                             >
-                                {showPassword ? (
-                                    <EyeOff className="h-5 w-5" />
-                                ) : (
-                                    <Eye className="h-5 w-5" />
+                                <Mail className="h-5 w-5" />
+                                Continuar com Email
+                            </Button>
+                            
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                className="w-full"
+                                onClick={() => setLoginMode('traditional')}
+                            >
+                                Login tradicional (email e senha)
+                            </Button>
+                        </div>
+                    </div>
+                )}
+
+                {loginMode === 'otp' && (
+                    <OTPEmailLogin
+                        onSuccess={handleLoginSuccess}
+                        onBack={() => setLoginMode('social')}
+                    />
+                )}
+
+                {loginMode === 'traditional' && (
+                    <div className="space-y-6">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setLoginMode('social')}
+                            className="text-zapBlue-600 hover:text-zapBlue-500"
+                        >
+                            ← Voltar para opções de login
+                        </Button>
+
+                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="email" className="text-gray-700">
+                                    Email
+                                </Label>
+                                <div className="relative">
+                                    <Input
+                                        id="email"
+                                        type="email"
+                                        placeholder="seuemail@igreja.com"
+                                        className={`pl-10 ${errors.email ? "border-red-500" : ""}`}
+                                        {...register("email")}
+                                        disabled={isLoading}
+                                    />
+                                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500" />
+                                </div>
+                                {errors.email && (
+                                    <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
                                 )}
-                            </button>
-                        </div>
-                        {errors.password && (
-                            <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
-                        )}
-                    </div>
+                            </div>
 
-                    <div className="flex items-center justify-between">
-                        <div className="text-sm">
-                            <Link to="/forgot-password" className="text-zapBlue-600 hover:text-zapBlue-500">
-                                Esqueceu sua senha?
-                            </Link>
-                        </div>
-                    </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="password" className="text-gray-700">
+                                    Senha
+                                </Label>
+                                <div className="relative">
+                                    <Input
+                                        id="password"
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="••••••••"
+                                        className={`pl-10 ${errors.password ? "border-red-500" : ""}`}
+                                        {...register("password")}
+                                        disabled={isLoading}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                    >
+                                        {showPassword ? (
+                                            <EyeOff className="h-5 w-5" />
+                                        ) : (
+                                            <Eye className="h-5 w-5" />
+                                        )}
+                                    </button>
+                                </div>
+                                {errors.password && (
+                                    <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
+                                )}
+                            </div>
 
-                    <Button
-                        type="submit"
-                        className="w-full bg-gradient-to-r from-zapBlue-600 to-zapPurple-600 hover:from-zapBlue-700 hover:to-zapPurple-700 rounded-full"
-                        disabled={isLoading}
-                    >
-                        {isLoading ? "Entrando..." : "Entrar"}
-                    </Button>
-                </form>
+                            <div className="flex items-center justify-between">
+                                <div className="text-sm">
+                                    <Link to="/forgot-password" className="text-zapBlue-600 hover:text-zapBlue-500">
+                                        Esqueceu sua senha?
+                                    </Link>
+                                </div>
+                            </div>
+
+                            <Button
+                                type="submit"
+                                className="w-full bg-gradient-to-r from-zapBlue-600 to-zapPurple-600 hover:from-zapBlue-700 hover:to-zapPurple-700 rounded-full"
+                                disabled={isLoading}
+                            >
+                                {isLoading ? "Entrando..." : "Entrar"}
+                            </Button>
+                        </form>
+                    </div>
+                )}
 
                 <div className="mt-6 text-center">
                     <p className="text-sm text-gray-600">

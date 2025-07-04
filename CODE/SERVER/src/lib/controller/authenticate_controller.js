@@ -20,7 +20,7 @@ export class AuthenticateController extends Controller
 
         await permissionValidationService.validateUserPermissionByEmail( body.email );
 
-        let { user, session, error } = await authentificationService.signInUser(
+        let { user, session } = await authentificationService.signInUser(
             body.email,
             body.password
             );
