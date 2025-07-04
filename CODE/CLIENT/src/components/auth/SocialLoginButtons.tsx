@@ -2,6 +2,9 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { HttpClient } from '@/lib/http_client';
+import { AuthenticationService } from '@/lib/authentication_service';
+import { AuthenticationResult } from '@/lib/authentication_result';
 
 interface SocialLoginButtonsProps {
   onSuccess: () => void;
@@ -12,15 +15,13 @@ const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({ onSuccess }) =>
 
   const handleGoogleLogin = async () => {
     try {
-      // Implementar integração com Google OAuth
-      toast({
-        title: 'Login com Google',
-        description: 'Funcionalidade em desenvolvimento',
-      });
+      // Redirecionar para o endpoint OAuth do Google
+      const response = await HttpClient.get<{ url: string }>('/login/google');
+      window.location.href = response.url;
     } catch (error) {
       toast({
         title: 'Erro no login',
-        description: 'Tente novamente mais tarde',
+        description: 'Não foi possível iniciar o login com Google',
         variant: 'destructive',
       });
     }
@@ -37,6 +38,55 @@ const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({ onSuccess }) =>
       toast({
         title: 'Erro no login',
         description: 'Tente novamente mais tarde',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // Verificar se há parâmetros de callback OAuth na URL
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const state = urlParams.get('state');
+    const error = urlParams.get('error');
+
+    if (error) {
+      toast({
+        title: 'Erro no login',
+        description: 'Falha na autenticação com Google',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (code && state) {
+      // Trocar o código OAuth por tokens
+      exchangeGoogleCode(code, state);
+    }
+  }, []);
+
+  const exchangeGoogleCode = async (code: string, state: string) => {
+    try {
+      const response = await HttpClient.post<AuthenticationResult>('/login/google/callback', {
+        code,
+        state,
+      });
+
+      AuthenticationService.authenticate(response, response.user.user_metadata.first_name);
+
+      toast({
+        title: 'Login realizado com sucesso',
+        description: 'Você será redirecionado para o dashboard',
+      });
+
+      // Limpar parâmetros da URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      onSuccess();
+    } catch (error) {
+      toast({
+        title: 'Erro no login',
+        description: 'Falha ao processar autenticação com Google',
         variant: 'destructive',
       });
     }

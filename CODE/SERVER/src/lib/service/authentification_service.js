@@ -166,6 +166,58 @@ class AuthentificationService
             }
             );
     }
+
+    // ~~~
+
+    async googleLogin(
+        )
+    {
+        let { data, error } = await supabaseService.getClient()
+            .auth
+            .signInWithOAuth(
+                {
+                    provider: 'google',
+                    options:
+                        {
+                            redirectTo: enviroment.FRONTEND_URL + '/auth/callback'
+                        }
+                }
+            );
+
+        if ( error !== null )
+        {
+            logError( error );
+
+            throw new AppError( 'Failed to login with Google' );
+        }
+
+        return data.url;
+    }
+
+    // ~~
+
+    async googleCallback(
+        code
+        )
+    {
+        let { data, error } = await supabaseService.getClient()
+            .auth
+            .exchangeCodeForSession( code );
+
+        if ( error !== null )
+        {
+            logError( error );
+
+            throw new AppError( 'Failed to process Google login' );
+        }
+
+        return (
+            {
+                user: data.user,
+                session: data.session
+            }
+            );
+    }
 }
 
 // -- VARIABLES
