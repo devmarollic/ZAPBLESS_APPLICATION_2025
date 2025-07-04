@@ -1,7 +1,7 @@
-FROM node:16-alpine
+FROM node:20-alpine
 
 # Instala dependências necessárias
-RUN apk add --no-cache ffmpeg python3 g++ make
+RUN apk add --no-cache ffmpeg python3 g++ make git
 
 # Cria diretório da aplicação
 WORKDIR /app
@@ -10,7 +10,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instala dependências
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # Copia arquivos do projeto
 COPY . .

@@ -39,7 +39,7 @@ let fastify = Fastify( { logger: true } );
 fastify.register(
     fastifyCors,
     {
-        origin: '*',
+        origin: enviroment.FRONTEND_URL,
         credentials: true,
         allowedHeaders: [ 'Content-Type', 'Authorization', 'ngrok-skip-browser-warning' ]
     }

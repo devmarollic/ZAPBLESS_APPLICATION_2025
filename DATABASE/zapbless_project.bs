@@ -273,12 +273,14 @@ public
     RECURRENCE | dropped
 
         id : TUID | key, unique
-        eventId : EVENT.id | constrained
         typeId : RECURRENCE_TYPE.id | constrained
         interval : FLOAT64
         dayOfWeekArray : LIST[]
         dayOfMonthArray : LIST[]
-        timeOfDayTimestamp : DATETIME
+        weekOfMonth : FLOAT64
+        specificDay : FLOAT64
+        month : FLOAT64
+        timeOfDayTimestamp : TIME
         endAtTimestamp : DATETIME
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
@@ -297,7 +299,9 @@ public
         startAtTimestamp : DATETIME
         endAtTimestamp : DATETIME
         isPublic : BOOL
+        contactNumberArray : CONTACT.number[]
         recurrenceTypeId : RECURRENCE_TYPE.id | constrained
+        recurrenceId : RECURRENCE.id | constrained
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
@@ -319,12 +323,13 @@ public
 
         id : TUID | key, unique
         churchId : CHURCH.id | constrained
-        notificationTypeId : NOTIFICATION_TYPE.id | constrained
-        notificationMediumId : NOTIFICATION_MEDIUM| constrained
-        scheduleAtTimestamp : DATETIME
         eventId : EVENT.id | constrained
+        notificationTypeId : NOTIFICATION_TYPE.id | constrained
+        notificationMediumId : NOTIFICATION_MEDIUM.id | constrained
+        scheduleAtTimestamp : DATETIME
         payload : TUPLE[]
         statusId : SCHEDULE_STATUS.id | constrained
+        targetRoleArray : ROLE.slug[]
         recurrenceId : RECURRENCE.id | constrained
         errorMessage : STRING
         creationTimestamp : TIMESTAMP | generated
@@ -513,7 +518,7 @@ public
     CONTACT_MINISTRY
 
         contactId : CONTACT.id | constrained
-        churchId : CHURCH.id | constrained
+        ministryId : MINISTRY.id | constrained
         roleSlug : MINISTRY_MEMBER_ROLE.id | constrained
         joinedAtTimestamp : TIMESTAMP | generated
         leftAtTimestamp : TIMESTAMP
