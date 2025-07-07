@@ -22,8 +22,8 @@ interface AccountDropdownProps {
 }
 
 const AccountDropdown = ({
-    userName = "João Silva",
-    userEmail = "joao@igreja.com",
+    userName = "",
+    userEmail = "",
     userAvatar
 }: AccountDropdownProps) => {
     const navigate = useNavigate();

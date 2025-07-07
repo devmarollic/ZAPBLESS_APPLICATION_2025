@@ -12,6 +12,7 @@ export class AuthenticationService {
             window.localStorage.setItem(LoginConsts.REFRESH_TOKEN_KEY, authenticationResult.session.refresh_token);
         }
         window.localStorage.setItem(LoginConsts.USERNAME_KEY, login);
+        window.localStorage.setItem(LoginConsts.USER, JSON.stringify(authenticationResult.user));
     }
 
     public static isAuthenticated(): boolean {
@@ -28,6 +29,10 @@ export class AuthenticationService {
 
     public static getAccessToken(): string | null {
         return window.localStorage.getItem(LoginConsts.ACCESS_TOKEN_KEY);
+    }
+
+    public static getUser(): Record<string, any> | null {
+        return JSON.parse(window.localStorage.getItem(LoginConsts.USER) || '{}');
     }
 
     public static getRefreshToken(): string | null {

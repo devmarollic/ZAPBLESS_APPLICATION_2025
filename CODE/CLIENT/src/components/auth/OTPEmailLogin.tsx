@@ -75,7 +75,7 @@ const OTPEmailLogin: React.FC<OTPEmailLoginProps> = ({ onSuccess, onBack }) => {
                 title: 'Login realizado com sucesso',
                 description: 'Você será redirecionado para o dashboard',
             });
-            AuthenticationService.authenticate(response, response.user.user_metadata.first_name);
+            AuthenticationService.authenticate(response, response.user);
 
             onSuccess();
         } catch (error) {

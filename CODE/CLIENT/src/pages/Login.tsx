@@ -77,7 +77,7 @@ const Login = () => {
                 password: data.password,
             });
 
-            AuthenticationService.authenticate(response, response.user.user_metadata.first_name);
+            AuthenticationService.authenticate(response, response.user);
 
             toast({
                 title: 'Login realizado com sucesso',

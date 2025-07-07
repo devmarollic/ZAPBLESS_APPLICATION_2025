@@ -72,7 +72,7 @@ const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({ onSuccess }) =>
         state,
       });
 
-      AuthenticationService.authenticate(response, response.user.user_metadata.first_name);
+      AuthenticationService.authenticate(response, response.user);
 
       toast({
         title: 'Login realizado com sucesso',
