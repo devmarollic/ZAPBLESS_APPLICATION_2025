@@ -4,6 +4,31 @@ import { AuthenticationService } from './authentication_service';
 export class HttpClient {
     private static isRefreshing = false;
     private static refreshSubscribers: Array<(token: string) => void> = [];
+    private static url: string = ApplicationSettings.API_URL;
+
+    public static async getMemberUrl(): Promise<HttpClient> {
+        this.url = ApplicationSettings.MEMBER_API_URL;
+
+        return this;
+    }
+
+    public static async getWhatsappUrl(): Promise<HttpClient> {
+        this.url = ApplicationSettings.WHATSAPP_API_URL;
+
+        return this;
+    }
+
+    public static async getMinistryUrl(): Promise<HttpClient> {
+        this.url = ApplicationSettings.MINISTRY_API_URL;
+
+        return this;
+    }
+
+    public static async getEventUrl(): Promise<HttpClient> {
+        this.url = ApplicationSettings.EVENT_API_URL;
+
+        return this;
+    }
 
     public static async post<TResult>(resource: string, body: object): Promise<TResult> {
         const headers = HttpClient.GetHeaders();
@@ -14,7 +39,7 @@ export class HttpClient {
             headers: headers
         };
 
-        const url = ApplicationSettings.API_URL + resource;
+        const url = this.url + resource;
 
         try {
             const response = await fetch(url, requestOptions);
