@@ -7,6 +7,7 @@
 - [ ] Configurar Supabase Auth com JWT
 - [ ] Criar tabela PROFILE com campos estendidos
 - [ ] Implementar troca de igreja ativa (currentChurchId)
+- [x] Criar endpoint para listar usuários da igreja com filtros (nome, email, status, roles) - 2025-01-30
 
 ---
 

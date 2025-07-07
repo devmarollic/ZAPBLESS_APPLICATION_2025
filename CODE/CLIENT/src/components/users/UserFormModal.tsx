@@ -17,7 +17,7 @@ interface User {
   email: string;
   phonePrefix: string;
   phoneNumber: string;
-  roleSlug: 'administrator' | 'minister' | 'leader' | 'secretary' | 'treasurer' | 'user';
+  roleSlugArray: string[];
   statusId: 'active' | 'inactive';
   createdAt: string;
 }
@@ -53,7 +53,7 @@ const UserFormModal = ({ open, onOpenChange, user, onSave }: UserFormModalProps)
       email: user?.email || '',
       phonePrefix: user?.phonePrefix || '+55',
       phoneNumber: user?.phoneNumber || '',
-      roleSlug: user?.roleSlug || 'user',
+      roleSlugArray: user?.roleSlugArray || ['user'],
       statusId: user?.statusId || 'active',
     },
   });
@@ -69,7 +69,7 @@ const UserFormModal = ({ open, onOpenChange, user, onSave }: UserFormModalProps)
         email: data.email,
         phonePrefix: data.phonePrefix,
         phoneNumber: data.phoneNumber,
-        roleSlug: data.roleSlug,
+        roleSlugArray: data.roleSlugArray,
         statusId: data.statusId,
         createdAt: user?.createdAt || new Date().toISOString(),
       };

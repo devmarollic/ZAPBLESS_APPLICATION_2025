@@ -4,6 +4,7 @@ import { ChurchController } from '../controller/church_controller';
 import { GetChurchMemberArrayController } from '../controller/get_church_member_array_controller';
 import { AddChurchUserController } from '../controller/add_church_user_controller';
 import { ListChurchUserController } from '../controller/list_church_user_controller';
+import { ListChurchUsersWithFiltersController } from '../controller/list_church_users_with_filters_controller';
 import { SetChurchUserController } from '../controller/set_church_user_controller';
 import { UpdateChurchController } from '../controller/update_church_controller';
 
@@ -13,6 +14,7 @@ const churchController = new ChurchController();
 const getChurchMemberArrayController = new GetChurchMemberArrayController();
 const addChurchUserController = new AddChurchUserController();
 const listChurchUserController = new ListChurchUserController();
+const listChurchUsersWithFiltersController = new ListChurchUsersWithFiltersController();
 const setChurchUserController = new SetChurchUserController();
 const updateChurchController = new UpdateChurchController();
 
@@ -41,6 +43,11 @@ export async function churchRoutes(
     fastify.get(
         '/user/list',
         ( request, response ) => listChurchUserController.handle( request, response )
+        );
+
+    fastify.get(
+        '/users/list',
+        ( request, response ) => listChurchUsersWithFiltersController.handle( request, response )
         );
 
     fastify.put(

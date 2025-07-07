@@ -1,6 +1,6 @@
 // -- IMPORTS
 
-import { logError } from 'senselogic-gist';
+import { getCeilInteger, logError } from 'senselogic-gist';
 import { databaseService } from './database_service';
 
 // -- FUNCTIONS
@@ -44,6 +44,70 @@ class ProfileService
         }
 
         return data;
+    }
+
+    // ~~
+
+    async getProfileArrayByChurchIdWithFilters(
+        churchId,
+        filters
+        )
+    {
+        let query = databaseService.getClient()
+            .from( 'PROFILE' )
+            .select(
+                `
+                    id,
+                    legalName,
+                    firstName,
+                    lastName,
+                    email,
+                    phonePrefix,
+                    phoneNumber,
+                    statusId,
+                    creationTimestamp,
+                    updateTimestamp,
+                    role:USER_CHURCH_ROLE( roleSlug )
+                `,
+                { count: 'exact' }
+            )
+            .eq( 'USER_CHURCH_ROLE.churchId', churchId );
+
+        if ( filters.searchTerm )
+        {
+            query = query.or( `firstName.ilike.%${filters.searchTerm}%,lastName.ilike.%${filters.searchTerm}%,legalName.ilike.%${filters.searchTerm}%,email.ilike.%${filters.searchTerm}%` );
+        }
+
+        if ( filters.statusFilter )
+        {
+            query = query.eq( 'statusId', filters.statusFilter );
+        }
+
+        if ( filters.roleFilter )
+        {
+            query = query.eq( 'role.roleSlug', filters.roleFilter );
+        }
+
+        let offset = ( filters.page - 1 ) * filters.limit;
+        query = query.range( offset, offset + filters.limit - 1 );
+
+        let { data, error, count } = await query;
+
+        if ( error !== null )
+        {
+            logError( error );
+        }
+
+        return (
+            {
+                data: data || [],
+                totalCount: count || 0,
+                totalPages: getCeilInteger( ( count || 0 ) / filters.limit ),
+                currentPage: filters.page,
+                hasNextPage: filters.page < getCeilInteger( ( count || 0 ) / filters.limit ),
+                hasPreviousPage: filters.page > 1
+            }
+            );
     }
 
     // ~~
@@ -210,36 +274,27 @@ class ProfileService
     {
         let { data, error } = await databaseService.getClient()
             .from( 'PROFILE' )
-            .select( 
-                `
-                    id,
-                    firstName,
-                    lastName,
-                    phonePrefix,
-                    phoneNumber,
-                    documentType,
-                    documentNumber,
-                    genderId,
-                    imagePath,
-                    role:USER_CHURCH_ROLE(
-                        churchId,
-                        church:CHURCH(
-                            id,
-                            name,
-                            imagePath,
-                            addressLine1,
-                            addressLine2,
-                            cityCode,
-                            cityName,
-                            stateCode,
-                            countryCode,
-                            neighborhood,
-                            zipCode,
-                            languageTag
-                        )
-                    )
-                `
-            )
+            .select( `
+                id,
+                firstName,
+                lastName,
+                email,
+                phoneNumber,
+                statusId,
+                churchId,
+                legalName,
+                birthDate,
+                aboutDescription,
+                phonePrefix,
+                genderId,
+                documentType,
+                documentNumber,
+                countryCode,
+                imagePath,
+                creationTimestamp,
+                updateTimestamp,
+                church:CHURCH!constraint_profile_church_1 ( id, name, statusId, addressLine1, addressLine2, cityCode, cityName, zipCode, neighborhood, stateCode, stateName, countryCode, coordinates, documentType, documentNumber, languageTag, imagePath, creationTimestamp, updateTimestamp )
+            ` )
             .eq( 'id', profileId )
             .single();
 
@@ -254,5 +309,4 @@ class ProfileService
 
 // -- VARIABLES
 
-export let profileService
-    = new ProfileService();
+export let profileService = new ProfileService();
