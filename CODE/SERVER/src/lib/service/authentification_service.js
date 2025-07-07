@@ -218,6 +218,25 @@ class AuthentificationService
             }
             );
     }
+
+    // ~~
+
+    async removeUserById(
+        id
+        )
+    {
+        let { data, error } = await supabaseService.getClient()
+            .auth
+            .admin
+            .deleteUser( id );
+
+        if ( error !== null )
+        {
+            logError( error );
+        }
+
+        return data;
+    }
 }
 
 // -- VARIABLES

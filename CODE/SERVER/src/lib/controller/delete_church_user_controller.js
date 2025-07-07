@@ -3,12 +3,12 @@
 import { Controller } from '../controller/controller';
 import { UnauthenticatedError } from '../errors/unauthenticated_error';
 import { isNullOrUndefined } from '../../base';
-import { updateChurchUserUseCase } from '../use_case/update_church_user_use_case';
+import { deleteChurchUserUseCase } from '../use_case/delete_church_user_use_case';
 import { roleValidationService } from '../service/role_validation_service';
 
 // -- TYPES
 
-export class UpdateChurchUserController extends Controller
+export class DeleteChurchUserController extends Controller
 {
     // -- OPERATIONS
 
@@ -33,28 +33,14 @@ export class UpdateChurchUserController extends Controller
             );
 
         let { userId } = request.params;
-        let {
-            firstName,
-            lastName,
-            phonePrefix,
-            phoneNumber,
-            roleSlug,
-            statusId
-        } = request.body;
 
-        let updatedUser = await updateChurchUserUseCase.execute(
+        let deleted = await deleteChurchUserUseCase.execute(
             {
                 userId,
-                churchId,
-                firstName,
-                lastName,
-                phonePrefix,
-                phoneNumber,
-                roleSlug,
-                statusId
+                churchId
             }
             );
 
-        return updatedUser;
+        return deleted;
     }
 } 

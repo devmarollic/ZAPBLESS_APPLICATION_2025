@@ -169,7 +169,8 @@ export class HttpClient {
         const requestOptions: RequestInit = {
             method: 'DELETE',
             redirect: 'follow',
-            headers: headers
+            headers: headers,
+            body: JSON.stringify({})
         };
 
         const url = ApplicationSettings.API_URL + resource;

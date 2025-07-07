@@ -85,12 +85,20 @@ const GerenciarUsuarios = () => {
         queryFn: () => HttpClient.get<UserResponse>(`/church/users/list?searchTerm=${searchTerm}&statusFilter=${statusFilter}&roleFilter=${roleFilter}`)
     });
 
-    const deleteUser = (userId: string) => {
-        setUsers(users.filter(user => user.id !== userId));
-        toast({
-            title: "Usuário deletado",
-            description: "O usuário foi removido com sucesso.",
-        });
+    const deleteUser = async (userId: string) => {
+        try {
+            await HttpClient.delete(`/church/user/${userId}/delete`);
+
+            toast({
+                title: "Usuário deletado",
+                description: "O usuário foi removido com sucesso.",
+            });
+        } catch (error) {
+            console.error("Error deleting user:", error);
+        }
+        finally {
+            refetchUsers();
+        }
     };
 
     const toggleUserStatus = (userId: string, currentStatus: string) => {

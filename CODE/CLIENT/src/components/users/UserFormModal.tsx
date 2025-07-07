@@ -17,7 +17,7 @@ interface User {
     email: string;
     phonePrefix: string;
     phoneNumber: string;
-    role: { roleSlug: string };
+    roleSlug: string;
     statusId: 'active' | 'inactive';
 }
 
@@ -52,7 +52,7 @@ const UserFormModal = ({ open, onOpenChange, user, onSave }: UserFormModalProps)
             email: user?.email || '',
             phonePrefix: user?.phonePrefix || '+55',
             phoneNumber: user?.phoneNumber || '',
-            role: { roleSlug: user?.role?.roleSlug || 'administrator' },
+            roleSlug: user?.roleSlug || 'administrator',
             statusId: user?.statusId || 'active',
         },
     });
@@ -67,7 +67,7 @@ const UserFormModal = ({ open, onOpenChange, user, onSave }: UserFormModalProps)
                 email: data.email,
                 phonePrefix: data.phonePrefix,
                 phoneNumber: data.phoneNumber,
-                role: { roleSlug: data.role.roleSlug },
+                roleSlug: data.role.roleSlug,
                 statusId: data.statusId
             };
 
@@ -122,7 +122,7 @@ const UserFormModal = ({ open, onOpenChange, user, onSave }: UserFormModalProps)
                 email: user?.email || '',
                 phonePrefix: user?.phonePrefix || '+55',
                 phoneNumber: user?.phoneNumber || '',
-                role: { roleSlug: user?.role?.roleSlug || 'administrator' },
+                role: { roleSlug: user?.role?.roleSlug || user?.roleSlug },
                 statusId: user?.statusId || 'active',
             });
         },

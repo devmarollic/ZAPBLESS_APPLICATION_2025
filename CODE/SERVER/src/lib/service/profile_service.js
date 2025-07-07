@@ -305,6 +305,25 @@ class ProfileService
 
         return data;
     }
+
+    // ~~
+
+    async removeProfileById(
+        id
+        )
+    {
+        let { data, error } = await databaseService.getClient()
+            .from( 'PROFILE' )
+            .delete()
+            .eq( 'id', id );
+
+        if ( error !== null )
+        {
+            logError( error );
+        }
+
+        return data;
+    }
 }
 
 // -- VARIABLES

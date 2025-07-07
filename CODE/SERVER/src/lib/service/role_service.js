@@ -76,6 +76,25 @@ class UserChurchRoleService
 
         return data;
     }
+
+    async deleteUserChurchRoleByProfileIdAndChurchId(
+        churchId,
+        profileId
+        )
+    {
+        let { data, error } = await databaseService.getClient()
+            .from( 'USER_CHURCH_ROLE' )
+            .delete()
+            .eq( 'profileId', profileId )
+            .eq( 'churchId', churchId );
+
+        if ( error !== null )
+        {
+            logError( error );
+        }
+
+        return data;
+    }
 }
 
 // -- VARIABLES

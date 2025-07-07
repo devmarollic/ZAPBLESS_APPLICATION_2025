@@ -34,7 +34,7 @@ class GetChurchAndProfileDataUseCase
             throw new NotFoundError( 'Profile not found' );
         }
 
-        let churchData = profileData.role?.church;
+        let churchData = profileData?.church;
 
         if ( !churchData )
         {

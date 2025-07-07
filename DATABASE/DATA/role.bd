@@ -3,4 +3,19 @@ ROLE
     slug name
 
         administrator
-            ~ Administrator
+            ~ Administrador
+
+        minister
+            ~ Pastor
+
+        leader
+            ~ Líder
+
+        secretary
+            ~ Secretário
+
+        treasurer
+            ~ Tesoureiro
+
+        user
+            ~ Usuário

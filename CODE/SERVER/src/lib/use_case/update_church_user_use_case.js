@@ -15,7 +15,7 @@ let updateChurchUserSchema = z.object(
         lastName: z.string().optional(),
         phonePrefix: z.string().optional(),
         phoneNumber: z.string().optional(),
-        role: z.enum([ 'administrator', 'minister', 'leader', 'secretary', 'treasurer', 'user' ]).optional(),
+        roleSlug: z.enum([ 'administrator', 'minister', 'leader', 'secretary', 'treasurer', 'user' ]).optional(),
         statusId: z.enum([ 'active', 'inactive' ]).optional()
     }
     );
@@ -37,31 +37,28 @@ class UpdateChurchUserUseCase
             throw new ZodError( error );
         }
 
-        let { userId, churchId, role, ...profileFields } = data;
+        let { userId, churchId, roleSlug, ...profileFields } = data;
 
-        // Verifica se o usuário pertence à igreja
         let userChurchId = await profileService.getChurchIdByProfileId( userId );
         if ( userChurchId !== churchId )
         {
             throw new AppError( 'USER_NOT_IN_CHURCH', 403 );
         }
 
-        // Atualiza dados do perfil
         let updatedProfile = await profileService.setProfileById(
             {
                 ...profileFields,
-                legalName: [ profileFields.firstName, profileFields.lastName ].filter(Boolean).join(' ')
+                legalName: [ profileFields.firstName, profileFields.lastName ].filter( Boolean ).join(' ')
             },
             userId
             );
 
-        // Atualiza role se fornecido
-        if ( role )
+        if ( roleSlug )
         {
             await userChurchRoleService.setOrCreateUserChurchRoleByProfileIdAndChurchId(
                 churchId,
                 userId,
-                role
+                roleSlug
                 );
         }
 
