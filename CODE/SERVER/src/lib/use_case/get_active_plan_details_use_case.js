@@ -29,8 +29,7 @@ class GetActivePlanDetailsUseCase
                 );
         }
 
-        await planService.getCachedPlanArray();
-        let plan = planService.cachedPlanByIdMap[ subscription.planId ];
+        let plan = await planService.getCachedPlanByIdMap()[ subscription.planId ];
         
         if ( !plan )
         {
@@ -53,16 +52,19 @@ class GetActivePlanDetailsUseCase
                 };
         }
 
-        let invoiceHistoryArray = [{
-            date: subscription.startAtDateTimestamp,
-            planName: plan.name,
-            status: subscription.statusId,
-            amount: subscription.price || (subscription.periodId === 'monthly' ? plan.monthlyPrice : plan.annualPrice),
-            currency: plan.currencyCode || 'BRL',
-            period: subscription.periodId,
-            paymentMethod: subscription.paymentMethodId,
-            invoiceId: subscription.paymentGatewayId || subscription.id
-        }];
+        let invoiceHistoryArray =
+            [
+                {
+                    date: subscription.startAtDateTimestamp,
+                    planName: plan.name,
+                    status: subscription.statusId,
+                    amount: subscription.price || ( subscription.periodId === 'monthly' ? plan.monthlyPrice : plan.annualPrice ),
+                    currency: plan.currencyCode || 'BRL',
+                    period: subscription.periodId,
+                    paymentMethod: subscription.paymentMethodId,
+                    invoiceId: subscription.paymentGatewayId || subscription.id
+                }
+            ];
 
         return (
             {

@@ -1,9 +1,8 @@
 // -- IMPORTS
 
 import { subscriptionService } from '../service/subscription_service';
-import { planService } from '../service/plan_service';
 import { ValidationError } from '../errors/validation_error';
-import { applyPagination } from '../../base';
+import { getCeilInteger } from 'senselogic-gist';
 // -- TYPES
 
 class GetBillingHistoryUseCase
@@ -16,9 +15,9 @@ class GetBillingHistoryUseCase
     {
         this.validateInput( input );
 
-        let subscription = await subscriptionService.getSubscriptionByChurchId( input.churchId );
+        let historyData = await subscriptionService.getSubscriptionHistoryByChurchId( input.churchId, input.page, input.limit );
         
-        if ( !subscription )
+        if ( !historyData.data || historyData.data.length === 0 )
         {
             return (
                 {
@@ -28,33 +27,43 @@ class GetBillingHistoryUseCase
                             page: input.page,
                             limit: input.limit,
                             total: 0,
-                            pages: 0
+                            pageCount: 0
                         }
                 }
                 );
         }
 
-        await planService.getCachedPlanArray();
-        let plan = planService.cachedPlanByIdMap[ subscription.planId ];
-        
-        if ( !plan )
-        {
-            throw new ValidationError( 'Plan not found' );
-        }
-
-        let invoiceArray = this.buildDetailedInvoiceHistory( subscription, plan );
-        
-        let paginatedInvoices = applyPagination( invoiceArray, input.page, input.limit );
+        let invoiceArray = historyData.data.map( subscription => {
+            return (
+                {
+                    id: subscription.paymentGatewayId || subscription.id,
+                    subscriptionId: subscription.id,
+                    date: subscription.startAtDateTimestamp,
+                    dueDate: subscription.expiresAtDateTimestamp,
+                    planName: subscription.plan.name,
+                    planId: subscription.plan.id,
+                    status: this.mapSubscriptionStatusToInvoiceStatus( subscription.statusId ),
+                    amount: subscription.price || (subscription.periodId === 'monthly' ? subscription.plan.monthlyPrice : subscription.plan.annualPrice),
+                    currency: subscription.plan.currencyCode || 'BRL',
+                    period: subscription.periodId,
+                    periodLabel: subscription.periodId === 'monthly' ? 'Mensal' : 'Anual',
+                    paymentMethod: this.getPaymentMethodLabel( subscription.paymentMethodId ),
+                    paymentGatewayId: subscription.paymentGatewayId,
+                    description: `Plano ${subscription.plan.name} - ${subscription.periodId === 'monthly' ? 'Mensal' : 'Anual'}`,
+                    chargeDetails: null
+                }
+                );
+        } );
 
         return (
             {
-                invoices: paginatedInvoices.data,
+                invoiceArray: invoiceArray,
                 pagination:
                     {
                         page: input.page,
                         limit: input.limit,
-                        total: invoiceArray.length,
-                        pages: Math.ceil( invoiceArray.length / input.limit )
+                        total: historyData.count,
+                        pageCount: getCeilInteger( historyData.count / input.limit )
                     }
             }
             );
@@ -89,52 +98,7 @@ class GetBillingHistoryUseCase
         }
     }
 
-    buildDetailedInvoiceHistory(
-        subscription,
-        plan
-        )
-    {
-        let invoiceArray = [];
 
-        let baseInvoice =
-            {
-                id: subscription.paymentGatewayId || subscription.id,
-                subscriptionId: subscription.id,
-                date: subscription.startAtDateTimestamp,
-                dueDate: subscription.expiresAtDateTimestamp,
-                planName: plan.name,
-                planId: plan.id,
-                status: this.mapSubscriptionStatusToInvoiceStatus( subscription.statusId ),
-                amount: subscription.price || (subscription.periodId === 'monthly' ? plan.monthlyPrice : plan.annualPrice),
-                currency: plan.currencyCode || 'BRL',
-                period: subscription.periodId,
-                periodLabel: subscription.periodId === 'monthly' ? 'Mensal' : 'Anual',
-                paymentMethod: this.getPaymentMethodLabel( subscription.paymentMethodId ),
-                paymentGatewayId: subscription.paymentGatewayId,
-                description: `Plano ${plan.name} - ${subscription.periodId === 'monthly' ? 'Mensal' : 'Anual'}`,
-                chargeDetails: subscription.chargeInfo || null
-            };
-
-        invoiceArray.push( baseInvoice );
-
-        if ( subscription.typeId === 'active' && subscription.statusId === 'paid' )
-        {
-            let nextInvoice =
-                {
-                    ...baseInvoice,
-                    id: `next-${subscription.id}`,
-                    date: subscription.expiresAtDateTimestamp,
-                    dueDate: this.calculateNextDueDate( subscription.expiresAtDateTimestamp, subscription.periodId ),
-                    status: 'pending',
-                    description: `Próxima cobrança - Plano ${ plan.name } - ${ subscription.periodId === 'monthly' ? 'Mensal' : 'Anual' }`,
-                    isNextBilling: true
-                };
-
-            invoiceArray.push( nextInvoice );
-        }
-
-        return invoiceArray.sort( ( a, b ) => new Date( b.date ) - new Date( a.date ) );
-    }
 
     mapSubscriptionStatusToInvoiceStatus(
         subscriptionStatus

@@ -23,6 +23,7 @@
 - [ ] Usar tabelas: PLAN, SUBSCRIPTION, SUBSCRIPTION_STATUS, SUBSCRIPTION_METHOD
 - [ ] Criar endpoint para iniciar plano gratuito na criação da igreja
 - [ ] Middleware para validar uso de recursos baseado no plano
+- [x] Criar endpoint para visão geral da assinatura (plano atual, próxima cobrança, histórico de faturas) - 2025-01-30
 
 ---
 

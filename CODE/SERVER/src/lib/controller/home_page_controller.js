@@ -26,7 +26,7 @@ export class HomePageController extends PageController
         }
 
         let instanceArray = await evolutionService.getCachedInstanceArray();
-        let instance = instanceArray.find( instance => instance.name === profileLogged.user_metadata.church_id );
+        let instance = instanceArray?.find( instance => instance.name === profileLogged.user_metadata.church_id );
 
         return (
             {

@@ -34,7 +34,7 @@ export class SyncWhatsappController extends Controller
         let instanceArray = await evolutionService.getInstanceArray();
         let cachedInstanceArray = await evolutionService.getCachedInstanceArray();
         let churchId = profileLogged.user_metadata.church_id;
-        let instanceAlreadyExists = instanceArray.find( instance => instance.name === churchId );
+        let instanceAlreadyExists = instanceArray?.find( instance => instance.name === churchId );
         let response;
 
         if ( instanceAlreadyExists )

@@ -113,7 +113,7 @@ export class DashboardPageController extends PageController
         let announcementsTotal = announcementsTotalQuery?.data?.length ?? 0;
         let announcementsGrowth = announcementsGrowthQuery?.data?.length ?? 0;
 
-        let whatsapp = whatsappInstanceArray.find( instance => instance.name === profileLogged.user_metadata.church_id );
+        let whatsapp = whatsappInstanceArray?.find( instance => instance.name === profileLogged.user_metadata.church_id );
 
         return (
             {

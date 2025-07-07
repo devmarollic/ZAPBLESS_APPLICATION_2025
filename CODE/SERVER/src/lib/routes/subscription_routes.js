@@ -5,6 +5,7 @@ import { PaySubscriptionController } from '../controller/pay_subscription_contro
 import { AddSubscriptionController } from '../controller/add_subscription_controller';
 import { GetActivePlanDetailsController } from '../controller/get_active_plan_details_controller';
 import { GetBillingHistoryController } from '../controller/get_billing_history_controller';
+import { GetSubscriptionOverviewController } from '../controller/get_subscription_overview_controller';
 
 // -- CONSTANTS
 
@@ -13,6 +14,7 @@ const paySubscriptionController = new PaySubscriptionController();
 const addSubscriptionController = new AddSubscriptionController();
 const getActivePlanDetailsController = new GetActivePlanDetailsController();
 const getBillingHistoryController = new GetBillingHistoryController();
+const getSubscriptionOverviewController = new GetSubscriptionOverviewController();
 
 // -- FUNCTIONS
 
@@ -44,6 +46,11 @@ export async function subscriptionRoutes(
     fastify.get(
         '/church/billing-history',
         ( request, response ) => getBillingHistoryController.handle( request, response )
+        );
+
+    fastify.get(
+        '/church/overview',
+        ( request, response ) => getSubscriptionOverviewController.handle( request, response )
         );
 }
 

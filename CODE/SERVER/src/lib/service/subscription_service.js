@@ -181,6 +181,54 @@ class SubscriptionService extends PagarmeService
         return data;
     }
 
+    // ~~
+
+    async getSubscriptionHistoryByChurchId(
+        churchId,
+        page,
+        limit
+        )
+    {
+        let { startIndex, endIndex } = applyPagination( page, limit );
+
+        let { data, error, count } =
+            await databaseService.getClient()
+                .from( 'SUBSCRIPTION' )
+                .select( `
+                    id,
+                    planId,
+                    typeId,
+                    statusId,
+                    periodId,
+                    price,
+                    startAtDateTimestamp,
+                    expiresAtDateTimestamp,
+                    paymentGatewayId,
+                    paymentMethodId,
+                    plan:PLAN!inner (
+                        id,
+                        name,
+                        description,
+                        monthlyPrice,
+                        annualPrice,
+                        currencyCode
+                    )
+                `, { count: 'exact' } )
+                .eq( 'churchId', churchId )
+                .order( 'startAtDateTimestamp', { ascending: false } )
+                .range( startIndex, endIndex );
+
+        if ( error !== null )
+        {
+            logError( error );
+        }
+
+        return {
+            data: data || [],
+            count: count || 0
+        };
+    }
+
     // -- OPERATIONS
 
     async addSubscription(
