@@ -201,6 +201,55 @@ class ProfileService
 
         return data;
     }
+
+    // ~~
+
+    async getChurchAndProfileByProfileId(
+        profileId
+        )
+    {
+        let { data, error } = await databaseService.getClient()
+            .from( 'PROFILE' )
+            .select( 
+                `
+                    id,
+                    firstName,
+                    lastName,
+                    phonePrefix,
+                    phoneNumber,
+                    documentType,
+                    documentNumber,
+                    genderId,
+                    imagePath,
+                    role:USER_CHURCH_ROLE(
+                        churchId,
+                        church:CHURCH(
+                            id,
+                            name,
+                            imagePath,
+                            addressLine1,
+                            addressLine2,
+                            cityCode,
+                            cityName,
+                            stateCode,
+                            countryCode,
+                            neighborhood,
+                            zipCode,
+                            languageTag
+                        )
+                    )
+                `
+            )
+            .eq( 'id', profileId )
+            .single();
+
+        if ( error !== null )
+        {
+            logError( error );
+        }
+
+        return data;
+    }
 }
 
 // -- VARIABLES

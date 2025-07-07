@@ -11,83 +11,106 @@ import { useToast } from '@/hooks/use-toast';
 import { User, Building, MapPin, Upload } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { HttpClient } from '@/lib/http_client';
+import { useQuery } from '@tanstack/react-query';
 
 const personalDataSchema = z.object({
-    name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
+    firstName: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
+    lastName: z.string().min(2, 'Sobrenome deve ter pelo menos 2 caracteres'),
+    phonePrefix: z.string().min(2, 'Prefixo de telefone deve ter pelo menos 2 caracteres'),
     phoneNumber: z.string().min(10, 'Telefone deve ter pelo menos 10 dígitos'),
-    addressLine1: z.string().min(5, 'Endereço deve ter pelo menos 5 caracteres'),
-    addressLine2: z.string().optional(),
-    zipCode: z.string().min(8, 'CEP deve ter 8 dígitos'),
-    cityCode: z.string().min(1, 'Selecione uma cidade'),
-    stateCode: z.string().min(2, 'Selecione um estado'),
-    countryCode: z.string().min(2, 'Selecione um país'),
-    neighborhood: z.string().min(2, 'Bairro deve ter pelo menos 2 caracteres'),
-    documentType: z.string().min(1, 'Selecione o tipo de documento'),
+    documentType: z.enum(['cpf', 'cnpj', 'passport']),
     documentNumber: z.string().min(8, 'Número do documento deve ter pelo menos 8 caracteres'),
-    languageTag: z.string().min(1, 'Selecione um idioma'),
+    genderId: z.enum(['male', 'female']),
+    imagePath: z.string().optional()
 });
 
 const churchDataSchema = z.object({
+    chuchImagePath: z.string().optional(),
     churchName: z.string().min(2, 'Nome da igreja deve ter pelo menos 2 caracteres'),
-    churchDescription: z.string().optional(),
     churchAddressLine1: z.string().min(5, 'Endereço deve ter pelo menos 5 caracteres'),
     churchAddressLine2: z.string().optional(),
     churchZipCode: z.string().min(8, 'CEP deve ter 8 dígitos'),
     churchCityCode: z.string().min(1, 'Selecione uma cidade'),
     churchStateCode: z.string().min(2, 'Selecione um estado'),
     churchCountryCode: z.string().min(2, 'Selecione um país'),
-    churchNeighborhood: z.string().min(2, 'Bairro deve ter pelo menos 2 caracteres'),
+    churchNeighborhood: z.string().min(2, 'Bairro deve ter pelo menos 2 caracteres')
 });
 
 type PersonalDataFormValues = z.infer<typeof personalDataSchema>;
 type ChurchDataFormValues = z.infer<typeof churchDataSchema>;
+
+type ProfileAndChurchData = {
+    church: {
+        id: string;
+        name: string;
+        imagePath: string | null;
+        addressLine1: string;
+        addressLine2: string;
+        cityName: string;
+        cityCode: string;
+        stateCode: string;
+        stateName: string;
+        countryCode: string;
+        neighborhood: string;
+        zipCode: string;
+    },
+    user: {
+        id: string;
+        firstName: string;
+        lastName: string;
+        phonePrefix: string;
+        phoneNumber: string;
+        documentType: 'cpf' | 'cnpj' | 'passport';
+        documentNumber: string;
+        genderId: 'male' | 'female';
+        imagePath: string | null;
+    }
+}
 
 const MeusDados = () => {
     const { toast } = useToast();
     const [isLoadingPersonal, setIsLoadingPersonal] = useState(false);
     const [isLoadingChurch, setIsLoadingChurch] = useState(false);
     const [churchImage, setChurchImage] = useState<string | null>(null);
+    const { data: churchAndProfileData, isLoading: isLoadingChurchAndProfile } = useQuery({
+        queryKey: ['churchAndProfileData'],
+        queryFn: () => HttpClient.get<ProfileAndChurchData>('/profile/church-data')
+    });
 
     const personalForm = useForm<PersonalDataFormValues>({
         resolver: zodResolver(personalDataSchema),
         defaultValues: {
-            name: 'João Silva',
-            phoneNumber: '11987654321',
-            addressLine1: 'Rua das Flores, 123',
-            addressLine2: 'Apt 45',
-            zipCode: '01234567',
-            cityCode: 'sao-paulo',
-            stateCode: 'SP',
-            countryCode: 'BR',
-            neighborhood: 'Centro',
-            documentType: 'cpf',
-            documentNumber: '12345678901',
-            languageTag: 'pt-BR',
+            firstName: churchAndProfileData?.user.firstName,
+            lastName: churchAndProfileData?.user.lastName,
+            phonePrefix: churchAndProfileData?.user.phonePrefix,
+            phoneNumber: churchAndProfileData?.user.phoneNumber,
+            documentType: churchAndProfileData?.user.documentType,
+            documentNumber: churchAndProfileData?.user.documentNumber
         },
     });
 
     const churchForm = useForm<ChurchDataFormValues>({
         resolver: zodResolver(churchDataSchema),
         defaultValues: {
-            churchName: 'Igreja Evangélica Exemplo',
-            churchDescription: 'Uma igreja acolhedora no coração da cidade',
-            churchAddressLine1: 'Av. Principal, 456',
-            churchAddressLine2: '',
-            churchZipCode: '01234567',
-            churchCityCode: 'sao-paulo',
-            churchStateCode: 'SP',
-            churchCountryCode: 'BR',
-            churchNeighborhood: 'Centro',
+            churchName: churchAndProfileData?.church.name,
+            churchAddressLine1: churchAndProfileData?.church.addressLine1,
+            churchAddressLine2: churchAndProfileData?.church.addressLine2,
+            churchZipCode: churchAndProfileData?.church.zipCode,
+            churchCityCode: churchAndProfileData?.church.cityCode,
+            churchStateCode: churchAndProfileData?.church.stateCode,
+            churchCountryCode: churchAndProfileData?.church.countryCode,
+            churchNeighborhood: churchAndProfileData?.church.neighborhood
         },
     });
 
     const onSubmitPersonal = async (data: PersonalDataFormValues) => {
         try {
             setIsLoadingPersonal(true);
-            
+
             // This would be a real API call in production
             // await HttpClient.put('/user/profile', data);
-            
+
             // Simulate API delay
             await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -110,10 +133,10 @@ const MeusDados = () => {
     const onSubmitChurch = async (data: ChurchDataFormValues) => {
         try {
             setIsLoadingChurch(true);
-            
+
             // This would be a real API call in production
             // await HttpClient.put('/church/profile', data);
-            
+
             // Simulate API delay
             await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -166,33 +189,65 @@ const MeusDados = () => {
                     <CardContent>
                         <Form {...personalForm}>
                             <form onSubmit={personalForm.handleSubmit(onSubmitPersonal)} className="space-y-4">
-                                <FormField
-                                    control={personalForm.control}
-                                    name="name"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Nome Completo</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="Seu nome completo" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <FormField
+                                        control={personalForm.control}
+                                        name="firstName"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Nome</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="Nome" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
 
-                                <FormField
-                                    control={personalForm.control}
-                                    name="phoneNumber"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Telefone</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="(11) 99999-9999" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                                    <FormField
+                                        control={personalForm.control}
+                                        name="lastName"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Sobrenome</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="Sobrenome" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <FormField
+                                        control={personalForm.control}
+                                        name="phonePrefix"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Prefixo de Telefone</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="+55" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={personalForm.control}
+                                        name="phoneNumber"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Telefone</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="(11) 99999-9999" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <FormField
@@ -209,7 +264,7 @@ const MeusDados = () => {
                                                     </FormControl>
                                                     <SelectContent>
                                                         <SelectItem value="cpf">CPF</SelectItem>
-                                                        <SelectItem value="rg">RG</SelectItem>
+                                                        <SelectItem value="cnpj">CNPJ</SelectItem>
                                                         <SelectItem value="passport">Passaporte</SelectItem>
                                                     </SelectContent>
                                                 </Select>
@@ -227,135 +282,6 @@ const MeusDados = () => {
                                                 <FormControl>
                                                     <Input placeholder="000.000.000-00" {...field} />
                                                 </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
-
-                                <FormField
-                                    control={personalForm.control}
-                                    name="addressLine1"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Endereço</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="Rua, número" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-                                <FormField
-                                    control={personalForm.control}
-                                    name="addressLine2"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Complemento</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="Apartamento, bloco, etc." {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <FormField
-                                        control={personalForm.control}
-                                        name="zipCode"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>CEP</FormLabel>
-                                                <FormControl>
-                                                    <Input placeholder="00000-000" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={personalForm.control}
-                                        name="neighborhood"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Bairro</FormLabel>
-                                                <FormControl>
-                                                    <Input placeholder="Seu bairro" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={personalForm.control}
-                                        name="cityCode"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Cidade</FormLabel>
-                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                    <FormControl>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Selecione" />
-                                                        </SelectTrigger>
-                                                    </FormControl>
-                                                    <SelectContent>
-                                                        <SelectItem value="sao-paulo">São Paulo</SelectItem>
-                                                        <SelectItem value="rio-janeiro">Rio de Janeiro</SelectItem>
-                                                        <SelectItem value="belo-horizonte">Belo Horizonte</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <FormField
-                                        control={personalForm.control}
-                                        name="stateCode"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Estado</FormLabel>
-                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                    <FormControl>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Selecione" />
-                                                        </SelectTrigger>
-                                                    </FormControl>
-                                                    <SelectContent>
-                                                        <SelectItem value="SP">São Paulo</SelectItem>
-                                                        <SelectItem value="RJ">Rio de Janeiro</SelectItem>
-                                                        <SelectItem value="MG">Minas Gerais</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={personalForm.control}
-                                        name="languageTag"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Idioma</FormLabel>
-                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                    <FormControl>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Selecione" />
-                                                        </SelectTrigger>
-                                                    </FormControl>
-                                                    <SelectContent>
-                                                        <SelectItem value="pt-BR">Português (Brasil)</SelectItem>
-                                                        <SelectItem value="en-US">English (US)</SelectItem>
-                                                        <SelectItem value="es-ES">Español</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
@@ -392,20 +318,6 @@ const MeusDados = () => {
                                             <FormLabel>Nome da Igreja</FormLabel>
                                             <FormControl>
                                                 <Input placeholder="Nome da sua igreja" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-                                <FormField
-                                    control={churchForm.control}
-                                    name="churchDescription"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Descrição</FormLabel>
-                                            <FormControl>
-                                                <Textarea placeholder="Breve descrição da igreja" {...field} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>

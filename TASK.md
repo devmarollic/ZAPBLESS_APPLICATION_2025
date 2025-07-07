@@ -110,3 +110,4 @@
 - [ ] Sessão WhatsApp integrada
 - [ ] Geração e envio de escala
 - [ ] Chatbot com pelo menos 2 intents básicas
+- [x] Criar endpoint para retornar dados da igreja e usuário (nome, imagem, endereço, etc) - 2025-01-30
