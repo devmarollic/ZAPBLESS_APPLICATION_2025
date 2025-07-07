@@ -112,14 +112,7 @@ const GerenciarUsuarios = () => {
     };
 
     const handleSaveUser = (userData: User) => {
-        if (editingUser) {
-            // Update existing user
-            setUsers(users.map(user => user.id === userData.id ? userData : user));
-        } else {
-            // Add new user
-            setUsers([...users, userData]);
-        }
-        setEditingUser(null);
+        refetchUsers();
     };
 
     const handleEditUser = (user: User) => {

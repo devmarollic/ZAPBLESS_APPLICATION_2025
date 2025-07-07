@@ -77,7 +77,7 @@ const UserFormModal = ({ open, onOpenChange, user, onSave }: UserFormModalProps)
             }
             else
             {
-                await HttpClient.post(`/church/user/create`, userData);
+                await HttpClient.post(`/church/user/add`, userData);
             }
 
             toast({
