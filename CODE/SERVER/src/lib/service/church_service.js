@@ -53,6 +53,28 @@ class ChurchService
 
         return data;
     }
+
+    // ~~
+
+    async setChurchById(
+        church,
+        churchId
+        )
+    {
+        let { data, error } = await databaseService.getClient()
+            .from( 'CHURCH' )
+            .update( church )
+            .eq( 'id', churchId )
+            .select()
+            .single();
+
+        if ( error !== null )
+        {
+            logError( error );
+        }
+
+        return data;
+    }
 }
 
 // -- VARIABLES

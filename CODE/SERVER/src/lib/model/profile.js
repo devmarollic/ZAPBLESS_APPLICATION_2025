@@ -51,6 +51,26 @@ export const profileWithIdSchema = z.object(
     )
     .merge( profileSchema );
 
+export const updateProfileSchema = z.object(
+    {
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+        birthDate: z.coerce.date().optional(),
+        genderId: profileGenderEnum.optional(),
+        phonePrefix: z.string().optional(),
+        phoneNumber: z.string().optional(),
+        countryCode: countryCodeEnum.optional(),
+        imagePath: z.string().optional().nullable(),
+        documentType: documentTypeEnum.optional(),
+        documentNumber: z.string().optional().nullable(),
+        aboutDescription: z.string().optional()
+    }
+    )
+    .refine( 
+        ( data ) => Object.keys( data ).length > 0, 
+        { message: "At least one field must be provided for update" }
+    );
+
 export const documentType =
     {
         cpf: 'cpf',

@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -26,7 +25,7 @@ const personalDataSchema = z.object({
 });
 
 const churchDataSchema = z.object({
-    chuchImagePath: z.string().optional(),
+    churchImagePath: z.string().optional(),
     churchName: z.string().min(2, 'Nome da igreja deve ter pelo menos 2 caracteres'),
     churchAddressLine1: z.string().min(5, 'Endereço deve ter pelo menos 5 caracteres'),
     churchAddressLine2: z.string().optional(),
@@ -70,54 +69,81 @@ type ProfileAndChurchData = {
 
 const MeusDados = () => {
     const { toast } = useToast();
-    const [isLoadingPersonal, setIsLoadingPersonal] = useState(false);
-    const [isLoadingChurch, setIsLoadingChurch] = useState(false);
     const [churchImage, setChurchImage] = useState<string | null>(null);
-    const { data: churchAndProfileData, isLoading: isLoadingChurchAndProfile } = useQuery({
+    const { data: churchAndProfileData, isLoading: isLoadingChurchAndProfile, refetch: refetchChurchAndProfileData, isRefetching: isRefetchingChurchAndProfile } = useQuery({
         queryKey: ['churchAndProfileData'],
         queryFn: () => HttpClient.get<ProfileAndChurchData>('/profile/church-data')
     });
 
+    useEffect(() => {
+        if (churchAndProfileData?.church.imagePath) {
+            setChurchImage(churchAndProfileData.church.imagePath);
+        }
+    }, [churchAndProfileData]);
+
     const personalForm = useForm<PersonalDataFormValues>({
         resolver: zodResolver(personalDataSchema),
         defaultValues: {
-            firstName: churchAndProfileData?.user.firstName,
-            lastName: churchAndProfileData?.user.lastName,
-            phonePrefix: churchAndProfileData?.user.phonePrefix,
-            phoneNumber: churchAndProfileData?.user.phoneNumber,
-            documentType: churchAndProfileData?.user.documentType,
-            documentNumber: churchAndProfileData?.user.documentNumber
+            firstName: churchAndProfileData?.user.firstName || '',
+            lastName: churchAndProfileData?.user.lastName || '',
+            phonePrefix: churchAndProfileData?.user.phonePrefix || '+55',
+            phoneNumber: churchAndProfileData?.user.phoneNumber || '',
+            documentType: churchAndProfileData?.user.documentType || 'cpf',
+            documentNumber: churchAndProfileData?.user.documentNumber || '',
+            genderId: churchAndProfileData?.user.genderId || 'male'
         },
     });
 
     const churchForm = useForm<ChurchDataFormValues>({
         resolver: zodResolver(churchDataSchema),
         defaultValues: {
-            churchName: churchAndProfileData?.church.name,
-            churchAddressLine1: churchAndProfileData?.church.addressLine1,
-            churchAddressLine2: churchAndProfileData?.church.addressLine2,
-            churchZipCode: churchAndProfileData?.church.zipCode,
-            churchCityCode: churchAndProfileData?.church.cityCode,
-            churchStateCode: churchAndProfileData?.church.stateCode,
-            churchCountryCode: churchAndProfileData?.church.countryCode,
-            churchNeighborhood: churchAndProfileData?.church.neighborhood
+            churchName: churchAndProfileData?.church.name || '',
+            churchAddressLine1: churchAndProfileData?.church.addressLine1 || '',
+            churchAddressLine2: churchAndProfileData?.church.addressLine2 || '',
+            churchZipCode: churchAndProfileData?.church.zipCode || '',
+            churchCityCode: churchAndProfileData?.church.cityCode || '',
+            churchStateCode: churchAndProfileData?.church.stateCode || '',
+            churchCountryCode: churchAndProfileData?.church.countryCode || 'BR',
+            churchNeighborhood: churchAndProfileData?.church.neighborhood || ''
         },
     });
 
+    useEffect(() => {
+        if (churchAndProfileData) {
+            personalForm.reset({
+                firstName: churchAndProfileData.user.firstName,
+                lastName: churchAndProfileData.user.lastName,
+                phonePrefix: churchAndProfileData.user.phonePrefix,
+                phoneNumber: churchAndProfileData.user.phoneNumber,
+                documentType: churchAndProfileData.user.documentType,
+                documentNumber: churchAndProfileData.user.documentNumber,
+                genderId: churchAndProfileData.user.genderId
+            });
+
+            churchForm.reset({
+                churchName: churchAndProfileData.church.name,
+                churchAddressLine1: churchAndProfileData.church.addressLine1,
+                churchAddressLine2: churchAndProfileData.church.addressLine2,
+                churchZipCode: churchAndProfileData.church.zipCode,
+                churchCityCode: churchAndProfileData.church.cityCode,
+                churchStateCode: churchAndProfileData.church.stateCode,
+                churchCountryCode: churchAndProfileData.church.countryCode,
+                churchNeighborhood: churchAndProfileData.church.neighborhood
+            });
+        }
+    }, [churchAndProfileData]);
+
     const onSubmitPersonal = async (data: PersonalDataFormValues) => {
         try {
-            setIsLoadingPersonal(true);
-
-            // This would be a real API call in production
-            // await HttpClient.put('/user/profile', data);
-
-            // Simulate API delay
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            console.log(data);
+            await HttpClient.put('/profile/update', data);
 
             toast({
                 title: 'Dados pessoais atualizados',
                 description: 'Suas informações foram salvas com sucesso.',
             });
+
+            refetchChurchAndProfileData();
         } catch (error) {
             console.error('Error updating personal data:', error);
             toast({
@@ -125,25 +151,28 @@ const MeusDados = () => {
                 description: 'Não foi possível salvar suas informações. Tente novamente.',
                 variant: 'destructive',
             });
-        } finally {
-            setIsLoadingPersonal(false);
         }
     };
 
     const onSubmitChurch = async (data: ChurchDataFormValues) => {
         try {
-            setIsLoadingChurch(true);
-
-            // This would be a real API call in production
-            // await HttpClient.put('/church/profile', data);
-
-            // Simulate API delay
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await HttpClient.put('/church/update', {
+                name: data.churchName,
+                addressLine1: data.churchAddressLine1,
+                addressLine2: data.churchAddressLine2,
+                zipCode: data.churchZipCode,
+                cityCode: data.churchCityCode,
+                stateCode: data.churchStateCode,
+                countryCode: data.churchCountryCode,
+                neighborhood: data.churchNeighborhood
+            });
 
             toast({
                 title: 'Dados da igreja atualizados',
                 description: 'As informações da igreja foram salvas com sucesso.',
             });
+
+            refetchChurchAndProfileData();
         } catch (error) {
             console.error('Error updating church data:', error);
             toast({
@@ -151,8 +180,6 @@ const MeusDados = () => {
                 description: 'Não foi possível salvar as informações da igreja. Tente novamente.',
                 variant: 'destructive',
             });
-        } finally {
-            setIsLoadingChurch(false);
         }
     };
 
@@ -165,7 +192,21 @@ const MeusDados = () => {
             };
             reader.readAsDataURL(file);
         }
-    };
+    }
+
+    if (isLoadingChurchAndProfile) {
+        return (
+            <div className="md:container mx-auto py-6 space-y-6">
+                <div>
+                    <h1 className="text-3xl font-bold">Meus Dados</h1>
+                    <p className="text-muted-foreground">Gerencie suas informações pessoais e da igreja</p>
+                </div>
+                <div className="flex justify-center items-center h-64">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="md:container mx-auto py-6 space-y-6">
@@ -288,8 +329,32 @@ const MeusDados = () => {
                                     />
                                 </div>
 
-                                <Button type="submit" disabled={isLoadingPersonal} className="w-full">
-                                    {isLoadingPersonal ? 'Salvando...' : 'Salvar Dados Pessoais'}
+                                <FormField
+                                    control={personalForm.control}
+                                    name="genderId"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Gênero</FormLabel>
+                                            <FormControl>
+                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Selecione" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        <SelectItem value="male">Masculino</SelectItem>
+                                                        <SelectItem value="female">Feminino</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <Button type="submit" disabled={isLoadingChurchAndProfile || isRefetchingChurchAndProfile} className="w-full">
+                                    {isLoadingChurchAndProfile || isRefetchingChurchAndProfile ? 'Salvando...' : 'Salvar Dados Pessoais'}
                                 </Button>
                             </form>
                         </Form>
@@ -479,8 +544,8 @@ const MeusDados = () => {
                                     />
                                 </div>
 
-                                <Button type="submit" disabled={isLoadingChurch} className="w-full">
-                                    {isLoadingChurch ? 'Salvando...' : 'Salvar Dados da Igreja'}
+                                <Button type="submit" disabled={isLoadingChurchAndProfile || isRefetchingChurchAndProfile} className="w-full">
+                                    {isLoadingChurchAndProfile || isRefetchingChurchAndProfile ? 'Salvando...' : 'Salvar Dados da Igreja'}
                                 </Button>
                             </form>
                         </Form>

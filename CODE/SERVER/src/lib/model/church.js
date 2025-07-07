@@ -34,6 +34,23 @@ export const churchWithIdSchema = z.object(
     )
     .merge( churchSchema );
 
+export const updateChurchSchema = z.object(
+    {
+        name: z.string().optional(),
+        addressLine1: z.string().optional(),
+        addressLine2: z.string().optional(),
+        zipCode: z.string().optional(),
+        neighborhood: z.string().optional(),
+        cityCode: z.string().optional(),
+        stateCode: z.string().optional(),
+        countryCode: countryCodeEnum.optional()
+    }
+    )
+    .refine( 
+        ( data ) => Object.keys( data ).length > 0, 
+        { message: "At least one field must be provided for update" }
+    );
+
 export const churchType =
     {
         active: 'active',

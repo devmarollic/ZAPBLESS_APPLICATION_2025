@@ -24,6 +24,8 @@
 - [ ] Criar endpoint para iniciar plano gratuito na criação da igreja
 - [ ] Middleware para validar uso de recursos baseado no plano
 - [x] Criar endpoint para visão geral da assinatura (plano atual, próxima cobrança, histórico de faturas) - 2025-01-30
+- [x] Criar endpoint para atualizar dados da igreja (name, addressLine1, addressLine2, zipCode, neighborhood, cityCode, stateCode, countryCode) - 2025-01-30
+- [x] Criar endpoint para atualizar dados do usuário (firstName, lastName, birthDate, genderId, phonePrefix, phoneNumber, countryCode, imagePath, documentType, documentNumber, aboutDescription) - 2025-01-30
 
 ---
 
