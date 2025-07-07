@@ -94,14 +94,21 @@ const GerenciarUsuarios = () => {
     };
 
     const toggleUserStatus = (userId: string, currentStatus: string) => {
-        setUsers(users.map(user =>
-            user.id === userId ? { ...user, statusId: currentStatus === 'active' ? 'inactive' as const : 'active' as const } : user
-        ));
+        try {
+            HttpClient.put(`/church/user/${userId}/update`, {
+                statusId: ( currentStatus === 'active' ? 'inactive' : 'active' ) as User['statusId']
+            });
 
-        toast({
-            title: "Status do usuário atualizado",
-            description: "O status do usuário foi alterado com sucesso.",
-        });
+            toast({
+                title: "Status do usuário atualizado",
+                description: "O status do usuário foi alterado com sucesso.",
+            });
+        } catch (error) {
+            console.error("Error updating user status:", error);
+        }
+        finally {
+            refetchUsers();
+        }
     };
 
     const handleSaveUser = (userData: User) => {

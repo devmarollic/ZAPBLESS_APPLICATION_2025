@@ -71,7 +71,7 @@ class ProfileService
                 `,
                 { count: 'exact' }
             )
-            .eq( 'USER_CHURCH_ROLE.churchId', churchId );
+            .eq( 'role.churchId', churchId );
 
         if ( filters.searchTerm )
         {

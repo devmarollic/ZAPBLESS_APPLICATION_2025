@@ -7,6 +7,7 @@ import { ListChurchUserController } from '../controller/list_church_user_control
 import { ListChurchUsersWithFiltersController } from '../controller/list_church_users_with_filters_controller';
 import { SetChurchUserController } from '../controller/set_church_user_controller';
 import { UpdateChurchController } from '../controller/update_church_controller';
+import { UpdateChurchUserController } from '../controller/update_church_user_controller';
 
 // -- CONSTANTS
 
@@ -17,6 +18,7 @@ const listChurchUserController = new ListChurchUserController();
 const listChurchUsersWithFiltersController = new ListChurchUsersWithFiltersController();
 const setChurchUserController = new SetChurchUserController();
 const updateChurchController = new UpdateChurchController();
+const updateChurchUserController = new UpdateChurchUserController();
 
 // -- FUNCTIONS
 
@@ -58,6 +60,11 @@ export async function churchRoutes(
     fastify.put(
         '/update',
         ( request, response ) => updateChurchController.handle( request, response )
+        );
+
+    fastify.put(
+        '/user/:userId/update',
+        ( request, response ) => updateChurchUserController.handle( request, response )
         );
 }
 
