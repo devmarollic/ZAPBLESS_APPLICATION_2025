@@ -7,8 +7,8 @@ declare global {
   }
 }
 
-export const GA_MEASUREMENT_ID = 'GA_MEASUREMENT_ID'; // Replace with your actual GA4 Measurement ID
-export const CLARITY_PROJECT_ID = 'CLARITY_PROJECT_ID'; // Replace with your actual Clarity Project ID
+export const GA_MEASUREMENT_ID = 'G-0QBEPG2Q97'; // Replace with your actual GA4 Measurement ID
+export const CLARITY_PROJECT_ID = 'sbrmqd9ccv';
 
 // Google Analytics functions
 export const trackEvent = (eventName: string, parameters?: Record<string, any>) => {

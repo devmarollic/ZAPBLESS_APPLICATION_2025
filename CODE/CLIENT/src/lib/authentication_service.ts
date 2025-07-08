@@ -24,7 +24,7 @@ export class AuthenticationService {
     }
 
     public static getUsername(): string | null {
-        return window.localStorage.getItem(LoginConsts.USERNAME_KEY);
+        return AuthenticationService.getUser()?.user_metadata?.first_name;
     }
 
     public static getAccessToken(): string | null {

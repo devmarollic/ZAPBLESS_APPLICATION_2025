@@ -34,7 +34,6 @@ class DeleteChurchUserUseCase
 
         let { userId, churchId } = data;
 
-        // Verifica se o usuário pertence à igreja
         let userChurchId = await profileService.getChurchIdByProfileId( userId );
 
         if ( userChurchId !== churchId )
@@ -42,7 +41,6 @@ class DeleteChurchUserUseCase
             throw new AppError( 'USER_NOT_IN_CHURCH', 403 );
         }
 
-        // Remove vínculo USER_CHURCH_ROLE
         let deleted = await userChurchRoleService.deleteUserChurchRoleByProfileIdAndChurchId(
             churchId,
             userId

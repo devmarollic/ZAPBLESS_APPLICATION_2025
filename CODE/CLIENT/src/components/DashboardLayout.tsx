@@ -3,22 +3,15 @@ import { Outlet } from 'react-router-dom';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import DashboardSidebar from './DashboardSidebar';
 import AccountDropdown from './AccountDropdown';
-import { Button } from './ui/button';
 import { Menu } from 'lucide-react';
 
 const SidebarToggle = () => {
-    // Remove the conditional rendering based on sidebar state
-    // so the button is always visible
     return (
-        <Button
-            variant="ghost"
-            size="icon"
+        <SidebarTrigger
             className="fixed right-4 top-4 z-50 md:hidden"
         >
-            <SidebarTrigger>
-                <Menu className="h-5 w-5" />
-            </SidebarTrigger>
-        </Button>
+            <Menu className="h-5 w-5" />
+        </SidebarTrigger>
     );
 };
 

@@ -45,7 +45,7 @@ async function sendEmail( to, subject, template, context = {}, attachments = [] 
 
         let mailOptions =
             {
-                from: 'devfullstack@marollic.com',
+                from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
                 to,
                 subject,
                 html: htmlBody,
