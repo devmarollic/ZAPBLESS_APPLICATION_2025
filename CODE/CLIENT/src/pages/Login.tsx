@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Eye, EyeOff, Mail } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { HttpClient } from '@/lib/http_client';
 import { AuthenticationService } from '@/lib/authentication_service';
 import { useToast } from '@/hooks/use-toast';
@@ -72,7 +72,7 @@ const Login = () => {
         setIsLoading(true);
 
         try {
-            const response = await HttpClient.post<AuthenticationResult>('/login', {
+            const response = await HttpClient.getBaseUrl().post<AuthenticationResult>('/login', {
                 email: data.email,
                 password: data.password,
             });
@@ -220,6 +220,8 @@ const Login = () => {
                                         {...register("password")}
                                         disabled={isLoading}
                                     />
+                                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500" />
+
                                     <button
                                         type="button"
                                         className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"

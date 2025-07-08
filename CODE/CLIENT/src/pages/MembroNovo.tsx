@@ -1,141 +1,107 @@
 
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
-import { Calendar as CalendarIcon, Save, User } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useQuery } from '@tanstack/react-query';
-import { HttpClient } from '@/lib/http_client';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/components/ui/use-toast";
+import { ContactService, CreateContactRequest } from "@/services/contactService";
+import { ArrowLeft, Save } from "lucide-react";
+import { AuthenticationService } from "@/lib/authentication_service";
 
-const memberFormSchema = z.object({
+const memberSchema = z.object({
   name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres"),
-  email: z.string().email("Digite um e-mail válido").optional().or(z.literal('')),
-  phone: z.string().min(10, "O telefone deve ter pelo menos 10 dígitos"),
-  birthDate: z.date().optional(),
-  address: z.string().optional(),
-  ministries: z.array(z.string()).optional(),
-  baptismDate: z.date().optional(),
-  notes: z.string().optional(),
-  status: z.string().default("active"),
+  number: z.string().min(10, "O telefone deve ter pelo menos 10 dígitos"),
+  ecclesiasticalTitle: z.string().optional(),
 });
 
-type MemberFormValues = z.infer<typeof memberFormSchema>;
+type MemberFormValues = z.infer<typeof memberSchema>;
 
-type Ministry = {
-  id: string;
-  name: string;
-  description: string;
-}
-
-const memberStatus = [
-  { value: "active", label: "Ativo" },
-  { value: "inactive", label: "Inativo" },
-  { value: "visitor", label: "Visitante" },
+const ecclesiasticalTitles = [
+  { value: null, label: "Nenhum" },
+  { value: "pastor", label: "Pastor" },
+  { value: "reverend", label: "Reverendo" },
+  { value: "elder", label: "Presbítero" },
+  { value: "deacon", label: "Diácono" },
+  { value: "missionary", label: "Missionário" },
+  { value: "evangelist", label: "Evangelista" },
 ];
 
 const MembroNovo = () => {
-  const { toast } = useToast();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedMinistries, setSelectedMinistries] = useState<string[]>([]);
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const churchId = AuthenticationService.getChurchId();
 
   const form = useForm<MemberFormValues>({
-    resolver: zodResolver(memberFormSchema),
+    resolver: zodResolver(memberSchema),
     defaultValues: {
-      name: '',
-      email: '',
-      phone: '',
-      address: '',
-      notes: '',
-      status: 'active',
-      ministries: [],
+      name: "",
+      number: "",
+      ecclesiasticalTitle: "",
     },
-  });
-
-  const { data: ministries, isLoading: isLoadingMinistries } = useQuery({
-    queryKey: ['ministries'],
-    queryFn: async () => {
-      return await HttpClient.get<Ministry[]>('/ministry/list');
-    }
   });
 
   const onSubmit = async (data: MemberFormValues) => {
     try {
-      setIsLoading(true);
+      setIsSubmitting(true);
       
-      // Add selected ministries to the form data
-      data.ministries = selectedMinistries;
-      
-      // This would be a real API call in production
-      // await HttpClient.post('/members/create', data);
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: "Membro cadastrado",
-        description: "O membro foi cadastrado com sucesso!",
-      });
+      const contactData: CreateContactRequest = {
+        name: data.name,
+        number: data.number,
+        ecclesiasticalTitle: data.ecclesiasticalTitle || undefined,
+        churchId,
+      };
 
-      navigate('/dashboard/membros');
-    } catch (error) {
-      console.error("Error creating member:", error);
+      await ContactService.createContact(contactData);
+      
       toast({
-        title: "Erro ao cadastrar",
-        description: "Não foi possível cadastrar o membro. Tente novamente mais tarde.",
+        title: "Sucesso",
+        description: "Membro criado com sucesso!",
+      });
+      
+      navigate("/dashboard/membros");
+    } catch (error) {
+      console.error('Erro ao criar membro:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível criar o membro. Tente novamente.",
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  const handleMinistryChange = (ministryId: string) => {
-    setSelectedMinistries(current => {
-      if (current.includes(ministryId)) {
-        return current.filter(id => id !== ministryId);
-      } else {
-        return [...current, ministryId];
-      }
-    });
-  };
-
   return (
-    <div className="md:container mx-auto py-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold">Novo Membro</h1>
-        <Button variant="outline" onClick={() => navigate('/dashboard/membros')}>
-          Voltar para Membros
+    <div className="space-y-6">
+      <div className="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate("/dashboard/membros")}
+        >
+          <ArrowLeft className="h-4 w-4" />
         </Button>
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight gradientText">Novo Membro</h2>
+          <p className="text-muted-foreground">Adicione um novo membro à sua igreja</p>
+        </div>
       </div>
-      
+
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <User className="mr-2 h-5 w-5" />
-            Cadastro de Membro
-          </CardTitle>
-          <CardDescription>
-            Preencha os dados do novo membro
-          </CardDescription>
+          <CardTitle>Informações do Membro</CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -153,7 +119,7 @@ const MembroNovo = () => {
                 
                 <FormField
                   control={form.control}
-                  name="phone"
+                  name="number"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Telefone / WhatsApp*</FormLabel>
@@ -166,202 +132,47 @@ const MembroNovo = () => {
                 />
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>E-mail</FormLabel>
+              <FormField
+                control={form.control}
+                name="ecclesiasticalTitle"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Título Eclesiástico</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <Input type="email" placeholder="Digite o e-mail (opcional)" {...field} />
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um título" />
+                        </SelectTrigger>
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="birthDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Data de Nascimento</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
-                              ) : (
-                                <span>Selecione uma data</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            initialFocus
-                            disabled={(date) => date > new Date()}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Endereço</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Digite o endereço completo (opcional)" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <FormLabel>Ministérios</FormLabel>
-                  <div className="mt-2 border rounded-lg p-4 max-h-48 overflow-y-auto">
-                    {isLoadingMinistries ? (
-                      <p className="text-sm text-muted-foreground">Carregando ministérios...</p>
-                    ) : (
-                      <div className="space-y-2">
-                        {(ministries ?? []).map((ministry) => (
-                          <div key={ministry.id} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`ministry-${ministry.id}`}
-                              checked={selectedMinistries.includes(ministry.id)}
-                              onCheckedChange={() => handleMinistryChange(ministry.id)}
-                            />
-                            <label 
-                              htmlFor={`ministry-${ministry.id}`} 
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
-                              {ministry.name}
-                            </label>
-                          </div>
+                      <SelectContent>
+                        {ecclesiasticalTitles.map((title) => (
+                          <SelectItem key={title.value} value={title.value}>
+                            {title.label}
+                          </SelectItem>
                         ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange} 
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione um status" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {memberStatus.map((status) => (
-                            <SelectItem key={status.value} value={status.value}>
-                              {status.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              <FormField
-                control={form.control}
-                name="baptismDate"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Data de Batismo</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
-                            ) : (
-                              <span>Selecione uma data</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          initialFocus
-                          disabled={(date) => date > new Date()}
-                        />
-                      </PopoverContent>
-                    </Popover>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Observações</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Adicione observações sobre o membro (opcional)" 
-                        className="min-h-[120px]" 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <div className="flex justify-end gap-4 pt-4">
-                <Button type="button" variant="outline" onClick={() => navigate('/dashboard/membros')}>
+              <div className="flex gap-4 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate("/dashboard/membros")}
+                  disabled={isSubmitting}
+                >
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? (
-                    <>Salvando...</>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    "Salvando..."
                   ) : (
                     <>
                       <Save className="mr-2 h-4 w-4" />
-                      Cadastrar Membro
+                      Salvar Membro
                     </>
                   )}
                 </Button>

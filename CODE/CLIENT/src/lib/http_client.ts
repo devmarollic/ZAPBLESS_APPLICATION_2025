@@ -4,30 +4,27 @@ import { AuthenticationService } from './authentication_service';
 export class HttpClient {
     private static isRefreshing = false;
     private static refreshSubscribers: Array<(token: string) => void> = [];
-    private static url: string = ApplicationSettings.API_URL;
+    private static currentUrl: string = ApplicationSettings.API_URL;
 
-    public static async getMemberUrl(): Promise<HttpClient> {
-        this.url = ApplicationSettings.MEMBER_API_URL;
-
+    public static setUrl(url: string) {
+        this.currentUrl = url;
         return this;
     }
 
-    public static async getWhatsappUrl(): Promise<HttpClient> {
-        this.url = ApplicationSettings.WHATSAPP_API_URL;
-
-        return this;
+    public static getMemberUrl() {
+        return this.setUrl(ApplicationSettings.MEMBER_API_URL);
     }
 
-    public static async getMinistryUrl(): Promise<HttpClient> {
-        this.url = ApplicationSettings.MINISTRY_API_URL;
-
-        return this;
+    public static getWhatsappUrl() {
+        return this.setUrl(ApplicationSettings.WHATSAPP_API_URL);
     }
 
-    public static async getEventUrl(): Promise<HttpClient> {
-        this.url = ApplicationSettings.EVENT_API_URL;
+    public static getMinistryUrl() {
+        return this.setUrl(ApplicationSettings.MINISTRY_API_URL);
+    }
 
-        return this;
+    public static getEventUrl() {
+        return this.setUrl(ApplicationSettings.EVENT_API_URL);
     }
 
     public static async post<TResult>(resource: string, body: object): Promise<TResult> {
@@ -39,7 +36,7 @@ export class HttpClient {
             headers: headers
         };
 
-        const url = this.url + resource;
+        const url = this.currentUrl + resource;
 
         try {
             const response = await fetch(url, requestOptions);
@@ -64,6 +61,8 @@ export class HttpClient {
             }
         } catch (error) {
             return Promise.reject(error);
+        } finally {
+            this.currentUrl = ApplicationSettings.API_URL;
         }
     }
 
@@ -76,17 +75,15 @@ export class HttpClient {
             headers: headers
         };
 
-        const url = ApplicationSettings.API_URL + resource;
+        const url = this.currentUrl + resource;
 
         try {
             const response = await fetch(url, requestOptions);
             if (response.status === 200) {
                 return Promise.resolve(response.json());
             } else if (response.status === 401) {
-                // Try to refresh token and retry the request
                 const newToken = await HttpClient.refreshToken();
                 if (newToken) {
-                    // Retry with new token
                     headers['Authorization'] = 'Bearer ' + newToken;
                     requestOptions.headers = headers;
                     const retryResponse = await fetch(url, requestOptions);
@@ -100,6 +97,8 @@ export class HttpClient {
             }
         } catch (error) {
             return Promise.reject(error);
+        } finally {
+            this.currentUrl = ApplicationSettings.API_URL;
         }
     }
 
@@ -112,7 +111,7 @@ export class HttpClient {
             headers: headers
         };
 
-        const url = ApplicationSettings.API_URL + resource;
+        const url = this.currentUrl + resource;
 
         try {
             const response = await fetch(url, requestOptions);
@@ -123,10 +122,8 @@ export class HttpClient {
                     return response as any;
                 }
             } else if (response.status === 401) {
-                // Try to refresh token and retry the request
                 const newToken = await HttpClient.refreshToken();
                 if (newToken) {
-                    // Retry with new token
                     headers['Authorization'] = 'Bearer ' + newToken;
                     requestOptions.headers = headers;
                     const retryResponse = await fetch(url, requestOptions);
@@ -144,6 +141,8 @@ export class HttpClient {
             }
         } catch (error) {
             return Promise.reject(error);
+        } finally {
+            this.currentUrl = ApplicationSettings.API_URL;
         }
     }
 
@@ -156,7 +155,7 @@ export class HttpClient {
             headers: headers
         };
 
-        const url = ApplicationSettings.API_URL + resource;
+        const url = this.currentUrl + resource;
 
         try {
             const response = await fetch(url, requestOptions);
@@ -186,6 +185,8 @@ export class HttpClient {
             }
         } catch (error) {
             return Promise.reject(error);
+        } finally {
+            this.currentUrl = ApplicationSettings.API_URL;
         }
     }
 
@@ -198,7 +199,7 @@ export class HttpClient {
             body: JSON.stringify({})
         };
 
-        const url = ApplicationSettings.API_URL + resource;
+        const url = this.currentUrl + resource;
 
         try {
             const response = await fetch(url, requestOptions);
@@ -228,6 +229,8 @@ export class HttpClient {
             }
         } catch (error) {
             return Promise.reject(error);
+        } finally {
+            this.currentUrl = ApplicationSettings.API_URL;
         }
     }
 
@@ -239,7 +242,7 @@ export class HttpClient {
             headers: headers
         };
 
-        const url = ApplicationSettings.API_URL + resource;
+        const url = this.currentUrl + resource;
 
         try {
             const response = await fetch(url, requestOptions);
@@ -261,6 +264,8 @@ export class HttpClient {
             }
         } catch (error) {
             return Promise.reject(error);
+        } finally {
+            this.currentUrl = ApplicationSettings.API_URL;
         }
     }
 

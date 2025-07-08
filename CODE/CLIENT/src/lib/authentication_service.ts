@@ -27,6 +27,10 @@ export class AuthenticationService {
         return AuthenticationService.getUser()?.user_metadata?.first_name;
     }
 
+    public static getChurchId(): string | null {
+        return AuthenticationService.getUser()?.user_metadata?.church_id;
+    }
+
     public static getAccessToken(): string | null {
         return window.localStorage.getItem(LoginConsts.ACCESS_TOKEN_KEY);
     }

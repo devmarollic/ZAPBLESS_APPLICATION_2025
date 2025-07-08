@@ -14,6 +14,7 @@ import { User, Settings, Lock, LogOut, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AuthenticationService } from '@/lib/authentication_service';
 import { useToast } from '@/hooks/use-toast';
+import { getUserInitials } from '@/utils/getUserInitials';
 
 interface AccountDropdownProps {
     userName?: string;
@@ -37,15 +38,6 @@ const AccountDropdown = ({
             description: "Você foi desconectado com sucesso",
         });
         navigate('/login');
-    };
-
-    const getUserInitials = (name: string) => {
-        return name
-            .split(' ')
-            .map(n => n[0])
-            .join('')
-            .toUpperCase()
-            .slice(0, 2);
     };
 
     return (
