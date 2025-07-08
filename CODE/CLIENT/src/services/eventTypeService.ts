@@ -11,7 +11,9 @@ export interface EventTypeListResponse {
 }
 
 export class EventTypeService {
+  private static readonly httpClient = HttpClient.getEvent();
+
   static async getEventTypes(): Promise<EventType[] | EventTypeListResponse> {
-    return HttpClient.get<EventType[] | EventTypeListResponse>('/event-type/list');
+    return this.httpClient.get<EventType[] | EventTypeListResponse>('/event-type/list');
   }
 }

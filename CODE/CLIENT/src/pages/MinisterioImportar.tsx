@@ -44,7 +44,7 @@ const MinisterioImportar = () => {
     setIsUploading(true);
 
     try {
-      await HttpClient.postForm('/ministerios/importar', formData);
+              await HttpClient.getDefault().postForm('/ministerios/importar', formData);
       
       toast({
         title: 'Importação bem-sucedida',

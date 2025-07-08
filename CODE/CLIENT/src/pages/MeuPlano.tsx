@@ -94,7 +94,7 @@ const MeuPlano = () => {
     const { data: subscriptionOverview, isLoading: isLoadingSubscriptionOverview, refetch: handleRefreshSubscription, isRefetching: isRefetchingSubscriptionOverview } = useQuery({
         queryKey: ['subscriptions'],
         queryFn: async () => {
-            return await HttpClient.get<SubscriptionOverview>('/subscriptions/church/overview');
+            return await HttpClient.getDefault().get<SubscriptionOverview>('/subscriptions/church/overview');
         }
     });
 
@@ -122,7 +122,7 @@ const MeuPlano = () => {
 
     const handleSendInvoice = async (invoiceId: string) => {
         try {
-            await HttpClient.post(`/subscriptions/${invoiceId}/invoice-report`, {});
+            await HttpClient.getDefault().post(`/subscriptions/${invoiceId}/invoice-report`, {});
 
             toast({
                 title: 'Fatura enviada',

@@ -16,7 +16,7 @@ const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({ onSuccess }) =>
   const handleGoogleLogin = async () => {
     try {
       // Redirecionar para o endpoint OAuth do Google
-      const response = await HttpClient.get<{ url: string }>('/login/google');
+              const response = await HttpClient.getDefault().get<{ url: string }>('/login/google');
       window.location.href = response.url;
     } catch (error) {
       toast({
@@ -67,12 +67,12 @@ const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({ onSuccess }) =>
 
   const exchangeGoogleCode = async (code: string, state: string) => {
     try {
-      const response = await HttpClient.post<AuthenticationResult>('/login/google/callback', {
+              const response = await HttpClient.getDefault().post<AuthenticationResult>('/login/google/callback', {
         code,
         state,
       });
 
-      AuthenticationService.authenticate(response, response.user);
+              AuthenticationService.authenticate(response, response.user.user_metadata.email);
 
       toast({
         title: 'Login realizado com sucesso',

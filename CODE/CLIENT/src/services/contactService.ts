@@ -52,43 +52,45 @@ export interface UpdateContactMinistryRoleRequest {
 }
 
 export class ContactService {
+    private static readonly httpClient = HttpClient.getMember();
+
     public static async createContact(contactData: CreateContactRequest): Promise<Contact> {
-        return HttpClient.getMemberUrl().post<Contact>('/contacts', contactData);
+        return this.httpClient.post<Contact>('/contacts', contactData);
     }
 
     public static async getContactsByChurch(churchId: string): Promise<Contact[]> {
-        return HttpClient.getMemberUrl().get<Contact[]>(`/contacts?churchId=${churchId}`);
+        return this.httpClient.get<Contact[]>(`/contacts?churchId=${churchId}`);
     }
 
     public static async bulkCreateContacts(data: BulkCreateContactsRequest): Promise<Contact[]> {
-        return HttpClient.getMemberUrl().post<Contact[]>('/contacts/bulk', data);
+        return this.httpClient.post<Contact[]>('/contacts/bulk', data);
     }
 
     public static async getContactById(contactId: string): Promise<Contact> {
-        return HttpClient.getMemberUrl().get<Contact>(`/contacts/${contactId}`);
+        return this.httpClient.get<Contact>(`/contacts/${contactId}`);
     }
 
     public static async updateContact(contactId: string, contactData: UpdateContactRequest): Promise<Contact> {
-        return HttpClient.getMemberUrl().put<Contact>(`/contacts/${contactId}`, contactData);
+        return this.httpClient.put<Contact>(`/contacts/${contactId}`, contactData);
     }
 
     public static async deleteContact(contactId: string): Promise<void> {
-        return HttpClient.getMemberUrl().delete<void>(`/contacts/${contactId}`);
+        return this.httpClient.delete<void>(`/contacts/${contactId}`);
     }
 
     public static async associateContactToMinistry(contactId: string, association: ContactMinistryAssociation): Promise<void> {
-        return HttpClient.getMemberUrl().post<void>(`/contacts/${contactId}/ministries`, association);
+        return this.httpClient.post<void>(`/contacts/${contactId}/ministries`, association);
     }
 
     public static async getContactMinistries(contactId: string): Promise<ContactMinistry[]> {
-        return HttpClient.getMemberUrl().get<ContactMinistry[]>(`/contacts/${contactId}/ministries`);
+        return this.httpClient.get<ContactMinistry[]>(`/contacts/${contactId}/ministries`);
     }
 
     public static async removeContactFromMinistry(contactId: string, ministryId: string): Promise<void> {
-        return HttpClient.getMemberUrl().delete<void>(`/contacts/${contactId}/ministries/${ministryId}`);
+        return this.httpClient.delete<void>(`/contacts/${contactId}/ministries/${ministryId}`);
     }
 
     public static async updateContactMinistryRole(contactId: string, ministryId: string, roleData: UpdateContactMinistryRoleRequest): Promise<void> {
-        return HttpClient.getMemberUrl().put<void>(`/contacts/${contactId}/ministries/${ministryId}/role`, roleData);
+        return this.httpClient.put<void>(`/contacts/${contactId}/ministries/${ministryId}/role`, roleData);
     }
 }

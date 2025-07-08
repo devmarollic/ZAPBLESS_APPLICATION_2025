@@ -46,7 +46,7 @@ const OTPEmailLogin: React.FC<OTPEmailLoginProps> = ({ onSuccess, onBack }) => {
     const sendOTP = async (data: EmailFormData) => {
         setIsLoading(true);
         try {
-            await HttpClient.post('/login/send-otp', { email: data.email });
+            await HttpClient.getDefault().post('/login/send-otp', { email: data.email });
             setEmail(data.email);
             setStep('otp');
             toast({
@@ -67,7 +67,7 @@ const OTPEmailLogin: React.FC<OTPEmailLoginProps> = ({ onSuccess, onBack }) => {
     const verifyOTP = async (data: OTPFormData) => {
         setIsLoading(true);
         try {
-            let response = await HttpClient.post<AuthenticationResult>('/login/verify-otp', {
+            let response = await HttpClient.getDefault().post<AuthenticationResult>('/login/verify-otp', {
                 email,
                 otp: data.otp,
             });
@@ -75,7 +75,7 @@ const OTPEmailLogin: React.FC<OTPEmailLoginProps> = ({ onSuccess, onBack }) => {
                 title: 'Login realizado com sucesso',
                 description: 'Você será redirecionado para o dashboard',
             });
-            AuthenticationService.authenticate(response, response.user);
+            AuthenticationService.authenticate(response, response.user.user_metadata.email);
 
             onSuccess();
         } catch (error) {

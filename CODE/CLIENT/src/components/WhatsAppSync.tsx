@@ -19,7 +19,7 @@ const WhatsAppSync = () => {
             setTimer(30); // Reset timer when generating a new QR code
             setQrStatus('valid');
 
-            let response = await HttpClient.post<{ base64: string }>('/whatsapp/sync', {});
+            let response = await HttpClient.getWhatsapp().post<{ base64: string }>('/whatsapp/sync', {});
 
             setQrCode(response.base64);
             setIsLoading(false);

@@ -31,7 +31,6 @@ import ResetPassword from './pages/ResetPassword';
 import ChangePassword from './pages/ChangePassword';
 import Pagamento from './pages/Pagamento';
 import PlanSelection from './pages/PlanSelection';
-import Ministerios from './pages/Ministerios';
 import MinisterioNovo from './pages/MinisterioNovo';
 import MinisterioEditar from './pages/MinisterioEditar';
 import MinisterioGerenciar from './pages/MinisterioGerenciar';
@@ -124,7 +123,6 @@ const App = () => (
                                     <Route path="avisos/exportar" element={<Dashboard />} />
 
                                     {/* Ministérios */}
-                                    <Route path="ministerios" element={<Ministerios />} />
                                     <Route path="ministerios/novo" element={<MinisterioNovo />} />
                                     <Route path="ministerios/gerenciar" element={<MinisterioGerenciar />} />
                                     <Route path="ministerios/editar/:id" element={<MinisterioEditar />} />

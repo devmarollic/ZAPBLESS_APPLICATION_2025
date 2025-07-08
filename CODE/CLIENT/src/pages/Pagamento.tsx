@@ -93,7 +93,7 @@ const Pagamento = () => {
         setLoading(true);
         
         try {
-            let response = await HttpClient.post('/subscriptions/' + subscriptionId + '/payment', {
+            let response = await HttpClient.getDefault().post('/subscriptions/' + subscriptionId + '/payment', {
                 paymentMethod: paymentMethod,
                 paymentData: formData
             });

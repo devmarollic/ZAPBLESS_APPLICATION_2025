@@ -27,7 +27,7 @@ const MinisterioExportar = () => {
     queryKey: ['ministries'],
     queryFn: async () => {
       try {
-        return await HttpClient.get<Ministry[]>('/ministerios');
+        return await HttpClient.getDefault().get<Ministry[]>('/ministerios');
       } catch (error) {
         console.error('Error fetching ministries:', error);
         throw error;

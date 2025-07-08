@@ -88,6 +88,8 @@ export interface CreateEventResponse {
 }
 
 export class EventService {
+  private static readonly httpClient = HttpClient.getEvent();
+
   static async createEvent(eventData: CreateEventRequest): Promise<CreateEventResponse> {
     let response = await fetch('http://localhost:3001/events', {
       method: 'POST',
@@ -120,14 +122,14 @@ export class EventService {
   }
 
   static async getEvent(eventId: string): Promise<EventResponse> {
-    return HttpClient.get<EventResponse>(`/events/${eventId}`);
+    return this.httpClient.get<EventResponse>(`/events/${eventId}`);
   }
 
   static async updateEvent(eventId: string, eventData: UpdateEventRequest): Promise<EventResponse> {
-    return HttpClient.put<EventResponse>(`/events/${eventId}`, eventData);
+    return this.httpClient.put<EventResponse>(`/events/${eventId}`, eventData);
   }
 
   static async deleteEvent(eventId: string): Promise<void> {
-    return HttpClient.delete<void>(`/events/${eventId}`);
+    return this.httpClient.delete<void>(`/events/${eventId}`);
   }
 }

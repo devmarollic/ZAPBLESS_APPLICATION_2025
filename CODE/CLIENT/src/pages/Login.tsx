@@ -54,7 +54,7 @@ const Login = () => {
 
     const checkUserSubscription = async (email: string) => {
         try {
-            const response = await HttpClient.get<Subscription>('/subscriptions/email/' + email);
+            const response = await HttpClient.getDefault().get<Subscription>('/subscriptions/email/' + email);
             setSelectedPlan(response.planId);
             setIsAnnual(response.periodId === 'annual');
             setSubscriptionId(response.id);
@@ -72,12 +72,12 @@ const Login = () => {
         setIsLoading(true);
 
         try {
-            const response = await HttpClient.getBaseUrl().post<AuthenticationResult>('/login', {
+            const response = await HttpClient.getDefault().post<AuthenticationResult>('/login', {
                 email: data.email,
                 password: data.password,
             });
 
-            AuthenticationService.authenticate(response, response.user);
+            AuthenticationService.authenticate(response, response.user.user_metadata.email);
 
             toast({
                 title: 'Login realizado com sucesso',

@@ -4,31 +4,37 @@ import { AuthenticationService } from './authentication_service';
 export class HttpClient {
     private static isRefreshing = false;
     private static refreshSubscribers: Array<(token: string) => void> = [];
-    private static currentUrl: string = ApplicationSettings.API_URL;
+    private readonly baseUrl: string;
 
-    public static setUrl(url: string) {
-        this.currentUrl = url;
-
-        return this;
+    constructor(baseUrl: string) {
+        this.baseUrl = baseUrl;
     }
 
-    public static getMemberUrl() {
-        return this.setUrl(ApplicationSettings.MEMBER_API_URL);
+    // -- STATIC FACTORY METHODS
+
+    public static getDefault(): HttpClient {
+        return new HttpClient(ApplicationSettings.API_URL);
     }
 
-    public static getWhatsappUrl() {
-        return this.setUrl(ApplicationSettings.WHATSAPP_API_URL);
+    public static getMember(): HttpClient {
+        return new HttpClient(ApplicationSettings.MEMBER_API_URL);
     }
 
-    public static getMinistryUrl() {
-        return this.setUrl(ApplicationSettings.MINISTRY_API_URL);
+    public static getWhatsapp(): HttpClient {
+        return new HttpClient(ApplicationSettings.WHATSAPP_API_URL);
     }
 
-    public static getEventUrl() {
-        return this.setUrl(ApplicationSettings.EVENT_API_URL);
+    public static getMinistry(): HttpClient {
+        return new HttpClient(ApplicationSettings.MINISTRY_API_URL);
     }
 
-    public static async post<TResult>(resource: string, body: object): Promise<TResult> {
+    public static getEvent(): HttpClient {
+        return new HttpClient(ApplicationSettings.EVENT_API_URL);
+    }
+
+    // -- HTTP METHODS
+
+    public async post<TResult>(resource: string, body: object): Promise<TResult> {
         const headers = HttpClient.GetHeaders();
         const requestOptions: RequestInit = {
             method: 'POST',
@@ -37,7 +43,7 @@ export class HttpClient {
             headers: headers
         };
 
-        const url = this.currentUrl + resource;
+        const url = this.baseUrl + resource;
 
         try {
             const response = await fetch(url, requestOptions);
@@ -61,12 +67,10 @@ export class HttpClient {
             }
         } catch (error) {
             return Promise.reject(error);
-        } finally {
-            this.currentUrl = ApplicationSettings.API_URL;
         }
     }
 
-    public static async postForm<TResult>(resource: string, body: FormData): Promise<TResult> {
+    public async postForm<TResult>(resource: string, body: FormData): Promise<TResult> {
         const headers = HttpClient.GetHeaders(null);
         const requestOptions: RequestInit = {
             method: 'POST',
@@ -75,7 +79,7 @@ export class HttpClient {
             headers: headers
         };
 
-        const url = this.currentUrl + resource;
+        const url = this.baseUrl + resource;
 
         try {
             const response = await fetch(url, requestOptions);
@@ -97,12 +101,10 @@ export class HttpClient {
             }
         } catch (error) {
             return Promise.reject(error);
-        } finally {
-            this.currentUrl = ApplicationSettings.API_URL;
         }
     }
 
-    public static async put<TResult>(resource: string, body: object | null): Promise<TResult> {
+    public async put<TResult>(resource: string, body: object | null): Promise<TResult> {
         const headers = HttpClient.GetHeaders();
         const requestOptions: RequestInit = {
             method: 'PUT',
@@ -111,7 +113,7 @@ export class HttpClient {
             headers: headers
         };
 
-        const url = this.currentUrl + resource;
+        const url = this.baseUrl + resource;
 
         try {
             const response = await fetch(url, requestOptions);
@@ -141,12 +143,10 @@ export class HttpClient {
             }
         } catch (error) {
             return Promise.reject(error);
-        } finally {
-            this.currentUrl = ApplicationSettings.API_URL;
         }
     }
 
-    public static async patch<TResult>(resource: string, body: object | null): Promise<TResult> {
+    public async patch<TResult>(resource: string, body: object | null): Promise<TResult> {
         const headers = HttpClient.GetHeaders();
         const requestOptions: RequestInit = {
             method: 'PATCH',
@@ -155,7 +155,7 @@ export class HttpClient {
             headers: headers
         };
 
-        const url = this.currentUrl + resource;
+        const url = this.baseUrl + resource;
 
         try {
             const response = await fetch(url, requestOptions);
@@ -185,12 +185,10 @@ export class HttpClient {
             }
         } catch (error) {
             return Promise.reject(error);
-        } finally {
-            this.currentUrl = ApplicationSettings.API_URL;
         }
     }
 
-    public static async delete<TResult>(resource: string): Promise<TResult> {
+    public async delete<TResult>(resource: string): Promise<TResult> {
         const headers = HttpClient.GetHeaders();
         const requestOptions: RequestInit = {
             method: 'DELETE',
@@ -199,7 +197,7 @@ export class HttpClient {
             body: JSON.stringify({})
         };
 
-        const url = this.currentUrl + resource;
+        const url = this.baseUrl + resource;
 
         try {
             const response = await fetch(url, requestOptions);
@@ -229,12 +227,10 @@ export class HttpClient {
             }
         } catch (error) {
             return Promise.reject(error);
-        } finally {
-            this.currentUrl = ApplicationSettings.API_URL;
         }
     }
 
-    public static async get<TResult>(resource: string): Promise<TResult> {
+    public async get<TResult>(resource: string): Promise<TResult> {
         const headers = HttpClient.GetHeaders();
         const requestOptions: RequestInit = {
             method: 'GET',
@@ -242,7 +238,7 @@ export class HttpClient {
             headers: headers
         };
 
-        const url = this.currentUrl + resource;
+        const url = this.baseUrl + resource;
 
         try {
             const response = await fetch(url, requestOptions);
@@ -264,10 +260,10 @@ export class HttpClient {
             }
         } catch (error) {
             return Promise.reject(error);
-        } finally {
-            this.currentUrl = ApplicationSettings.API_URL;
         }
     }
+
+    // -- PRIVATE STATIC METHODS
 
     private static GetHeaders(contentType: null | string = 'application/json'): Record<string, string> {
         const token = AuthenticationService.getAccessToken();

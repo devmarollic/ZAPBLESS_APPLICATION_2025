@@ -72,7 +72,7 @@ const MeusDados = () => {
     const [churchImage, setChurchImage] = useState<string | null>(null);
     const { data: churchAndProfileData, isLoading: isLoadingChurchAndProfile, refetch: refetchChurchAndProfileData, isRefetching: isRefetchingChurchAndProfile } = useQuery({
         queryKey: ['churchAndProfileData'],
-        queryFn: () => HttpClient.get<ProfileAndChurchData>('/profile/church-data')
+        queryFn: () => HttpClient.getDefault().get<ProfileAndChurchData>('/profile/church-data')
     });
 
     useEffect(() => {
@@ -136,7 +136,7 @@ const MeusDados = () => {
     const onSubmitPersonal = async (data: PersonalDataFormValues) => {
         try {
             console.log(data);
-            await HttpClient.put('/profile/update', data);
+            await HttpClient.getDefault().put('/profile/update', data);
 
             toast({
                 title: 'Dados pessoais atualizados',
@@ -156,7 +156,7 @@ const MeusDados = () => {
 
     const onSubmitChurch = async (data: ChurchDataFormValues) => {
         try {
-            await HttpClient.put('/church/update', {
+            await HttpClient.getDefault().put('/church/update', {
                 name: data.churchName,
                 addressLine1: data.churchAddressLine1,
                 addressLine2: data.churchAddressLine2,

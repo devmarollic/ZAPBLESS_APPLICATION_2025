@@ -82,12 +82,12 @@ const GerenciarUsuarios = () => {
 
     const { data: churchAndProfileData, isLoading: isLoadingChurchAndProfile, refetch: refetchUsers, isFetching: isFetchingUsers } = useQuery({
         queryKey: ['users', searchTerm, statusFilter, roleFilter],
-        queryFn: () => HttpClient.get<UserResponse>(`/church/users/list?searchTerm=${searchTerm}&statusFilter=${statusFilter}&roleFilter=${roleFilter}`)
+        queryFn: () => HttpClient.getDefault().get<UserResponse>(`/church/users/list?searchTerm=${searchTerm}&statusFilter=${statusFilter}&roleFilter=${roleFilter}`)
     });
 
     const deleteUser = async (userId: string) => {
         try {
-            await HttpClient.delete(`/church/user/${userId}/delete`);
+            await HttpClient.getDefault().delete(`/church/user/${userId}/delete`);
 
             toast({
                 title: "Usuário deletado",
@@ -103,7 +103,7 @@ const GerenciarUsuarios = () => {
 
     const toggleUserStatus = (userId: string, currentStatus: string) => {
         try {
-            HttpClient.put(`/church/user/${userId}/update`, {
+            HttpClient.getDefault().put(`/church/user/${userId}/update`, {
                 statusId: ( currentStatus === 'active' ? 'inactive' : 'active' ) as User['statusId']
             });
 

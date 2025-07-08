@@ -170,7 +170,7 @@ export function useDashboard() {
         async function fetchDashboardData() {
             try {
                 setIsLoading(true);
-                const data = await HttpClient.get<DashboardData>('/dashboard/get');
+                const data = await HttpClient.getDefault().get<DashboardData>('/dashboard/get');
 
                 if (data) {
                     if (data.whatsapp) {

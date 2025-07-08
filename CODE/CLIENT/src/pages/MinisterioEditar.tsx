@@ -231,7 +231,7 @@ const MinisterioEditar = () => {
         description: "O ministério foi atualizado com sucesso!",
       });
 
-      navigate('/dashboard/ministerios');
+      navigate('/dashboard/ministerios/gerenciar');
     } catch (error) {
       console.error("Error updating ministry:", error);
       toast({
@@ -368,7 +368,7 @@ const MinisterioEditar = () => {
         description: "O ministério foi excluído com sucesso!",
       });
       
-      navigate('/dashboard/ministerios');
+      navigate('/dashboard/ministerios/gerenciar');
     } catch (error) {
       console.error("Error deleting ministry:", error);
       toast({
@@ -416,7 +416,7 @@ const MinisterioEditar = () => {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-          <Button variant="outline" onClick={() => navigate('/dashboard/ministerios')}>
+          <Button variant="outline" onClick={() => navigate('/dashboard/ministerios/gerenciar')}>
             Voltar para Ministérios
           </Button>
         </div>
@@ -512,7 +512,7 @@ const MinisterioEditar = () => {
                 <Button 
                   type="button" 
                   variant="outline" 
-                  onClick={() => navigate('/dashboard/ministerios')}
+                  onClick={() => navigate('/dashboard/ministerios/gerenciar')}
                   className="flex-1"
                 >
                   Cancelar

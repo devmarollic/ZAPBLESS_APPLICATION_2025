@@ -73,11 +73,11 @@ const UserFormModal = ({ open, onOpenChange, user, onSave }: UserFormModalProps)
 
             if ( user !== null )
             {
-                await HttpClient.put(`/church/user/${user.id}/update`, userData);
+                await HttpClient.getDefault().put(`/church/user/${user.id}/update`, userData);
             }
             else
             {
-                await HttpClient.post(`/church/user/add`, userData);
+                await HttpClient.getDefault().post(`/church/user/add`, userData);
             }
 
             toast({

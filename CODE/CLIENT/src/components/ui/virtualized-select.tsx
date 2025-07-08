@@ -106,7 +106,6 @@ const VirtualizedSelect = ({
               </div>
             )}
           </SelectValue>
-          <ChevronDown className="h-4 w-4 opacity-50" />
         </SelectTrigger>
         
         <SelectContent 

@@ -55,7 +55,7 @@ const Calendario = () => {
 
   useEffect(() => {
     const fetchEvents = async () => {
-      const response = await HttpClient.get<Event[]>('/event/list');
+              const response = await HttpClient.getEvent().get<Event[]>('/event/list');
       if (response) {
         setEvents(response);
       }

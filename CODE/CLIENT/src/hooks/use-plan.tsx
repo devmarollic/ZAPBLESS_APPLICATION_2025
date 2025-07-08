@@ -21,7 +21,7 @@ export function usePlan() {
         async function fetchPlans() {
             try {
                 setIsLoading(true);
-                const data = await HttpClient.get<PlanOption[]>('/plan/list');
+                const data = await HttpClient.getDefault().get<PlanOption[]>('/plan/list');
                 dispatch({ type: 'FETCH_PLANS_SUCCESS', payload: data });
                 setPlanByIdMap(getMap(data, 'id'));
             } catch (error) {

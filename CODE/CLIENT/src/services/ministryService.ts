@@ -52,17 +52,19 @@ export interface MemberMembership {
 }
 
 export class MinistryService {
+    private static readonly httpClient = HttpClient.getMinistry();
+
     public static async createMinistry(ministryData: CreateMinistryRequest): Promise<Ministry> {
-        return HttpClient.getMinistryUrl().post<Ministry>('/ministries', ministryData);
+        return this.httpClient.post<Ministry>('/ministries', ministryData);
     }
 
     public static async getMinistriesByChurch(): Promise<Ministry[]> {
         const churchId = AuthenticationService.getChurchId();
-        return HttpClient.getMinistryUrl().get<Ministry[]>(`/ministries?churchId=${churchId}`); 
+        return this.httpClient.get<Ministry[]>(`/ministries?churchId=${churchId}`); 
     }
 
     public static async getMinistryById(ministryId: string): Promise<Ministry> {
-        return HttpClient.getMinistryUrl().get<Ministry>(`/ministries/${ministryId}`);
+        return this.httpClient.get<Ministry>(`/ministries/${ministryId}`);
     }
 
     // Alias for getMinistryById to maintain compatibility
@@ -71,15 +73,15 @@ export class MinistryService {
     }
 
     public static async updateMinistry(ministryId: string, ministryData: UpdateMinistryRequest): Promise<Ministry> {
-        return HttpClient.getMinistryUrl().put<Ministry>(`/ministries/${ministryId}`, ministryData);
+        return this.httpClient.put<Ministry>(`/ministries/${ministryId}`, ministryData);
     }
 
     public static async deleteMinistry(ministryId: string): Promise<void> {
-        return HttpClient.getMinistryUrl().delete<void>(`/ministries/${ministryId}`);
+        return this.httpClient.delete<void>(`/ministries/${ministryId}`);
     }
 
     public static async addMemberToMinistry(ministryId: string, memberData: AddMemberToMinistryRequest): Promise<void> {
-        return HttpClient.getMinistryUrl().post<void>(`/ministries/${ministryId}/members`, memberData);
+        return this.httpClient.post<void>(`/ministries/${ministryId}/members`, memberData);
     }
 
     public static async getMinistryMembers(ministryId: string): Promise<MinistryMember[]> {
@@ -90,6 +92,6 @@ export class MinistryService {
 
 
     public static async removeMemberFromMinistry(ministryId: string, contactId: string): Promise<void> {
-        return HttpClient.getMinistryUrl().delete<void>(`/ministries/${ministryId}/members/${contactId}`);
+        return this.httpClient.delete<void>(`/ministries/${ministryId}/members/${contactId}`);
     }
 }

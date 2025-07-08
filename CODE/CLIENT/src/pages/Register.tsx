@@ -265,7 +265,7 @@ const Register = () => {
     const handleSubmit = async () => {
         setLoading(true);
         try {
-            const response = await HttpClient.post<{subscriptionId: string}>(
+            const response = await HttpClient.getDefault().post<{subscriptionId: string}>(
                 '/church/add',
                 {
                     churchInfo:

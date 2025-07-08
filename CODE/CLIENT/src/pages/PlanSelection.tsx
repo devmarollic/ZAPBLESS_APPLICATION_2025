@@ -24,7 +24,7 @@ const PlanSelection = () => {
         }
 
         try {
-            const { id: subscriptionId } = await HttpClient.post<{ id: string }>('/subscriptions/' + email + '/add', {
+            const { id: subscriptionId } = await HttpClient.getDefault().post<{ id: string }>('/subscriptions/' + email + '/add', {
                 planId: selectedPlan,
                 billingPeriod: isAnnual ? 'annual' : 'monthly'
             });

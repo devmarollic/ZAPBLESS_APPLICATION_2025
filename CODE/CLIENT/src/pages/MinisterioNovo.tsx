@@ -64,7 +64,7 @@ const MinisterioNovo = () => {
     const { data: members, isLoading: isLoadingMembers } = useQuery({
         queryKey: ['members'],
         queryFn: async () => {
-            return await HttpClient.get<Member[]>('/church/members/list');
+            return await HttpClient.getDefault().get<Member[]>('/church/members/list');
         }
     });
 
@@ -79,7 +79,7 @@ const MinisterioNovo = () => {
                 memberMemberships: memberMemberships,
             };
 
-            await HttpClient.post('/ministry/add', payload);
+            await HttpClient.getDefault().post('/ministry/add', payload);
 
             toast({
                 title: 'Ministério criado',
