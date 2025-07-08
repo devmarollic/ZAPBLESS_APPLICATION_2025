@@ -8,6 +8,7 @@ export class HttpClient {
 
     public static setUrl(url: string) {
         this.currentUrl = url;
+
         return this;
     }
 
@@ -40,7 +41,7 @@ export class HttpClient {
 
         try {
             const response = await fetch(url, requestOptions);
-            if (response.status === 200) {
+            if (response.status === 200 || response.status === 201) {
                 return Promise.resolve(response.json());
             } else if (response.status === 401) {
                 const newToken = await HttpClient.refreshToken();
@@ -48,15 +49,14 @@ export class HttpClient {
                     headers['Authorization'] = 'Bearer ' + newToken;
                     requestOptions.headers = headers;
                     const retryResponse = await fetch(url, requestOptions);
-                    if (retryResponse.status === 200) {
+                    if (retryResponse.status === 200 || retryResponse.status === 201) {
                         return Promise.resolve(retryResponse.json());
                     }
                 }
-                
+
                 return Promise.reject(new Error('Authentication failed'));
             } else {
                 const body = await response.json();
-
                 return Promise.reject(new Error(body.message));
             }
         } catch (error) {
@@ -115,7 +115,7 @@ export class HttpClient {
 
         try {
             const response = await fetch(url, requestOptions);
-            if (response.status === 200) {
+            if (response.status === 200 || response.status === 204) {
                 if (response.bodyUsed) {
                     return Promise.resolve(response.json());
                 } else {
@@ -127,7 +127,7 @@ export class HttpClient {
                     headers['Authorization'] = 'Bearer ' + newToken;
                     requestOptions.headers = headers;
                     const retryResponse = await fetch(url, requestOptions);
-                    if (retryResponse.status === 200) {
+                    if (retryResponse.status === 200 || retryResponse.status === 204) {
                         if (retryResponse.bodyUsed) {
                             return Promise.resolve(retryResponse.json());
                         } else {
@@ -315,10 +315,10 @@ export class HttpClient {
             if (response.ok) {
                 const data = await response.json();
                 AuthenticationService.updateTokens(data?.session?.access_token, data?.session?.refresh_token);
-                
+
                 HttpClient.refreshSubscribers.forEach(callback => callback(data.access_token));
                 HttpClient.refreshSubscribers = [];
-                
+
                 return data.access_token;
             } else {
                 AuthenticationService.logOff();
