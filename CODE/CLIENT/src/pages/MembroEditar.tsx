@@ -188,7 +188,7 @@ const MembroEditar = () => {
             }
         }
 
-        // Adicionar novos membros e atualizar roles existentes
+        // Adicionar apenas novos membros que ainda não existem no backend
         for ( const updatedMembership of updatedMinistryMemberships )
         {
             const existingMembership = currentMinistryMemberships.find(
@@ -197,21 +197,17 @@ const MembroEditar = () => {
 
             if ( !existingMembership )
             {
-                // Novo membro
-                await MinistryService.addMemberToMinistry( updatedMembership.ministryId, {
-                    contactId: id,
+                // Novo membro - usar o endpoint de associação
+                await ContactService.associateContactToMinistry( id, {
+                    ministryId: updatedMembership.ministryId,
                     roleSlug: updatedMembership.role
                 } );
             }
-            else if ( existingMembership.role !== updatedMembership.role )
+            else
             {
-                // Role alterada - remover e adicionar novamente
-                await MinistryService.removeMemberFromMinistry( updatedMembership.ministryId, id );
-                await MinistryService.addMemberToMinistry( updatedMembership.ministryId, {
-                    contactId: id,
-                    roleSlug: updatedMembership.role
-                } );
+                console.log( 'Ministry already exists, skipping:', updatedMembership.ministryId );
             }
+            // Não precisamos atualizar roles existentes aqui, pois isso já foi feito via handleUpdateRole
         }
     };
 
@@ -274,10 +270,27 @@ const MembroEditar = () => {
     const handleMinistryToggle = ( ministryId: string, checked: boolean ) => {
         if ( checked )
         {
-            setUpdatedMinistryMemberships( current => [
-                ...current,
-                { ministryId, role: "member" }
-            ] );
+            // Verificar se já existe no currentMinistryMemberships
+            const existingMembership = currentMinistryMemberships.find(
+                membership => membership.ministryId === ministryId
+            );
+
+            if ( existingMembership )
+            {
+                // Se já existe, apenas adicionar de volta ao updatedMinistryMemberships
+                setUpdatedMinistryMemberships( current => [
+                    ...current,
+                    existingMembership
+                ] );
+            }
+            else
+            {
+                // Se é novo, adicionar com role padrão
+                setUpdatedMinistryMemberships( current => [
+                    ...current,
+                    { ministryId, role: "member" }
+                ] );
+            }
         }
         else
         {
@@ -295,6 +308,88 @@ const MembroEditar = () => {
                     : membership
             )
         );
+    };
+
+    const handleRemoveMinistry = async ( ministryId: string ) => {
+        if ( !id ) return;
+
+        try
+        {
+            await ContactService.removeContactFromMinistry( id, ministryId );
+            
+            // Remove from both current and updated lists
+            setCurrentMinistryMemberships( current =>
+                current.filter( membership => membership.ministryId !== ministryId )
+            );
+            setUpdatedMinistryMemberships( current =>
+                current.filter( membership => membership.ministryId !== ministryId )
+            );
+
+            toast(
+                {
+                    title: "Sucesso",
+                    description: "Membro removido do ministério com sucesso!",
+                }
+                );
+        }
+        catch ( error )
+        {
+            console.error( 'Erro ao remover membro do ministério:', error );
+            toast(
+                {
+                    title: "Erro",
+                    description: "Não foi possível remover o membro do ministério. Tente novamente.",
+                    variant: "destructive",
+                }
+                );
+            throw error; // Re-throw to let the component handle the loading state
+        }
+    };
+
+    const handleUpdateRole = async ( ministryId: string, role: string ) => {
+        if ( !id ) return;
+
+        try
+        {
+            // Check if this is a new membership (not in currentMinistryMemberships)
+            const isNewMembership = !currentMinistryMemberships.some( 
+                membership => membership.ministryId === ministryId 
+            );
+
+            if ( isNewMembership )
+            {
+                // For new memberships, use the associate endpoint
+                await ContactService.associateContactToMinistry( id, {
+                    ministryId,
+                    roleSlug: role
+                } );
+                
+                // Add to currentMinistryMemberships since it now exists in the backend
+                setCurrentMinistryMemberships( current => [
+                    ...current,
+                    { ministryId, role }
+                ] );
+            }
+            else
+            {
+                // For existing memberships, use the update role endpoint
+                await ContactService.updateContactMinistryRole( id, ministryId, { roleSlug: role } );
+            }
+            
+            // Update updatedMinistryMemberships
+            setUpdatedMinistryMemberships( current =>
+                current.map( membership =>
+                    membership.ministryId === ministryId
+                        ? { ...membership, role }
+                        : membership
+                )
+            );
+        }
+        catch ( error )
+        {
+            console.error( 'Erro ao atualizar função do membro:', error );
+            throw error; // Re-throw to let the component handle the error
+        }
     };
 
     return (
@@ -381,6 +476,8 @@ const MembroEditar = () => {
                                 ministryMemberships={updatedMinistryMemberships}
                                 onMinistryToggle={handleMinistryToggle}
                                 onUpdateMembership={updateMinistryMembership}
+                                onRemoveMinistry={handleRemoveMinistry}
+                                onUpdateRole={handleUpdateRole}
                             />
 
                             <div className="flex justify-between gap-4 pt-4">

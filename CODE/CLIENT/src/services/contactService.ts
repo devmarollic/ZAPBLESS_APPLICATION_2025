@@ -47,6 +47,10 @@ export interface ContactMinistry {
     roleSlug: string;
 }
 
+export interface UpdateContactMinistryRoleRequest {
+    roleSlug: string;
+}
+
 export class ContactService {
     public static async createContact(contactData: CreateContactRequest): Promise<Contact> {
         return HttpClient.getMemberUrl().post<Contact>('/contacts', contactData);
@@ -82,5 +86,9 @@ export class ContactService {
 
     public static async removeContactFromMinistry(contactId: string, ministryId: string): Promise<void> {
         return HttpClient.getMemberUrl().delete<void>(`/contacts/${contactId}/ministries/${ministryId}`);
+    }
+
+    public static async updateContactMinistryRole(contactId: string, ministryId: string, roleData: UpdateContactMinistryRoleRequest): Promise<void> {
+        return HttpClient.getMemberUrl().put<void>(`/contacts/${contactId}/ministries/${ministryId}/role`, roleData);
     }
 }
