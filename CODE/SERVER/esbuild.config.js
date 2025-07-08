@@ -8,6 +8,9 @@ await esbuild.build({
   sourcemap: true,
   external: [
     // Node.js built-in modules
+    'tty',
+    'puppeteer',
+    'html-pdf-node',
     'fs',
     'path',
     'events',

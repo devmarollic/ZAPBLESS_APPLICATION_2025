@@ -8,8 +8,8 @@ import { generatePdf } from 'html-pdf-node';
 
 // -- CONSTANTS
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __filename = fileURLToPath( import.meta.url );
+const __dirname = dirname( __filename );
 
 // -- FUNCTIONS
 
@@ -24,13 +24,13 @@ async function generateReportPdf(
     context
     )
 {
-    let templatePath = resolve(__dirname, '../../template', `${templateName}.html`);
-    let templateSource = await readFile(templatePath, 'utf8');
-    let compileTemplate = compile(templateSource);
-    let htmlBody = compileTemplate(context);
+    let templatePath = resolve( './src/template', `${ templateName }.html` );
+    let templateSource = await readFile( templatePath, 'utf8' );
+    let compileTemplate = compile( templateSource );
+    let htmlBody = compileTemplate( context );
 
     let file = { content: htmlBody };
-    let pdfBuffer = await generatePdf(file, { format: 'A4' });
+    let pdfBuffer = await generatePdf( file, { format: 'A4' } );
 
     return pdfBuffer;
 }

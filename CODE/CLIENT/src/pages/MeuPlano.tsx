@@ -120,6 +120,22 @@ const MeuPlano = () => {
         }
     };
 
+    const handleSendInvoice = async (invoiceId: string) => {
+        try {
+            await HttpClient.post(`/subscriptions/${invoiceId}/invoice-report`, {});
+
+            toast({
+                title: 'Fatura enviada',
+                description: 'Fatura enviada com sucesso. Verifique sua caixa de entrada.',
+            });
+        } catch (error) {
+            toast({
+                title: 'Erro ao enviar fatura',
+                description: 'Ocorreu um erro ao enviar a fatura. Por favor, tente novamente.',
+            });
+        }
+    };
+
     const getInvoiceStatusBadge = (status: string) => {
         switch (status) {
             case 'paid':
@@ -285,7 +301,7 @@ const MeuPlano = () => {
                                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: invoice.currency }).format(invoice.amount)}
                                     </TableCell>
                                     <TableCell>
-                                        <Button variant="ghost" size="sm">
+                                        <Button variant="ghost" size="sm" onClick={() => handleSendInvoice(invoice.id)}>
                                             <Download className="h-4 w-4" />
                                         </Button>
                                     </TableCell>
