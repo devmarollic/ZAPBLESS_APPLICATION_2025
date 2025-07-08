@@ -32,8 +32,9 @@ const transporter = createTransport(
  * @param {string}          subject     Subject line
  * @param {string}          template    File name (without .html) found in template folder
  * @param {object}          context     Key-value pairs used by Handlebars
+ * @param {Array}           attachments Optional array of attachment objects for nodemailer
  */
-async function sendEmail( to, subject, template, context = {} )
+async function sendEmail( to, subject, template, context = {}, attachments = [] )
 {
     try
     {
@@ -47,7 +48,8 @@ async function sendEmail( to, subject, template, context = {} )
                 from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
                 to,
                 subject,
-                html: htmlBody
+                html: htmlBody,
+                attachments
             };
 
         await transporter.sendMail(mailOptions);

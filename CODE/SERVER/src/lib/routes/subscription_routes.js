@@ -6,6 +6,7 @@ import { AddSubscriptionController } from '../controller/add_subscription_contro
 import { GetActivePlanDetailsController } from '../controller/get_active_plan_details_controller';
 import { GetBillingHistoryController } from '../controller/get_billing_history_controller';
 import { GetSubscriptionOverviewController } from '../controller/get_subscription_overview_controller';
+import { GenerateInvoiceReportController } from '../controller/generate_invoice_report_controller.js';
 
 // -- CONSTANTS
 
@@ -15,6 +16,7 @@ const addSubscriptionController = new AddSubscriptionController();
 const getActivePlanDetailsController = new GetActivePlanDetailsController();
 const getBillingHistoryController = new GetBillingHistoryController();
 const getSubscriptionOverviewController = new GetSubscriptionOverviewController();
+const generateInvoiceReportController = new GenerateInvoiceReportController();
 
 // -- FUNCTIONS
 
@@ -36,6 +38,11 @@ export async function subscriptionRoutes(
     fastify.post(
         '/:email/add',
         ( request, response ) => addSubscriptionController.handle( request, response )
+        );
+
+    fastify.post(
+        '/:subscriptionId/invoice-report',
+        ( request, response ) => generateInvoiceReportController.handle( request, response )
         );
 
     fastify.get(
