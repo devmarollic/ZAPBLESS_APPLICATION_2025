@@ -53,12 +53,10 @@ const MembroEditar = () => {
 
     const { data: ministries, isLoading: isLoadingMinistries } = useQuery(
         {
-            queryKey: ['ministries', churchId],
+            queryKey: ['ministries'],
             queryFn: async () => {
-                if ( !churchId ) throw new Error( "Church ID not found" );
-                return await MinistryService.getMinistriesByChurch( churchId );
-            },
-            enabled: !!churchId
+                return await MinistryService.getMinistriesByChurch();
+            }
         }
         );
 

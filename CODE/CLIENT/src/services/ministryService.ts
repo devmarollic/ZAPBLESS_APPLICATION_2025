@@ -1,5 +1,6 @@
 
 import { HttpClient } from '@/lib/http_client';
+import { AuthenticationService } from '@/lib/authentication_service';
 
 export interface Ministry {
     id: string;
@@ -7,6 +8,11 @@ export interface Ministry {
     description: string;
     color: string;
     churchId: string;
+    memberCount: number;
+    leader: {
+        name: string;
+        number: string;
+    }
 }
 
 export interface CreateMinistryRequest {
@@ -38,8 +44,9 @@ export class MinistryService {
         return HttpClient.getMinistryUrl().post<Ministry>('/ministries', ministryData);
     }
 
-    public static async getMinistriesByChurch(churchId: string): Promise<Ministry[]> {
-        return HttpClient.getMinistryUrl().get<Ministry[]>(`/ministries?churchId=${churchId}`);
+    public static async getMinistriesByChurch(): Promise<Ministry[]> {
+        const churchId = AuthenticationService.getChurchId();
+        return HttpClient.getMinistryUrl().get<Ministry[]>(`/ministries?churchId=${churchId}`); 
     }
 
     public static async getMinistryById(ministryId: string): Promise<Ministry> {

@@ -19,41 +19,18 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { useQuery } from '@tanstack/react-query';
+import { AuthenticationService } from '@/lib/authentication_service';
 
 const MinisterioGerenciar = () => {
     const { toast } = useToast();
     const navigate = useNavigate();
-    const [ministries, setMinistries] = useState<Ministry[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [isDeleting, setIsDeleting] = useState<string | null>(null);
-
-    useEffect(() => {
-        loadMinistries();
-    }, []);
-
-    const loadMinistries = async () => {
-        try {
-            setIsLoading(true);
-            const response = await MinistryService.getMinistries();
-            
-            if (Array.isArray(response)) {
-                setMinistries(response);
-            } else {
-                console.log('Response message:', response.message);
-                setMinistries([]);
-            }
-        } catch (error) {
-            console.error('Error loading ministries:', error);
-            toast({
-                title: 'Erro ao carregar ministérios',
-                description: 'Não foi possível carregar a lista de ministérios.',
-                variant: 'destructive',
-            });
-            setMinistries([]);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    const churchId = AuthenticationService.getChurchId();
+    const { data: ministries, isLoading: isLoadingMinistries, refetch: refetchMinistries } = useQuery({
+        queryKey: ['ministries'],
+        queryFn: async () => MinistryService.getMinistriesByChurch()
+    });
 
     const handleDelete = async (ministryId: string) => {
         try {
@@ -64,8 +41,7 @@ const MinisterioGerenciar = () => {
                 title: 'Ministério excluído',
                 description: 'O ministério foi excluído com sucesso.',
             });
-            
-            await loadMinistries();
+            refetchMinistries();
         } catch (error) {
             console.error('Error deleting ministry:', error);
             toast({
@@ -79,20 +55,14 @@ const MinisterioGerenciar = () => {
     };
 
     const getLeaderName = (ministry: Ministry) => {
-        if (ministry.leaderArray && ministry.leaderArray.length > 0) {
-            return ministry.leaderArray[0].profile.legalName;
+        if (ministry.leader) {
+            return ministry.leader.name;
         }
+
         return 'Sem líder';
     };
 
-    const getMemberCount = (ministry: Ministry) => {
-        if (ministry.memberCountArray && ministry.memberCountArray.length > 0) {
-            return ministry.memberCountArray[0].count;
-        }
-        return 0;
-    };
-
-    if (isLoading) {
+    if (isLoadingMinistries) {
         return (
             <div className="container mx-auto py-6">
                 <div className="flex justify-center items-center h-64">
@@ -145,7 +115,6 @@ const MinisterioGerenciar = () => {
                                         <TableHead>Descrição</TableHead>
                                         <TableHead>Líder</TableHead>
                                         <TableHead>Membros</TableHead>
-                                        <TableHead>Cor</TableHead>
                                         <TableHead className="text-right">Ações</TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -153,9 +122,15 @@ const MinisterioGerenciar = () => {
                                     {ministries.map((ministry) => (
                                         <TableRow key={ministry.id}>
                                             <TableCell className="font-medium">
-                                                {ministry.name}
+                                                <div className="flex items-center gap-2">
+                                                    <div
+                                                        className="w-6 h-6 rounded-full border"
+                                                        style={{ backgroundColor: ministry.color }}
+                                                    />
+                                                    {ministry.name}
+                                                </div>
                                             </TableCell>
-                                            <TableCell className="max-w-xs truncate">
+                                            <TableCell className="max-w-xs truncate" title={ ministry.description }>
                                                 {ministry.description}
                                             </TableCell>
                                             <TableCell>
@@ -166,14 +141,8 @@ const MinisterioGerenciar = () => {
                                             </TableCell>
                                             <TableCell>
                                                 <Badge variant="secondary">
-                                                    {getMemberCount(ministry)} membros
+                                                    {ministry.memberCount} membros
                                                 </Badge>
-                                            </TableCell>
-                                            <TableCell>
-                                                <div
-                                                    className="w-6 h-6 rounded-full border"
-                                                    style={{ backgroundColor: ministry.color }}
-                                                />
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 <div className="flex justify-end gap-2">
