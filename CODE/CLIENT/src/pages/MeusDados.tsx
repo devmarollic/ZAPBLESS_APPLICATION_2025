@@ -208,6 +208,20 @@ const MeusDados = () => {
         );
     }
 
+    const phoneCountryCodes = [
+        { code: '+55', country: 'Brasil', flag: '🇧🇷' },
+        { code: '+1', country: 'EUA/Canadá', flag: '🇺🇸' },
+        { code: '+54', country: 'Argentina', flag: '🇦🇷' },
+        { code: '+56', country: 'Chile', flag: '🇨🇱' },
+        { code: '+57', country: 'Colômbia', flag: '🇨🇴' },
+        { code: '+51', country: 'Peru', flag: '🇵🇪' },
+        { code: '+598', country: 'Uruguai', flag: '🇺🇾' },
+        { code: '+595', country: 'Paraguai', flag: '🇵🇾' },
+        { code: '+52', country: 'México', flag: '🇲🇽' },
+        { code: '+34', country: 'Espanha', flag: '🇪🇸' },
+        { code: '+351', country: 'Portugal', flag: '🇵🇹' }
+    ];
+
     return (
         <div className="md:container mx-auto py-6 space-y-6">
             <div>
@@ -267,10 +281,25 @@ const MeusDados = () => {
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Prefixo de Telefone</FormLabel>
-                                                <FormControl>
-                                                    <Input placeholder="+55" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
+                                                <Select
+                                                    value={field.value}
+                                                    onValueChange={field.onChange}
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Código" />
+                                                    </SelectTrigger>
+                                                    <SelectContent {...field}>
+                                                        {phoneCountryCodes.map((item) => (
+                                                            <SelectItem key={item.code} value={item.code}>
+                                                                <div className="flex items-center space-x-2">
+                                                                    <span>{item.flag}</span>
+                                                                    <span>{item.code}</span>
+                                                                    <span className="text-sm text-gray-500">{item.country}</span>
+                                                                </div>
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
                                             </FormItem>
                                         )}
                                     />

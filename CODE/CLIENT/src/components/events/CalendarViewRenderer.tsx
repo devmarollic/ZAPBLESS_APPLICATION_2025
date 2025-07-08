@@ -1,8 +1,6 @@
-
-import CalendarGrid from "@/components/events/CalendarGrid";
+import FullCalendarView from "@/components/events/FullCalendarView";
 import CalendarListView from "@/components/events/CalendarListView";
 import CalendarAgendaView from "@/components/events/CalendarAgendaView";
-import { gerarCalendario } from "@/utils/calendarUtils";
 import { Event } from "@/types/event";
 
 interface CalendarViewRendererProps {
@@ -20,41 +18,39 @@ const CalendarViewRenderer = ({
   anoAtual, 
   onEventClick 
 }: CalendarViewRendererProps) => {
-  const calendario = gerarCalendario(anoAtual, mesAtual);
   const dataAtual = new Date(2025, 4, 12); // 12 de Maio de 2025
 
-  switch (visualizacao) {
-    case "list":
-      return (
-        <CalendarListView 
-          eventos={eventosFiltrados}
-          mesAtual={mesAtual}
-          anoAtual={anoAtual}
-          onEventClick={onEventClick}
-        />
-      );
-    case "agenda":
-      return (
-        <CalendarAgendaView 
-          eventos={eventosFiltrados}
-          mesAtual={mesAtual}
-          anoAtual={anoAtual}
-          onEventClick={onEventClick}
-        />
-      );
-    case "grid":
-    default:
-      return (
-        <CalendarGrid 
-          calendario={calendario} 
-          eventos={eventosFiltrados}
-          mesAtual={mesAtual}
-          anoAtual={anoAtual}
-          dataAtual={dataAtual}
-          onEventClick={onEventClick}
-        />
-      );
+  // Use FullCalendar for most views
+  if (['grid', 'monthly', 'agenda', 'weekly'].includes(visualizacao)) {
+    return (
+      <FullCalendarView
+        eventos={eventosFiltrados}
+        visualizacao={visualizacao}
+        onEventClick={onEventClick}
+      />
+    );
   }
+
+  // Keep existing list view
+  if (visualizacao === "list") {
+    return (
+      <CalendarListView 
+        eventos={eventosFiltrados}
+        mesAtual={mesAtual}
+        anoAtual={anoAtual}
+        onEventClick={onEventClick}
+      />
+    );
+  }
+
+  // Default fallback
+  return (
+    <FullCalendarView
+      eventos={eventosFiltrados}
+      visualizacao="grid"
+      onEventClick={onEventClick}
+    />
+  );
 };
 
 export default CalendarViewRenderer;

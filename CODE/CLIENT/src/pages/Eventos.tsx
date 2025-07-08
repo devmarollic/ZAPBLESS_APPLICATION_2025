@@ -31,7 +31,7 @@ const Eventos = () => {
       <Card>
         <CardHeader className="pb-3">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <CalendarHeader 
+            {/* <CalendarHeader 
               selectedDate={new Date(anoAtual, mesAtual, 1)}
               onDateChange={handleDateChange}
               onRangeChange={handleRangeChange}
@@ -43,7 +43,7 @@ const Eventos = () => {
               onViewChange={handleViewChange}
               selectedCategories={selectedCategories}
               onCategoriesChange={handleCategoriesChange}
-            />
+            /> */}
           </div>
         </CardHeader>
         <CardContent>
