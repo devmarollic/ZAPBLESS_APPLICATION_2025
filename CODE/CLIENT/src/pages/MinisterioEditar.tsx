@@ -9,12 +9,18 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import VirtualizedSelect from '@/components/ui/virtualized-select';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { MinistryService, Ministry } from '@/services/ministryService';
-import { useQuery } from '@tanstack/react-query';
+import { ContactService, Contact } from '@/services/contactService';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { HttpClient } from '@/lib/http_client';
-import MinistryMemberSelection from '@/components/members/MinistryMemberSelection';
+import ContactSelection from '@/components/members/ContactSelection';
+import MinistryStats from '@/components/members/MinistryStats';
+import { Trash2 } from 'lucide-react';
+import { AuthenticationService } from '@/lib/authentication_service';
+import { useMinistryValidation } from '@/hooks/use-ministry-validation';
 
 const ministryFormSchema = z.object({
   name: z.string().min(3, 'O nome deve ter pelo menos 3 caracteres'),
@@ -26,12 +32,7 @@ const ministryFormSchema = z.object({
 
 type MinistryFormValues = z.infer<typeof ministryFormSchema>;
 
-type Member = {
-  id: string;
-  legalName: string;
-  email: string;
-  phoneNumber: string;
-}
+type Member = Contact;
 
 interface MemberMembership {
   memberId: string;
@@ -42,6 +43,7 @@ const MinisterioEditar = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
   const [ministry, setMinistry] = useState<Ministry | null>(null);
   const [memberMemberships, setMemberMemberships] = useState<MemberMembership[]>([]);
@@ -57,11 +59,18 @@ const MinisterioEditar = () => {
     },
   });
 
-  const { data: members, isLoading: isLoadingMembers } = useQuery({
-    queryKey: ['members'],
+  // Get all contacts for selection
+  const { data: allContacts, isLoading: isLoadingAllContacts } = useQuery({
+    queryKey: ['contacts', 'church'],
     queryFn: async () => {
-      return await HttpClient.get<Member[]>('/church/members/list');
+      const churchId = AuthenticationService.getChurchId();
+      return await ContactService.getContactsByChurch(churchId);
     }
+  });
+
+  const { validateMemberAddition, validateMinistryData, validationErrors, clearValidationErrors } = useMinistryValidation({
+    memberMemberships,
+    contacts: allContacts
   });
 
   useEffect(() => {
@@ -69,23 +78,35 @@ const MinisterioEditar = () => {
       if (!id) return;
       
       try {
-        const response = await MinistryService.getMinistry(id);
-        if (response) {
-          setMinistry(response);
-          form.reset({
-            name: response.name,
-            description: response.description,
-            color: response.color,
-            leaderId: response.leaderId || 'none',
-            viceLeaderId: response.viceLeaderId || 'none',
-          });
+        const ministryResponse = await MinistryService.getMinistry(id);
+        
+        if (ministryResponse) {
+          console.log('Ministry Response:', ministryResponse);
+          setMinistry(ministryResponse);
           
-          // Initialize member memberships with mock data
-          const mockMemberships: MemberMembership[] = (response.memberIds || []).map(memberId => ({
-            memberId,
-            role: "member"
+          const formData = {
+            name: ministryResponse.name,
+            description: ministryResponse.description,
+            color: ministryResponse.color,
+            leaderId: 'none', // Will be determined from members later
+            viceLeaderId: 'none', // Will be determined from members later
+          };
+          
+          console.log('Form Data:', formData);
+          
+          // Use setValue to ensure fields are properly set
+          form.setValue('name', formData.name);
+          form.setValue('description', formData.description);
+          form.setValue('color', formData.color);
+          form.setValue('leaderId', formData.leaderId);
+          form.setValue('viceLeaderId', formData.viceLeaderId);
+          
+          // Initialize member memberships from API response
+          const memberships: MemberMembership[] = ministryResponse.members.map(member => ({
+            memberId: member.contactId,
+            role: member.roleSlug
           }));
-          setMemberMemberships(mockMemberships);
+          setMemberMemberships(memberships);
         }
       } catch (error) {
         console.error("Error fetching ministry:", error);
@@ -101,23 +122,109 @@ const MinisterioEditar = () => {
     fetchMinistry();
   }, [id, form, toast, navigate]);
 
+  // Ensure form values are set when ministry data is available
+  useEffect(() => {
+    if (ministry) {
+      form.setValue('name', ministry.name);
+      form.setValue('description', ministry.description);
+      form.setValue('color', ministry.color);
+      
+      // Set leader and vice-leader based on member roles
+      const leaderMember = ministry.members.find(m => m.roleSlug === 'leader');
+      const viceLeaderMember = ministry.members.find(m => m.roleSlug === 'vice_leader');
+      
+      form.setValue('leaderId', leaderMember ? leaderMember.contactId : 'none');
+      form.setValue('viceLeaderId', viceLeaderMember ? viceLeaderMember.contactId : 'none');
+    }
+  }, [ministry, form]);
+
+
+
   const onSubmit = async (data: MinistryFormValues) => {
     if (!id) return;
+    
+    // Clear previous validation errors
+    clearValidationErrors();
+    
+    // Ensure leaders are added as members if they're not already
+    const updatedMemberships = [...memberMemberships];
+    
+    if (data.leaderId !== 'none') {
+      const isLeaderMember = updatedMemberships.some(m => m.memberId === data.leaderId);
+      if (!isLeaderMember) {
+        updatedMemberships.push({ memberId: data.leaderId, role: 'leader' });
+      } else {
+        // Update existing member to leader role
+        const memberIndex = updatedMemberships.findIndex(m => m.memberId === data.leaderId);
+        if (memberIndex !== -1) {
+          updatedMemberships[memberIndex].role = 'leader';
+        }
+      }
+    }
+    
+    if (data.viceLeaderId !== 'none') {
+      const isViceLeaderMember = updatedMemberships.some(m => m.memberId === data.viceLeaderId);
+      if (!isViceLeaderMember) {
+        updatedMemberships.push({ memberId: data.viceLeaderId, role: 'vice_leader' });
+      } else {
+        // Update existing member to vice leader role
+        const memberIndex = updatedMemberships.findIndex(m => m.memberId === data.viceLeaderId);
+        if (memberIndex !== -1) {
+          updatedMemberships[memberIndex].role = 'vice_leader';
+        }
+      }
+    }
+    
+    // Update the state with the new memberships
+    setMemberMemberships(updatedMemberships);
+    
+    // Validate ministry data before submission
+    if (!validateMinistryData(data)) {
+      return;
+    }
     
     try {
       setIsLoading(true);
       
+      // First update the ministry basic info
       const updateData = {
         name: data.name,
         description: data.description,
         color: data.color,
         leaderId: data.leaderId === 'none' ? undefined : data.leaderId,
         viceLeaderId: data.viceLeaderId === 'none' ? undefined : data.viceLeaderId,
-        memberIds: memberMemberships.map(m => m.memberId),
-        memberMemberships: memberMemberships,
       };
       
       await MinistryService.updateMinistry(id, updateData);
+      
+      // Then handle member changes efficiently
+      const currentMembersData = ministry?.members || [];
+      const currentMemberIds = new Set(currentMembersData.map(m => m.contactId));
+      const newMemberIds = new Set(updatedMemberships.map(m => m.memberId));
+      
+      // Create arrays for batch operations
+      const membersToRemove = currentMembersData.filter(m => !newMemberIds.has(m.contactId));
+      const membersToAdd = updatedMemberships.filter(m => !currentMemberIds.has(m.memberId));
+      
+      // Execute removals in parallel
+      await Promise.all(
+        membersToRemove.map(member => 
+          MinistryService.removeMemberFromMinistry(id, member.contactId)
+        )
+      );
+      
+      // Execute additions in parallel
+      await Promise.all(
+        membersToAdd.map(membership => 
+          MinistryService.addMemberToMinistry(id, {
+            contactId: membership.memberId,
+            roleSlug: membership.role
+          })
+        )
+      );
+      
+      // Invalidate related queries to refresh data
+      await queryClient.invalidateQueries({ queryKey: ['contacts', 'church'] });
       
       toast({
         title: "Ministério atualizado",
@@ -139,6 +246,11 @@ const MinisterioEditar = () => {
 
   const handleMemberToggle = (memberId: string, checked: boolean, role: string = 'member') => {
     if (checked) {
+      // Validate member addition
+      if (!validateMemberAddition(memberId, role)) {
+        return;
+      }
+      
       setMemberMemberships(current => [
         ...current,
         { memberId, role }
@@ -160,6 +272,115 @@ const MinisterioEditar = () => {
     );
   };
 
+  const handleLeaderChange = (leaderId: string) => {
+    const formData = form.getValues();
+    
+    // If selecting a leader, add them as a member if not already present
+    if (leaderId !== 'none') {
+      const isAlreadyMember = memberMemberships.some(m => m.memberId === leaderId);
+      
+      if (!isAlreadyMember) {
+        setMemberMemberships(current => [
+          ...current,
+          { memberId: leaderId, role: 'leader' }
+        ]);
+      } else {
+        // Update existing member to leader role
+        setMemberMemberships(current =>
+          current.map(membership =>
+            membership.memberId === leaderId
+              ? { ...membership, role: 'leader' }
+              : membership
+          )
+        );
+      }
+    }
+    
+    // If removing leader, update their role to member if they exist
+    if (leaderId === 'none' && formData.leaderId !== 'none') {
+      setMemberMemberships(current =>
+        current.map(membership =>
+          membership.memberId === formData.leaderId
+            ? { ...membership, role: 'member' }
+            : membership
+        )
+      );
+    }
+    
+    // If the new leader was previously vice-leader, clear vice-leader
+    if (leaderId !== 'none' && formData.viceLeaderId === leaderId) {
+      form.setValue('viceLeaderId', 'none');
+      setMemberMemberships(current =>
+        current.map(membership =>
+          membership.memberId === leaderId
+            ? { ...membership, role: 'leader' }
+            : membership
+        )
+      );
+    }
+  };
+
+  const handleViceLeaderChange = (viceLeaderId: string) => {
+    const formData = form.getValues();
+    
+    // If selecting a vice leader, add them as a member if not already present
+    if (viceLeaderId !== 'none') {
+      const isAlreadyMember = memberMemberships.some(m => m.memberId === viceLeaderId);
+      
+      if (!isAlreadyMember) {
+        setMemberMemberships(current => [
+          ...current,
+          { memberId: viceLeaderId, role: 'vice_leader' }
+        ]);
+      } else {
+        // Update existing member to vice leader role
+        setMemberMemberships(current =>
+          current.map(membership =>
+            membership.memberId === viceLeaderId
+              ? { ...membership, role: 'vice_leader' }
+              : membership
+          )
+        );
+      }
+    }
+    
+    // If removing vice leader, update their role to member if they exist
+    if (viceLeaderId === 'none' && formData.viceLeaderId !== 'none') {
+      setMemberMemberships(current =>
+        current.map(membership =>
+          membership.memberId === formData.viceLeaderId
+            ? { ...membership, role: 'member' }
+            : membership
+        )
+      );
+    }
+  };
+
+  const handleDeleteMinistry = async () => {
+    if (!id) return;
+    
+    try {
+      setIsLoading(true);
+      await MinistryService.deleteMinistry(id);
+      
+      toast({
+        title: "Ministério excluído",
+        description: "O ministério foi excluído com sucesso!",
+      });
+      
+      navigate('/dashboard/ministerios');
+    } catch (error) {
+      console.error("Error deleting ministry:", error);
+      toast({
+        title: "Erro ao excluir ministério",
+        description: "Não foi possível excluir o ministério. Tente novamente mais tarde.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (!ministry) {
     return (
       <div className="container mx-auto py-6">
@@ -172,9 +393,33 @@ const MinisterioEditar = () => {
     <div className="md:container mx-auto py-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Editar Ministério</h1>
-        <Button variant="outline" onClick={() => navigate('/dashboard/ministerios')}>
-          Voltar para Ministérios
-        </Button>
+        <div className="flex gap-2">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm">
+                <Trash2 className="h-4 w-4 mr-2" />
+                Excluir Ministério
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Excluir Ministério</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Tem certeza que deseja excluir este ministério? Esta ação não pode ser desfeita.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteMinistry} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Excluir
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          <Button variant="outline" onClick={() => navigate('/dashboard/ministerios')}>
+            Voltar para Ministérios
+          </Button>
+        </div>
       </div>
       
       <Card className="max-w-4xl mx-auto">
@@ -236,71 +481,25 @@ const MinisterioEditar = () => {
                 )}
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="leaderId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Líder</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                        disabled={isLoadingMembers}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder={isLoadingMembers ? "Carregando..." : "Selecione um líder"} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">Nenhum líder</SelectItem>
-                          {(members ?? []).map((member) => (
-                            <SelectItem key={member.id} value={member.id}>
-                              {member.legalName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              {validationErrors.length > 0 && (
+                <div className="p-4 border border-destructive rounded-lg bg-destructive/10">
+                  <h4 className="font-medium text-destructive mb-2">Erros de Validação:</h4>
+                  <ul className="text-sm text-destructive space-y-1">
+                    {validationErrors.map((error, index) => (
+                      <li key={index}>• {error}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
-                <FormField
-                  control={form.control}
-                  name="viceLeaderId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Vice-Líder</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                        disabled={isLoadingMembers}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder={isLoadingMembers ? "Carregando..." : "Selecione um vice-líder"} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">Nenhum vice-líder</SelectItem>
-                          {(members ?? []).map((member) => (
-                            <SelectItem key={member.id} value={member.id}>
-                              {member.legalName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <MinistryStats 
+                contacts={allContacts}
+                memberMemberships={memberMemberships}
+              />
 
-              <MinistryMemberSelection
-                members={members}
-                isLoadingMembers={isLoadingMembers}
+              <ContactSelection
+                contacts={allContacts}
+                isLoadingContacts={isLoadingAllContacts}
                 memberMemberships={memberMemberships}
                 onMemberToggle={handleMemberToggle}
                 onUpdateMembership={handleUpdateMembership}

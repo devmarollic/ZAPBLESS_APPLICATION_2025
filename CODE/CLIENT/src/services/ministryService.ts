@@ -1,6 +1,17 @@
 
 import { HttpClient } from '@/lib/http_client';
 import { AuthenticationService } from '@/lib/authentication_service';
+import { Contact } from './contactService';
+
+export interface MinistryMember {
+    ministryId: string;
+    contactId: string;
+    roleSlug: string;
+    joinedAtTimestamp: string;
+    contact: {
+        id: string;
+    };
+}
 
 export interface Ministry {
     id: string;
@@ -8,11 +19,7 @@ export interface Ministry {
     description: string;
     color: string;
     churchId: string;
-    memberCount: number;
-    leader: {
-        name: string;
-        number: string;
-    }
+    members: MinistryMember[];
 }
 
 export interface CreateMinistryRequest {
@@ -26,17 +33,22 @@ export interface UpdateMinistryRequest {
     name: string;
     description: string;
     color: string;
+    leaderId?: string;
+    viceLeaderId?: string;
+    memberIds?: string[];
+    memberMemberships?: MemberMembership[];
 }
 
-export interface MinistryMember {
-    id: string;
-    name: string;
-    roleSlug: string;
-}
+
 
 export interface AddMemberToMinistryRequest {
     contactId: string;
     roleSlug: string;
+}
+
+export interface MemberMembership {
+    memberId: string;
+    role: string;
 }
 
 export class MinistryService {
@@ -53,6 +65,11 @@ export class MinistryService {
         return HttpClient.getMinistryUrl().get<Ministry>(`/ministries/${ministryId}`);
     }
 
+    // Alias for getMinistryById to maintain compatibility
+    public static async getMinistry(ministryId: string): Promise<Ministry> {
+        return this.getMinistryById(ministryId);
+    }
+
     public static async updateMinistry(ministryId: string, ministryData: UpdateMinistryRequest): Promise<Ministry> {
         return HttpClient.getMinistryUrl().put<Ministry>(`/ministries/${ministryId}`, ministryData);
     }
@@ -66,8 +83,11 @@ export class MinistryService {
     }
 
     public static async getMinistryMembers(ministryId: string): Promise<MinistryMember[]> {
-        return HttpClient.getMinistryUrl().get<MinistryMember[]>(`/ministries/${ministryId}/members`);
+        const ministry = await this.getMinistryById(ministryId);
+        return ministry.members;
     }
+
+
 
     public static async removeMemberFromMinistry(ministryId: string, contactId: string): Promise<void> {
         return HttpClient.getMinistryUrl().delete<void>(`/ministries/${ministryId}/members/${contactId}`);

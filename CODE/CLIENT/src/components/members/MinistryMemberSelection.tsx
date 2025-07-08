@@ -4,13 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X, Plus, Users, UserCheck } from 'lucide-react';
+import { Contact } from '@/services/contactService';
 
-interface Member {
-  id: string;
-  legalName: string;
-  email: string;
-  phoneNumber: string;
-}
+type Member = Contact;
 
 interface MemberMembership {
   memberId: string;
@@ -88,7 +84,7 @@ const MinistryMemberSelection = ({
                     <SelectItem key={member.id} value={member.id}>
                       <div className="flex items-center gap-2">
                         <Plus className="h-3 w-3" />
-                        {member.legalName}
+                        {member.name}
                       </div>
                     </SelectItem>
                   ))}
@@ -104,7 +100,7 @@ const MinistryMemberSelection = ({
                 return (
                   <Badge key={membership.memberId} variant="secondary" className="flex items-center gap-1">
                     <IconComponent className="h-3 w-3" />
-                    {member.legalName}
+                    {member.name}
                     <Button
                       variant="ghost"
                       size="sm"
