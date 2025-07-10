@@ -29,7 +29,7 @@ export const calculateRecurrentEventOccurrences = (
   events.forEach(event => {
     console.log('Processing event:', event.title, 'recurrenceTypeId:', event.recurrenceTypeId);
     
-    if (!event.recurrenceTypeId || event.recurrenceTypeId === 'none' || !event.recurrence?.length) {
+    if (!event.recurrenceTypeId || event.recurrenceTypeId === 'none' || !event.recurrence) {
       // Evento não recorrente
       const eventDate = new Date(event.startAtTimestamp);
       if (eventDate >= startDate && eventDate <= endDate) {
@@ -56,7 +56,7 @@ export const calculateRecurrentEventOccurrences = (
       return;
     }
 
-    const recurrenceRule = event.recurrence[0];
+    const recurrenceRule = event.recurrence;
     const originalStartDate = new Date(event.startAtTimestamp);
     const originalEndDate = new Date(event.endAtTimestamp);
     const recurrenceEndDate = new Date(recurrenceRule.endAtTimestamp);
@@ -120,11 +120,11 @@ export const calculateRecurrentEventOccurrences = (
             shouldInclude = true;
             break;
           case 'weekly':
-            if (recurrenceRule.dayOfWeekArray.length === 0) {
+            if (recurrenceRule.dayOfWeekArray?.length === 0) {
               // Se não há dias específicos, usar o dia da semana original
               shouldInclude = currentDate.getDay() === originalStartDate.getDay();
             } else {
-              shouldInclude = recurrenceRule.dayOfWeekArray.includes(currentDate.getDay());
+              shouldInclude = recurrenceRule.dayOfWeekArray?.includes(currentDate.getDay());
             }
             break;
           case 'monthly':
@@ -174,14 +174,14 @@ export const calculateRecurrentEventOccurrences = (
           currentDate = addDays(currentDate, recurrenceRule.interval);
           break;
         case 'weekly':
-          if (recurrenceRule.dayOfWeekArray.length > 0) {
+          if (recurrenceRule.dayOfWeekArray?.length > 0) {
             // Para eventos semanais com dias específicos, encontrar o próximo dia da semana
             let nextDay = new Date(currentDate);
             let found = false;
             
             for (let i = 1; i <= 7; i++) {
               nextDay = addDays(currentDate, i);
-              if (recurrenceRule.dayOfWeekArray.includes(nextDay.getDay())) {
+              if (recurrenceRule.dayOfWeekArray?.includes(nextDay.getDay())) {
                 currentDate = nextDay;
                 found = true;
                 break;

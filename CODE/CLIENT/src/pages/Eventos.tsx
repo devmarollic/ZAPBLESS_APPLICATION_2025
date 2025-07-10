@@ -1,5 +1,6 @@
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
 import CalendarHeader from "@/components/events/CalendarHeader";
 import CalendarViewSelector from "@/components/events/CalendarViewSelector";
 import EventDetailsCard from "@/components/events/EventDetailsCard";
@@ -16,13 +17,21 @@ const Eventos = () => {
     eventosFiltrados,
     selectedEvent,
     isEventDetailsOpen,
+    isLoading,
+    error,
     handleDateChange,
     handleViewChange,
     handleRangeChange,
     handleCategoriesChange,
     handleEventClick,
-    handleCloseEventDetails
+    handleCloseEventDetails,
+    handleCalendarDateChange,
+    handleCalendarViewChange
   } = useEventCalendar();
+
+  console.log('Eventos component - eventosFiltrados:', eventosFiltrados);
+  console.log('Eventos component - isLoading:', isLoading);
+  console.log('Eventos component - error:', error);
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -47,13 +56,27 @@ const Eventos = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <CalendarViewRenderer
-            visualizacao={visualizacao}
-            eventosFiltrados={eventosFiltrados}
-            mesAtual={mesAtual}
-            anoAtual={anoAtual}
-            onEventClick={handleEventClick}
-          />
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              <span className="ml-2 text-muted-foreground">Carregando eventos...</span>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <p className="text-destructive">Erro ao carregar eventos. Tente novamente.</p>
+              <p className="text-sm text-muted-foreground mt-2">{error.message}</p>
+            </div>
+          ) : (
+            <CalendarViewRenderer
+              visualizacao={visualizacao}
+              eventosFiltrados={eventosFiltrados}
+              mesAtual={mesAtual}
+              anoAtual={anoAtual}
+              onEventClick={handleEventClick}
+              onDateChange={handleCalendarDateChange}
+              onViewChange={handleCalendarViewChange}
+            />
+          )}
         </CardContent>
       </Card>
 

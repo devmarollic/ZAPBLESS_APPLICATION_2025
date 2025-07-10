@@ -132,10 +132,20 @@ export const aplicarFiltros = (
   mesAtual?: number, 
   anoAtual?: number
 ) => {
+  console.log('Applying filters:', {
+    totalEvents: eventos.length,
+    categorias,
+    dataInicio,
+    dataFim,
+    mesAtual,
+    anoAtual
+  });
+
   let eventosFiltrados = [...eventos];
   
   // Filtrar por data
   if (dataInicio || dataFim) {
+    const beforeFilter = eventosFiltrados.length;
     eventosFiltrados = eventosFiltrados.filter(evento => {
       const eventoData = new Date(evento.startAtTimestamp);
       
@@ -148,17 +158,18 @@ export const aplicarFiltros = (
       }
       return true;
     });
+    console.log('After date filter:', { before: beforeFilter, after: eventosFiltrados.length });
   }
   
-  // Filtrar por mês/ano específico se fornecido
-  if (mesAtual !== undefined && anoAtual !== undefined) {
-    eventosFiltrados = eventosFiltrados.filter(
-      evento => {
-        const eventoData = new Date(evento.startAtTimestamp);
-        return eventoData.getMonth() === mesAtual && eventoData.getFullYear() === anoAtual;
-      }
-    );
-  }
+  // Filtrar por mês/ano específico se fornecido (comentado porque a API já filtra por data)
+  // if (mesAtual !== undefined && anoAtual !== undefined) {
+  //   eventosFiltrados = eventosFiltrados.filter(
+  //     evento => {
+  //       const eventoData = new Date(evento.startAtTimestamp);
+  //       return eventoData.getMonth() === mesAtual && eventoData.getFullYear() === anoAtual;
+  //     }
+  //   );
+  // }
   
   // Filtrar por categorias
   if (categorias && categorias.length > 0 && !categorias.includes('todas')) {
@@ -179,6 +190,10 @@ export const aplicarFiltros = (
       });
     });
   }
+
+  console.log({
+    eventosFiltrados
+  });
   
   return eventosFiltrados;
 };

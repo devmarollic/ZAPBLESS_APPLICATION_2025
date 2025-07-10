@@ -78,7 +78,7 @@ export interface EventResponse {
     recurrenceType?: {
         name: string;
     };
-    recurrence?: RecurrenceData[];
+    recurrence?: RecurrenceData;
 }
 
 export interface CreateEventResponse {
