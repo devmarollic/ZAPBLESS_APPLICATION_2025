@@ -5,59 +5,25 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash2, FileText, Eye } from 'lucide-react';
-import { Template, TemplateCategoryId } from '@/types/template';
+import { Plus, Edit, Trash2, FileText, Eye, Loader2 } from 'lucide-react';
+import { Template } from '@/types/template';
 import { TemplateService } from '@/services/templateService';
 import TemplateFormDialog from './TemplateFormDialog';
 import TemplatePreviewDialog from './TemplatePreviewDialog';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const TemplateManager = () => {
   const { toast } = useToast();
-  const [templates, setTemplates] = useState<Template[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
+  const queryClient = useQueryClient();
 
-  const categoryLabels: Record<TemplateCategoryId, string> = {
-    reminder: 'Lembrete',
-    notification: 'Notificação',
-    'thank-you': 'Agradecimento',
-    'follow-up': 'Acompanhamento',
-    announcement: 'Anúncio',
-    roster: 'Escala'
-  };
-
-  const categoryColors: Record<TemplateCategoryId, string> = {
-    reminder: 'bg-blue-100 text-blue-800',
-    notification: 'bg-yellow-100 text-yellow-800',
-    'thank-you': 'bg-green-100 text-green-800',
-    'follow-up': 'bg-purple-100 text-purple-800',
-    announcement: 'bg-red-100 text-red-800',
-    roster: 'bg-gray-100 text-gray-800'
-  };
-
-  useEffect(() => {
-    fetchTemplates();
-  }, []);
-
-  const fetchTemplates = async () => {
-    try {
-      setIsLoading(true);
-      const data = await TemplateService.getTemplates();
-      setTemplates(data);
-    } catch (error) {
-      console.error('Error fetching templates:', error);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível carregar os templates',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { data: templates, isLoading } = useQuery({
+    queryKey: ['templates'],
+    queryFn: () => TemplateService.getTemplates()
+  });
 
   const handleCreateTemplate = () => {
     setEditingTemplate(null);
@@ -79,7 +45,7 @@ const TemplateManager = () => {
 
     try {
       await TemplateService.deleteTemplate(id);
-      setTemplates(templates.filter(t => t.id !== id));
+      queryClient.invalidateQueries({ queryKey: ['templates'] });
       toast({
         title: 'Template excluído',
         description: 'O template foi excluído com sucesso!'
@@ -95,7 +61,7 @@ const TemplateManager = () => {
   };
 
   const handleFormSuccess = () => {
-    fetchTemplates();
+    queryClient.invalidateQueries({ queryKey: ['templates'] });
     setIsFormOpen(false);
   };
 
@@ -133,7 +99,7 @@ const TemplateManager = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {templates.length === 0 ? (
+          {(templates || []).length === 0 ? (
             <div className="text-center py-8">
               <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <p className="text-muted-foreground">Nenhum template encontrado</p>
@@ -153,24 +119,31 @@ const TemplateManager = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {templates.map((template) => (
+                {isLoading && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    </TableCell>
+                  </TableRow>
+                )}
+                {!isLoading && Array.isArray( templates ) && templates.map((template) => (
                   <TableRow key={template.id}>
                     <TableCell>
                       <div>
                         <div className="font-medium">{template.name}</div>
                         <div className="text-sm text-muted-foreground line-clamp-1">
-                          {template.content.substring(0, 50)}...
+                          {template.content.slice(0, 50)}...
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge className={categoryColors[template.categoryId]}>
-                        {categoryLabels[template.categoryId]}
+                      <Badge className={template.category.color}>
+                        {template.category.name}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">
-                        {template.languageTag.toUpperCase()}
+                      <Badge className="whitespace-nowrap" variant="outline" title={template.language.name}>
+                        {template.language.code.toUpperCase()}
                       </Badge>
                     </TableCell>
                     <TableCell>

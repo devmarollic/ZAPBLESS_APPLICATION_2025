@@ -73,7 +73,7 @@ const MinisterioGerenciar = () => {
     }
 
     return (
-        <div className="container mx-auto py-6">
+        <div className="md:container mx-auto py-6">
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h1 className="text-2xl md:text-3xl font-bold">Gerenciar Ministérios</h1>
@@ -125,7 +125,7 @@ const MinisterioGerenciar = () => {
                                                 <div className="flex items-center gap-2">
                                                     <div
                                                         className="w-6 h-6 rounded-full border"
-                                                        style={{ backgroundColor: ministry.color }}
+                                                        style={{ backgroundColor: ministry.color, flexShrink: 0 }}
                                                     />
                                                     {ministry.name}
                                                 </div>

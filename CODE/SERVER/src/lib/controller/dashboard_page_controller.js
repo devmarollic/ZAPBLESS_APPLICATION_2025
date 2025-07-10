@@ -54,11 +54,11 @@ export class DashboardPageController extends PageController
                     churchService.getChurchById( churchId ),
                     ministryService.getMinistriesByChurchId( churchId ),
                     databaseService.getClient()
-                        .from( 'PROFILE' )
+                        .from( 'CONTACT' )
                         .select( 'id' )
                         .eq( 'churchId', churchId ),
                     databaseService.getClient()
-                        .from( 'PROFILE' )
+                        .from( 'CONTACT' )
                         .select( 'id' )
                         .eq( 'churchId', churchId )
                         .gte( 'creationTimestamp', new Date( new Date().getFullYear(), new Date().getMonth(), 1 ).toISOString() ),

@@ -529,6 +529,7 @@ public
 
         id : STRING = "{{name:slug_case}}" | key, unique
         name : STRING
+        color : STRING
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
 
@@ -537,7 +538,7 @@ public
         id : TUID | key, unique
         churchId : CHURCH.id | constrained
         name : STRING
-        categoryId : MESSAGE_TEMPLATE_CATEGORY.id
+        categoryId : MESSAGE_TEMPLATE_CATEGORY.id | constrained
         languageTag : LANGUAGE.code | constrained
         content : STRING
         allowCategoryChange : BOOL

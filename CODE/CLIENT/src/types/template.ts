@@ -1,27 +1,26 @@
 
-export type TemplateCategoryId = 
-  | 'reminder' 
-  | 'notification' 
-  | 'thank-you' 
-  | 'follow-up' 
-  | 'announcement' 
-  | 'roster';
-
 export interface Template {
   id: string;
   name: string;
-  categoryId: TemplateCategoryId;
-  languageTag: string;
+  category: {
+    id: string;
+    name: string;
+    color: string;
+  };
+  language: {
+    code: string;
+    name: string;
+  };
   content: string;
   allowCategoryChange: boolean;
   isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  creationTimestamp: Date;
+  updateTimestamp: Date;
 }
 
 export interface CreateTemplateRequest {
   name: string;
-  categoryId: TemplateCategoryId;
+  categoryId: string;
   languageTag: string;
   content: string;
   allowCategoryChange: boolean;
@@ -30,9 +29,14 @@ export interface CreateTemplateRequest {
 
 export interface UpdateTemplateRequest {
   name?: string;
-  categoryId?: TemplateCategoryId;
+  categoryId?: string;
   languageTag?: string;
   content?: string;
   allowCategoryChange?: boolean;
   isActive?: boolean;
+}
+
+export interface TemplateCategory {
+  id: string;
+  name: string;
 }

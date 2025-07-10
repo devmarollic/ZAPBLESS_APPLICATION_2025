@@ -212,7 +212,7 @@ class WhatsAppManager extends events.EventEmitter {
                             // Foto de perfil não disponível, continua sem ela
                         }
 
-                        let name = [ contact.name, contact.notify, contact.verifiedName ].filter(Boolean)?.[ 0 ];
+                        let name = [ contact.name, contact.notify, contact.verifiedName ].filter( Boolean )?.[ 0 ];
 
                         filteredContactArray.push({
                             ...contact,
@@ -245,7 +245,7 @@ class WhatsAppManager extends events.EventEmitter {
                             // Foto de perfil não disponível, continua sem ela
                         }
 
-                        let name = [ contact.name, contact.notify, contact.verifiedName ].filter(Boolean)?.[ 0 ];
+                        let name = [ contact.name, contact.notify, contact.verifiedName ].filter( Boolean )?.[ 0 ];
 
                         contactService.upsertContact(
                             {

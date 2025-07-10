@@ -37,8 +37,8 @@ const TemplatePreviewDialog = ({ isOpen, onClose, template }: TemplatePreviewDia
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {template.name}
-            <Badge className={categoryColors[template.categoryId]}>
-              {categoryLabels[template.categoryId]}
+            <Badge className={template.category.color}>
+              {template.category.name}
             </Badge>
           </DialogTitle>
           <DialogDescription>
@@ -50,8 +50,8 @@ const TemplatePreviewDialog = ({ isOpen, onClose, template }: TemplatePreviewDia
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="font-medium">Idioma:</span>
-              <Badge variant="outline" className="ml-2">
-                {template.languageTag.toUpperCase()}
+              <Badge variant="outline" className="ml-2" title={template.language.name}>
+                {template.language.code.toUpperCase()}
               </Badge>
             </div>
             <div>
@@ -69,7 +69,7 @@ const TemplatePreviewDialog = ({ isOpen, onClose, template }: TemplatePreviewDia
             <div>
               <span className="font-medium">Criado em:</span>
               <span className="ml-2">
-                {new Date(template.createdAt).toLocaleDateString('pt-BR')}
+                {new Date(template.creationTimestamp).toLocaleDateString('pt-BR')}
               </span>
             </div>
           </div>
@@ -86,12 +86,12 @@ const TemplatePreviewDialog = ({ isOpen, onClose, template }: TemplatePreviewDia
           <div className="bg-blue-50 p-4 rounded-lg">
             <h4 className="font-medium text-blue-800 mb-2">Variáveis disponíveis:</h4>
             <div className="text-sm text-blue-700 space-y-1">
-              <div><code>{'{nome}'}</code> - Nome da pessoa</div>
-              <div><code>{'{data}'}</code> - Data do evento/lembrete</div>
-              <div><code>{'{evento}'}</code> - Nome do evento</div>
-              <div><code>{'{local}'}</code> - Local do evento</div>
-              <div><code>{'{horario}'}</code> - Horário do evento</div>
-              <div><code>{'{igreja}'}</code> - Nome da igreja</div>
+              <div><code>{'{{nome}}'}</code> - Nome da pessoa</div>
+              <div><code>{'{{data}}'}</code> - Data do evento/lembrete</div>
+              <div><code>{'{{evento}}'}</code> - Nome do evento</div>
+              <div><code>{'{{local}}'}</code> - Local do evento</div>
+              <div><code>{'{{horario}}'}</code> - Horário do evento</div>
+              <div><code>{'{{igreja}}'}</code> - Nome da igreja</div>
             </div>
           </div>
         </div>

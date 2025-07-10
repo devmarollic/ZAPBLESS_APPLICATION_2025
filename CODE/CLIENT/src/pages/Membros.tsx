@@ -86,17 +86,6 @@ const Membros = () => {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
-                        <div className="flex gap-2">
-                            <Button variant="outline">
-                                <Filter className="mr-2 h-4 w-4" /> Filtrar
-                            </Button>
-                            <Button variant="outline">
-                                Importar
-                            </Button>
-                            <Button variant="outline">
-                                Exportar
-                            </Button>
-                        </div>
                     </div>
 
                     {loading ? (

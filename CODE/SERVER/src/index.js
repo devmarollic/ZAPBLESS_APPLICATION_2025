@@ -18,7 +18,8 @@ import
         eventRoutes,
         dashboardRoutes,
         subscriptionRoutes,
-        eventTypesRoutes
+        eventTypesRoutes,
+        templateRoutes
     } from './lib/routes';
 import { initIO } from './socket';
 import { authMiddleware } from './middleware/auth_middleware';
@@ -39,7 +40,7 @@ let fastify = Fastify( { logger: true } );
 fastify.register(
     fastifyCors,
     {
-        origin: enviroment.FRONTEND_URL,
+        origin: '*',
         credentials: true,
         allowedHeaders: [ 'Content-Type', 'Authorization', 'ngrok-skip-browser-warning' ]
     }
@@ -75,6 +76,8 @@ fastify.register( eventRoutes, { prefix: '/event' } );
 fastify.register( dashboardRoutes, { prefix: '/dashboard' } );
 fastify.register( subscriptionRoutes, { prefix: '/subscriptions' } );
 fastify.register( eventTypesRoutes, { prefix: '/event-type' } );
+fastify.register( templateRoutes, { prefix: '/message-template' } );
+
 fastify.post( '/webhook', async ( request, reply ) =>
     {
         let relevantEventSet = new Set( [ 'billing.paid' ] );
@@ -82,8 +85,6 @@ fastify.post( '/webhook', async ( request, reply ) =>
         let data = request.body.data;
         let billing = data.billing;
         let eventType = request.body.event;
-
-        console.log( JSON.stringify( request.body, null, 2 ) );
 
         if ( relevantEventSet.has( eventType ) )
         {
