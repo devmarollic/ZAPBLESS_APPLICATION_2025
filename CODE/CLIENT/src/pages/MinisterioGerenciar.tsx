@@ -19,7 +19,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { AuthenticationService } from '@/lib/authentication_service';
 
 const MinisterioGerenciar = () => {
@@ -27,7 +27,8 @@ const MinisterioGerenciar = () => {
     const navigate = useNavigate();
     const [isDeleting, setIsDeleting] = useState<string | null>(null);
     const churchId = AuthenticationService.getChurchId();
-    const { data: ministries, isLoading: isLoadingMinistries, refetch: refetchMinistries } = useQuery({
+    const queryClient = useQueryClient();
+    const { data: ministries, isLoading: isLoadingMinistries } = useQuery({
         queryKey: ['ministries'],
         queryFn: async () => MinistryService.getMinistriesByChurch()
     });
@@ -41,7 +42,7 @@ const MinisterioGerenciar = () => {
                 title: 'Ministério excluído',
                 description: 'O ministério foi excluído com sucesso.',
             });
-            refetchMinistries();
+            queryClient.invalidateQueries({ queryKey: ['ministries'] });
         } catch (error) {
             console.error('Error deleting ministry:', error);
             toast({

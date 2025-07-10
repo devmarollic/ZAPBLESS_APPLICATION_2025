@@ -10,38 +10,22 @@ import { useToast } from "@/components/ui/use-toast";
 import { AuthenticationService } from "@/lib/authentication_service";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getUserInitials } from "@/utils/getUserInitials";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const Membros = () => {
     const navigate = useNavigate();
     const { toast } = useToast();
-    const [contacts, setContacts] = useState<Contact[]>([]);
-    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
 
     const churchId = AuthenticationService.getChurchId();
 
-    useEffect(() => {
-        loadContacts();
-    }, []);
+    const queryClient = useQueryClient();
+    const { data: contacts, isLoading: isLoadingContacts } = useQuery({
+        queryKey: ['contacts'],
+        queryFn: () => ContactService.getContactsByChurch(churchId)
+    });
 
-    const loadContacts = async () => {
-        try {
-            setLoading(true);
-            const contactsData = await ContactService.getContactsByChurch(churchId);
-            setContacts(contactsData);
-        } catch (error) {
-            console.error('Erro ao carregar contatos:', error);
-            toast({
-                title: "Erro",
-                description: "Não foi possível carregar os contatos.",
-                variant: "destructive",
-            });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const filteredContacts = contacts.filter(contact =>
+    const filteredContacts = (contacts || []).filter(contact =>
         contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         contact.number.includes(searchTerm)
     );
@@ -88,7 +72,7 @@ const Membros = () => {
                         </div>
                     </div>
 
-                    {loading ? (
+                    {isLoadingContacts ? (
                         <div className="flex items-center justify-center py-8">
                             <Loader2 className="h-8 w-8 animate-spin" />
                             <span className="ml-2">Carregando membros...</span>
@@ -106,7 +90,7 @@ const Membros = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-200">
-                                    {filteredContacts.map((contact) => (
+                                    {(filteredContacts || []).map((contact) => (
                                         <tr key={contact.id} className="hover:bg-gray-50">
                                             <td className="py-3">
                                                 <div className="flex items-center gap-2">

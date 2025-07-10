@@ -10,7 +10,7 @@ import { Search, Plus, Edit, Trash2, UserCheck, UserX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import UserFormModal from '@/components/users/UserFormModal';
 import { HttpClient } from '@/lib/http_client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 import { useSearchParams } from 'react-router-dom';
 
@@ -52,6 +52,7 @@ const GerenciarUsuarios = () => {
     const searchTerm = searchParams.get('searchTerm') || '';
     const statusFilter = searchParams.get('statusFilter') || '';
     const roleFilter = searchParams.get('roleFilter') || '';
+    const queryClient = useQueryClient();
 
     const handleFilterChange = (newKey: string, newValue: string) => {
         if (newValue === 'all') {
@@ -80,7 +81,7 @@ const GerenciarUsuarios = () => {
         );
     };
 
-    const { data: churchAndProfileData, isLoading: isLoadingChurchAndProfile, refetch: refetchUsers, isFetching: isFetchingUsers } = useQuery({
+    const { data: churchAndProfileData, isLoading: isLoadingChurchAndProfile } = useQuery({
         queryKey: ['users', searchTerm, statusFilter, roleFilter],
         queryFn: () => HttpClient.getDefault().get<UserResponse>(`/church/users/list?searchTerm=${searchTerm}&statusFilter=${statusFilter}&roleFilter=${roleFilter}`)
     });
@@ -93,17 +94,16 @@ const GerenciarUsuarios = () => {
                 title: "Usuário deletado",
                 description: "O usuário foi removido com sucesso.",
             });
+
+            queryClient.invalidateQueries({ queryKey: ['users'] });
         } catch (error) {
             console.error("Error deleting user:", error);
         }
-        finally {
-            refetchUsers();
-        }
     };
 
-    const toggleUserStatus = (userId: string, currentStatus: string) => {
+    const toggleUserStatus = async (userId: string, currentStatus: string) => {
         try {
-            HttpClient.getDefault().put(`/church/user/${userId}/update`, {
+            await HttpClient.getDefault().put(`/church/user/${userId}/update`, {
                 statusId: ( currentStatus === 'active' ? 'inactive' : 'active' ) as User['statusId']
             });
 
@@ -111,16 +111,15 @@ const GerenciarUsuarios = () => {
                 title: "Status do usuário atualizado",
                 description: "O status do usuário foi alterado com sucesso.",
             });
+
+            queryClient.invalidateQueries({ queryKey: ['users'] });
         } catch (error) {
             console.error("Error updating user status:", error);
-        }
-        finally {
-            refetchUsers();
         }
     };
 
     const handleSaveUser = (userData: User) => {
-        refetchUsers();
+        queryClient.invalidateQueries({ queryKey: ['users'] });
     };
 
     const handleEditUser = (user: User) => {
