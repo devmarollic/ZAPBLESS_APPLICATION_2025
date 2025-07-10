@@ -60,7 +60,7 @@ const EventBasicInfoForm = ({ control, ministries, eventTypes, loadingMinistries
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {ministries.map((ministry) => (
+                  {(ministries || []).map((ministry) => (
                     <SelectItem key={ministry.id} value={ministry.id}>
                       {ministry.name}
                     </SelectItem>
@@ -90,7 +90,7 @@ const EventBasicInfoForm = ({ control, ministries, eventTypes, loadingMinistries
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {eventTypes.map((eventType) => (
+                  {(eventTypes || []).map((eventType) => (
                     <SelectItem key={eventType.id} value={eventType.id}>
                       {eventType.name}
                     </SelectItem>

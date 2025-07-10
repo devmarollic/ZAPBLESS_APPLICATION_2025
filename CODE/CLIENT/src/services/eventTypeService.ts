@@ -6,14 +6,10 @@ export interface EventType {
   name: string;
 }
 
-export interface EventTypeListResponse {
-  message?: string;
-}
-
 export class EventTypeService {
   private static readonly httpClient = HttpClient.getEvent();
 
-  static async getEventTypes(): Promise<EventType[] | EventTypeListResponse> {
-    return this.httpClient.get<EventType[] | EventTypeListResponse>('/event-type/list');
+  static async getEventTypes(): Promise<EventType[]> {
+    return this.httpClient.get<EventType[]>('/event-type/list');
   }
 }
