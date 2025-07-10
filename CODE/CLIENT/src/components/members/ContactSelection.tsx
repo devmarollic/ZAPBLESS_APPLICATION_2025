@@ -123,7 +123,7 @@ const ContactSelection = ({
                                     placeholder={`Adicionar ${roleConfig.label.toLowerCase()}`}
                                     options={getAvailableContacts().map((contact) => ({
                                         value: contact.id,
-                                        label: [contact.name, contact.notify, contact.verifiedName].filter(Boolean)?.[ 0 ] || '',
+                                        label: contact.name || '',
                                         subtitle: contact.ecclesiasticalTitle
                                     }))}
                                     searchPlaceholder={`Buscar ${roleConfig.label.toLowerCase()}...`}

@@ -56,7 +56,7 @@ const MinisterioGerenciar = () => {
 
     const getLeaderName = (ministry: Ministry) => {
         if (ministry.leader) {
-            return ministry.leader.name;
+            return ministry.leader.contact.name;
         }
 
         return 'Sem líder';

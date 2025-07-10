@@ -122,12 +122,12 @@ const Membros = () => {
                                             <td className="py-3">
                                                 <div className="flex items-center gap-2">
                                                     <Avatar className="h-8 w-8">
-                                                        <AvatarImage src={contact?.imgUrl} alt={[contact?.name, contact?.notify, contact?.verifiedName].filter(Boolean)?.[0]} />
+                                                        <AvatarImage src={contact?.imgUrl} alt={contact?.name} />
                                                         <AvatarFallback className="bg-zapPurple-600 text-white text-sm">
-                                                            {getUserInitials([contact?.name, contact?.notify, contact?.verifiedName].filter(Boolean)?.[0])}
+                                                            {getUserInitials(contact?.name)}
                                                         </AvatarFallback>
                                                     </Avatar>
-                                                    {[contact?.name, contact?.notify, contact?.verifiedName].filter(Boolean)?.[0] || 'Contato não salvo'}
+                                                    {contact?.name || 'Contato não salvo'}
                                                 </div>
                                             </td>
                                             <td className="py-3">{contact.number}</td>

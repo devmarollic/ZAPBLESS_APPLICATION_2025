@@ -212,8 +212,11 @@ class WhatsAppManager extends events.EventEmitter {
                             // Foto de perfil não disponível, continua sem ela
                         }
 
+                        let name = [ contact.name, contact.notify, contact.verifiedName ].filter(Boolean)?.[ 0 ];
+
                         filteredContactArray.push({
                             ...contact,
+                            name,
                             id: getRandomTuid(),
                             number: phoneNumberWithPrefix,
                             churchId: process.env.CHURCH_ID,
@@ -242,9 +245,12 @@ class WhatsAppManager extends events.EventEmitter {
                             // Foto de perfil não disponível, continua sem ela
                         }
 
+                        let name = [ contact.name, contact.notify, contact.verifiedName ].filter(Boolean)?.[ 0 ];
+
                         contactService.upsertContact(
                             {
                                 ...contact,
+                                name,
                                 id: getRandomTuid(),
                                 number: phoneNumberWithPrefix,
                                 churchId: process.env.CHURCH_ID,

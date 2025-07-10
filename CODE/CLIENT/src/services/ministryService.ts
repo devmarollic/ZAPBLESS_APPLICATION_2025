@@ -20,6 +20,20 @@ export interface Ministry {
     color: string;
     churchId: string;
     members: MinistryMember[];
+    memberCount: number;
+    leader?: {
+        contactId: string;
+        contact: {
+            id: string;
+            name: string;
+            notify: string;
+            verifiedName: string;
+        };
+    };
+    viceLeader: {
+        contactId: string;
+        name: string;
+    };
 }
 
 export interface CreateMinistryRequest {
