@@ -26,28 +26,8 @@ export const calculateRecurrentEventOccurrences = (
 ): CalculatedEventOccurrence[] => {
   const occurrences: CalculatedEventOccurrence[] = [];
 
-  console.log('Starting recurrence calculation for date range:', {
-    startDate: format(startDate, 'yyyy-MM-dd'),
-    endDate: format(endDate, 'yyyy-MM-dd'),
-    totalEvents: events.length
-  });
 
   events.forEach(event => {
-    console.log('Processing event:', {
-      id: event.id,
-      title: event.title,
-      startAtTimestamp: event.startAtTimestamp,
-      endAtTimestamp: event.endAtTimestamp,
-      recurrenceTypeId: event.recurrenceTypeId,
-      recurrence: event.recurrence
-    });
-    console.log('Processing event:', {
-      title: event.title,
-      recurrenceTypeId: event.recurrenceTypeId,
-      startAtTimestamp: event.startAtTimestamp,
-      hasRecurrence: !!event.recurrence
-    });
-    
     // Validar se o evento tem dados de recorrência válidos
     if (!event.recurrenceTypeId || event.recurrenceTypeId === 'none' || !event.recurrence) {
       // Evento não recorrente
@@ -64,7 +44,6 @@ export const calculateRecurrentEventOccurrences = (
       }
       
       if (eventDate >= startDate && eventDate <= endDate) {
-        console.log('Adding non-recurring event:', event.title, 'on', format(eventDate, 'yyyy-MM-dd'));
         occurrences.push({
           id: `${event.id}-${eventDate.getTime()}`,
           originalId: event.id,
@@ -146,18 +125,6 @@ export const calculateRecurrentEventOccurrences = (
     // Calcular a duração do evento
     const eventDuration = originalEndDate.getTime() - originalStartDate.getTime();
 
-    console.log('Recurrence details:', {
-      title: event.title,
-      recurrenceTypeId: event.recurrenceTypeId,
-      interval: recurrenceRule.interval,
-      dayOfWeekArray: recurrenceRule.dayOfWeekArray,
-      dayOfMonthArray: recurrenceRule.dayOfMonthArray,
-      originalStartDate: format(originalStartDate, 'yyyy-MM-dd'),
-      originalStartDayOfWeek: originalStartDate.getDay(),
-      recurrenceEndDate: format(recurrenceEndDate, 'yyyy-MM-dd'),
-      eventDuration: `${eventDuration / (1000 * 60 * 60)} hours`
-    });
-
     // Para eventos recorrentes, se a data de fim da recorrência for muito próxima do início,
     // usar um período mais longo baseado no tipo de recorrência
     let effectiveRecurrenceEndDate = recurrenceEndDate;
@@ -169,15 +136,12 @@ export const calculateRecurrentEventOccurrences = (
       if (recurrenceEndDate.getHours() < 6) {
         effectiveRecurrenceEndDate = new Date(recurrenceEndDate);
         effectiveRecurrenceEndDate.setHours(23, 59, 59, 999);
-        console.log('Adjusted recurrence end date to end of day:', format(effectiveRecurrenceEndDate, 'yyyy-MM-dd HH:mm:ss'));
       } else {
         effectiveRecurrenceEndDate = recurrenceEndDate;
-        console.log('Using provided recurrence end date:', format(effectiveRecurrenceEndDate, 'yyyy-MM-dd'));
       }
     } else if (isValid(recurrenceEndDate)) {
       // Se a data é válida mas não está no futuro, pode ser que seja o mesmo dia
       effectiveRecurrenceEndDate = recurrenceEndDate;
-      console.log('Using recurrence end date (same day):', format(effectiveRecurrenceEndDate, 'yyyy-MM-dd'));
     } else {
       // Caso contrário, usar um período padrão baseado no tipo de recorrência
       switch (event.recurrenceTypeId) {
@@ -208,29 +172,12 @@ export const calculateRecurrentEventOccurrences = (
     // Garantir que não passamos do limite de recorrência nem do período solicitado
     const maxEndDate = isBefore(effectiveRecurrenceEndDate, endDate) ? effectiveRecurrenceEndDate : endDate;
 
-    console.log('Processing recurrent event:', {
-      title: event.title,
-      recurrenceTypeId: event.recurrenceTypeId,
-      interval: recurrenceRule.interval,
-      dayOfWeekArray: recurrenceRule.dayOfWeekArray,
-      dayOfMonthArray: recurrenceRule.dayOfMonthArray,
-      originalStartDate: format(originalStartDate, 'yyyy-MM-dd'),
-      originalStartDayOfWeek: originalStartDate.getDay(),
-      recurrenceEndDate: format(recurrenceEndDate, 'yyyy-MM-dd'),
-      effectiveRecurrenceEndDate: format(effectiveRecurrenceEndDate, 'yyyy-MM-dd'),
-      maxEndDate: format(maxEndDate, 'yyyy-MM-dd'),
-      requestedStartDate: format(startDate, 'yyyy-MM-dd'),
-      requestedEndDate: format(endDate, 'yyyy-MM-dd')
-    });
-
     let iterationCount = 0;
     const maxIterations = 1000; // Proteção contra loop infinito
     let occurrencesAdded = 0;
 
     while ((isBefore(currentDate, maxEndDate) || isSameDay(currentDate, maxEndDate)) && iterationCount < maxIterations) {
       iterationCount++;
-      
-      console.log(`Iteration ${iterationCount}: Checking date ${format(currentDate, 'yyyy-MM-dd')} (day ${currentDate.getDay()})`);
       
       // Verificar se a data atual está dentro do range solicitado
       if ((isAfter(currentDate, startDate) || isSameDay(currentDate, startDate)) && 
@@ -246,11 +193,9 @@ export const calculateRecurrentEventOccurrences = (
             if (recurrenceRule.dayOfWeekArray?.length === 0) {
               // Se não há dias específicos, usar o dia da semana original
               shouldInclude = currentDate.getDay() === originalStartDate.getDay();
-              console.log(`Weekly check (no specific days): current day ${currentDate.getDay()} vs original day ${originalStartDate.getDay()} = ${shouldInclude}`);
             } else {
               // Verificar se a data atual é um dos dias da semana especificados
               shouldInclude = recurrenceRule.dayOfWeekArray?.includes(currentDate.getDay());
-              console.log(`Weekly check (specific days): current day ${currentDate.getDay()} in ${recurrenceRule.dayOfWeekArray} = ${shouldInclude}`);
             }
             break;
           case 'monthly':
@@ -276,7 +221,6 @@ export const calculateRecurrentEventOccurrences = (
             continue; // Pular esta ocorrência se as datas forem inválidas
           }
           
-          console.log(`✓ Adding occurrence for ${event.title} on ${format(currentDate, 'yyyy-MM-dd')}`);
           occurrencesAdded++;
           
           occurrences.push({
@@ -345,14 +289,11 @@ export const calculateRecurrentEventOccurrences = (
       }
     }
 
-    console.log(`Finished processing ${event.title}: ${occurrencesAdded} occurrences added, ${iterationCount} iterations`);
-    
     if (iterationCount >= maxIterations) {
       console.warn(`Maximum iterations reached for event: ${event.title}`);
     }
   });
 
-  console.log('Final calculated occurrences:', occurrences.length);
   return occurrences.sort((a, b) => a.occurrenceDate.getTime() - b.occurrenceDate.getTime());
 };
 

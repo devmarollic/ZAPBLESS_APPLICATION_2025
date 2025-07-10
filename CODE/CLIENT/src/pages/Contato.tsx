@@ -59,7 +59,6 @@ const Contato = () => {
     
     // Simulate API call
     setTimeout(() => {
-      console.log(data);
       toast({
         title: "Mensagem enviada com sucesso!",
         description: "Entraremos em contato em breve.",

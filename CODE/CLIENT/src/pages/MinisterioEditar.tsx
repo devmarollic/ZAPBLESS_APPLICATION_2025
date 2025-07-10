@@ -81,7 +81,6 @@ const MinisterioEditar = () => {
         const ministryResponse = await MinistryService.getMinistry(id);
         
         if (ministryResponse) {
-          console.log('Ministry Response:', ministryResponse);
           setMinistry(ministryResponse);
           
           const formData = {
@@ -91,8 +90,6 @@ const MinisterioEditar = () => {
             leaderId: 'none', // Will be determined from members later
             viceLeaderId: 'none', // Will be determined from members later
           };
-          
-          console.log('Form Data:', formData);
           
           // Use setValue to ensure fields are properly set
           form.setValue('name', formData.name);

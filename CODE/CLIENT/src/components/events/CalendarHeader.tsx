@@ -53,14 +53,12 @@ const CalendarHeader = ({
   const handlePreviousMonth = () => {
     const newDate = new Date(selectedDate);
     newDate.setMonth(newDate.getMonth() - 1);
-    console.log('Previous month clicked:', newDate);
     onDateChange(newDate);
   };
 
   const handleNextMonth = () => {
     const newDate = new Date(selectedDate);
     newDate.setMonth(newDate.getMonth() + 1);
-    console.log('Next month clicked:', newDate);
     onDateChange(newDate);
   };
 

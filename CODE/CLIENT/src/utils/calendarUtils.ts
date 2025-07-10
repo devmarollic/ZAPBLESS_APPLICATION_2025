@@ -138,11 +138,6 @@ export const aplicarFiltros = (
   // Filtrar por data
   if (dataInicio || dataFim) {
     const beforeFilter = eventosFiltrados.length;
-    console.log('Filtering events by date range:', {
-      totalEvents: beforeFilter,
-      dataInicio: dataInicio?.toISOString(),
-      dataFim: dataFim?.toISOString()
-    });
     
     eventosFiltrados = eventosFiltrados.filter(evento => {
       const eventoData = new Date(evento.startAtTimestamp);
@@ -159,11 +154,6 @@ export const aplicarFiltros = (
         return eventoData <= dataFim;
       }
       return true;
-    });
-    
-    console.log('After date filtering:', {
-      remainingEvents: eventosFiltrados.length,
-      filteredOut: beforeFilter - eventosFiltrados.length
     });
   }
   

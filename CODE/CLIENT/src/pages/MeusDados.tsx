@@ -135,7 +135,6 @@ const MeusDados = () => {
 
     const onSubmitPersonal = async (data: PersonalDataFormValues) => {
         try {
-            console.log(data);
             await HttpClient.getDefault().put('/profile/update', data);
 
             toast({

@@ -13,17 +13,13 @@ interface FullCalendarViewProps {
   visualizacao: string;
   onEventClick: (event: Event) => void;
   onDateClick?: (date: Date) => void;
-  onDateChange?: (start: Date, end: Date) => void;
-  onViewChange?: (view: string) => void;
 }
 
 const FullCalendarView = ({ 
   eventos, 
   visualizacao, 
   onEventClick,
-  onDateClick,
-  onDateChange,
-  onViewChange
+  onDateClick
 }: FullCalendarViewProps) => {
   // Convert events to FullCalendar format
   const calendarEvents = eventos.map(evento => {
@@ -88,32 +84,18 @@ const FullCalendarView = ({
     }
   };
 
-  const handleDatesSet = (dateSetInfo: any) => {
-    console.log(new Date(dateSetInfo.start));
-    console.log(new Date(dateSetInfo.end));
-    if (onDateChange) {
-      onDateChange(dateSetInfo.start, dateSetInfo.end);
-    }
-  };
 
-  const handleViewDidMount = (viewDidMountInfo: any) => {
-    if (onViewChange) {
-      const currentView = viewDidMountInfo.view.type;
-      onViewChange(currentView);
-    }
-  };
 
   return (
     <div className="full-calendar-wrapper">
       
       <FullCalendar
+        key="main-calendar"
         plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
         initialView={getCalendarView()}
         events={calendarEvents}
         eventClick={handleEventClick}
         dateClick={handleDateClick}
-        datesSet={handleDatesSet}
-        viewDidMount={handleViewDidMount}
         locale="pt-br"
         height="auto"
         headerToolbar={{

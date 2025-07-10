@@ -10,23 +10,15 @@ import { useEventCalendar } from "@/hooks/useEventCalendar";
 
 const Eventos = () => {
   const {
-    anoAtual,
-    mesAtual,
-    visualizacao,
     selectedCategories,
     eventosFiltrados,
     selectedEvent,
     isEventDetailsOpen,
     isLoading,
     error,
-    handleDateChange,
-    handleViewChange,
-    handleRangeChange,
     handleCategoriesChange,
     handleEventClick,
-    handleCloseEventDetails,
-    handleCalendarDateChange,
-    handleCalendarViewChange
+    handleCloseEventDetails
   } = useEventCalendar();
 
   return (
@@ -64,13 +56,11 @@ const Eventos = () => {
             </div>
           ) : (
             <CalendarViewRenderer
-              visualizacao={visualizacao}
+              visualizacao="monthly"
               eventosFiltrados={eventosFiltrados}
-              mesAtual={mesAtual}
-              anoAtual={anoAtual}
+              mesAtual={new Date().getMonth()}
+              anoAtual={new Date().getFullYear()}
               onEventClick={handleEventClick}
-              onDateChange={handleCalendarDateChange}
-              onViewChange={handleCalendarViewChange}
             />
           )}
         </CardContent>

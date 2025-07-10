@@ -43,7 +43,6 @@ const VirtualizedSelect = ({
   }, [options, searchTerm]);
 
   const selectedOption = useMemo(() => {
-    console.log('VirtualizedSelect - value:', value, 'options:', options);
     return options.find(option => option.value === value);
   }, [options, value]);
 

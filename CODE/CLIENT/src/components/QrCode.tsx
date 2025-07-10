@@ -1,5 +1,4 @@
 const QrCode = ({ whatsapp, qrCode, qrStatus, timer }: { whatsapp: any, qrCode: string, qrStatus: string, timer: number }) => {
-    console.log(whatsapp);
     const getQrCodeOverlayText = () => {
         switch (qrStatus) {
             case 'connecting':

@@ -157,9 +157,6 @@ const AvisoGerenciar = () => {
     if (!announcement) return;
     
     try {
-      // For development, log the data
-      console.log('Updating announcement data:', data);
-      
       // Uncomment this when backend is ready
       // await HttpClient.patch(`/avisos/${announcement.id}`, JSON.stringify(data));
       
@@ -191,9 +188,6 @@ const AvisoGerenciar = () => {
     if (!announcement) return;
     
     try {
-      // For development purposes only
-      console.log('Deleting announcement:', announcement.id);
-      
       // Uncomment when backend is ready
       // await HttpClient.patch(`/avisos/${announcement.id}/delete`, null);
       

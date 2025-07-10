@@ -31,8 +31,6 @@ const CalendarViewRenderer = ({
         eventos={eventosFiltrados}
         visualizacao={visualizacao}
         onEventClick={onEventClick}
-        onDateChange={onDateChange}
-        onViewChange={onViewChange}
       />
     );
   }
@@ -55,8 +53,6 @@ const CalendarViewRenderer = ({
       eventos={eventosFiltrados}
       visualizacao="grid"
       onEventClick={onEventClick}
-      onDateChange={onDateChange}
-      onViewChange={onViewChange}
     />
   );
 };

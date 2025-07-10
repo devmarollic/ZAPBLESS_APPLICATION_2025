@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { format } from "date-fns";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { EventService, EventResponse } from "@/services/eventService";
@@ -43,6 +43,10 @@ export const useEventCalendar = () => {
             to: new Date(now.getFullYear(), now.getMonth() + 1, 0)
         };
     });
+
+    // Ref para evitar re-renders desnecessários
+    const dateRangeRef = useRef<DateRange>(fullCalendarDateRange);
+    dateRangeRef.current = fullCalendarDateRange;
 
     const queryClient = useQueryClient();
 
@@ -118,13 +122,18 @@ export const useEventCalendar = () => {
 
     // ~~
 
+    // Usar uma data fixa baseada no mês atual para evitar conflitos
+    const currentMonth = new Date();
+    const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+    const monthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+
     const { data: rawEvents = [], isLoading, error, refetch } = useQuery({
-        queryKey: [EVENTS_QUERY_KEY, fullCalendarDateRange.from, fullCalendarDateRange.to],
+        queryKey: [EVENTS_QUERY_KEY, monthStart, monthEnd],
         queryFn: async () => {
             const response = await EventService.getEvents(
                 'is-coming',
-                format(fullCalendarDateRange.from, 'yyyy-MM-dd'),
-                format(fullCalendarDateRange.to, 'yyyy-MM-dd')
+                format(monthStart, 'yyyy-MM-dd'),
+                format(monthEnd, 'yyyy-MM-dd')
             );
 
             return response || [];
@@ -159,8 +168,8 @@ export const useEventCalendar = () => {
         // Calcular ocorrências apenas para eventos recorrentes
         const occurrences = calculateRecurrentEventOccurrences(
             recurringEvents,
-            fullCalendarDateRange.from,
-            fullCalendarDateRange.to
+            monthStart,
+            monthEnd
         );
 
         const occurrenceEvents = occurrences.map(convertOccurrenceToEvent);
@@ -169,7 +178,7 @@ export const useEventCalendar = () => {
         const allEvents = [...convertedEvents, ...occurrenceEvents];
 
         return allEvents;
-    }, [rawEvents, fullCalendarDateRange, convertApiEventToEvent, convertOccurrenceToEvent]);
+    }, [rawEvents, monthStart, monthEnd, convertApiEventToEvent, convertOccurrenceToEvent]);
 
     // ~~
 
@@ -178,8 +187,8 @@ export const useEventCalendar = () => {
         selectedCategories,
         undefined,
         undefined,
-        fullCalendarDateRange.from.getMonth(),
-        fullCalendarDateRange.from.getFullYear()
+        monthStart.getMonth(),
+        monthStart.getFullYear()
     );
 
     // ~~
@@ -202,23 +211,7 @@ export const useEventCalendar = () => {
         setSelectedEvent(null);
     }, []);
 
-    // ~~
 
-    const handleCalendarDateChange = useCallback((start: Date, end: Date) => {
-        const startDate = new Date(start);
-        const endDate = new Date(end);
-        
-        setFullCalendarDateRange({
-            from: startDate,
-            to: endDate
-        });
-
-        queryClient.invalidateQueries({ 
-            queryKey: [EVENTS_QUERY_KEY, startDate, endDate] 
-        });
-    }, [queryClient]);
-
-    // ~~
 
     return {
         selectedCategories,
@@ -230,7 +223,6 @@ export const useEventCalendar = () => {
         handleCategoriesChange,
         handleEventClick,
         handleCloseEventDetails,
-        handleCalendarDateChange,
         refetch
     };
 };
