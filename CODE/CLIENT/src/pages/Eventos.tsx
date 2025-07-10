@@ -29,10 +29,6 @@ const Eventos = () => {
     handleCalendarViewChange
   } = useEventCalendar();
 
-  console.log('Eventos component - eventosFiltrados:', eventosFiltrados);
-  console.log('Eventos component - isLoading:', isLoading);
-  console.log('Eventos component - error:', error);
-
   return (
     <div className="space-y-4 md:space-y-6">
       <EventsHeader />

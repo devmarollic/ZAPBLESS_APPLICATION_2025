@@ -132,14 +132,6 @@ export const aplicarFiltros = (
   mesAtual?: number, 
   anoAtual?: number
 ) => {
-  console.log('Applying filters:', {
-    totalEvents: eventos.length,
-    categorias,
-    dataInicio,
-    dataFim,
-    mesAtual,
-    anoAtual
-  });
 
   let eventosFiltrados = [...eventos];
   
@@ -158,7 +150,6 @@ export const aplicarFiltros = (
       }
       return true;
     });
-    console.log('After date filter:', { before: beforeFilter, after: eventosFiltrados.length });
   }
   
   // Filtrar por mês/ano específico se fornecido (comentado porque a API já filtra por data)
@@ -190,10 +181,6 @@ export const aplicarFiltros = (
       });
     });
   }
-
-  console.log({
-    eventosFiltrados
-  });
   
   return eventosFiltrados;
 };

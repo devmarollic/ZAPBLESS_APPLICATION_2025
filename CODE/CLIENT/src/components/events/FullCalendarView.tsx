@@ -27,13 +27,6 @@ const FullCalendarView = ({
 }: FullCalendarViewProps) => {
   // Convert events to FullCalendar format
   const calendarEvents = eventos.map(evento => {
-    console.log('Converting event to FullCalendar format:', {
-      id: evento.id,
-      title: evento.title,
-      startAtTimestamp: evento.startAtTimestamp,
-      endAtTimestamp: evento.endAtTimestamp,
-      date: evento.date
-    });
 
     return {
       id: evento.id,
@@ -99,7 +92,6 @@ const FullCalendarView = ({
     if (onDateChange) {
       // Get the first visible date (usually the first day of the month/week)
       const firstVisibleDate = new Date(dateSetInfo.start);
-      console.log('Dates set - first visible date:', firstVisibleDate);
       onDateChange(firstVisibleDate);
     }
   };
@@ -107,13 +99,9 @@ const FullCalendarView = ({
   const handleViewDidMount = (viewDidMountInfo: any) => {
     if (onViewChange) {
       const currentView = viewDidMountInfo.view.type;
-      console.log('View did mount - current view:', currentView);
       onViewChange(currentView);
     }
   };
-
-  console.log('FullCalendarView - events count:', eventos.length);
-  console.log('FullCalendarView - calendar events:', calendarEvents);
 
   return (
     <div className="full-calendar-wrapper">

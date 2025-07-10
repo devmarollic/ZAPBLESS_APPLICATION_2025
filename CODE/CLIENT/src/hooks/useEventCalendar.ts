@@ -74,13 +74,6 @@ export const useEventCalendar = () => {
 
     // Convert API response to Event type
     const convertApiEventToEvent = useCallback((apiEvent: EventResponse): Event => {
-        console.log('Converting API event to Event type:', {
-            id: apiEvent.id,
-            title: apiEvent.title,
-            startAtTimestamp: apiEvent.startAtTimestamp,
-            endAtTimestamp: apiEvent.endAtTimestamp
-        });
-
         return {
             id: apiEvent.id,
             title: apiEvent.title,
@@ -143,33 +136,16 @@ export const useEventCalendar = () => {
 
     // Fetch events using React Query
     const currentDateRange = getDateRangeForView();
-    
-    console.log('Current date range:', {
-        from: currentDateRange.from,
-        to: currentDateRange.to,
-        month: mesAtual,
-        year: anoAtual,
-        view: visualizacao
-    });
-    
+
     const { data: rawEvents = [], isLoading, error, refetch } = useQuery({
         queryKey: [EVENTS_QUERY_KEY, visualizacao, anoAtual, mesAtual, currentDateRange.from, currentDateRange.to],
         queryFn: async () => {
-            console.log('Fetching events for date range:', {
-                from: currentDateRange.from,
-                to: currentDateRange.to,
-                month: mesAtual,
-                year: anoAtual,
-                view: visualizacao
-            });
-
             const response = await EventService.getEvents(
                 'is-coming',
                 format(currentDateRange.from, 'yyyy-MM-dd'),
                 format(currentDateRange.to, 'yyyy-MM-dd')
             );
 
-            console.log('Raw events from API:', response);
             return response || [];
         },
         staleTime: 0, // Always refetch when query key changes
@@ -179,7 +155,6 @@ export const useEventCalendar = () => {
     // Process events: convert API events and calculate recurrences
     const processedEvents = useCallback(() => {
         if (!rawEvents || rawEvents.length === 0) {
-            console.log('No raw events to process');
             
             // Test with mock data to verify processing works
             const mockEvent: EventResponse = {
@@ -206,18 +181,13 @@ export const useEventCalendar = () => {
                 recurrence: undefined
             };
             
-            console.log('Testing with mock event:', mockEvent);
             const testEvent = convertApiEventToEvent(mockEvent);
-            console.log('Test event converted:', testEvent);
             
             return [testEvent];
         }
 
-        console.log('Processing events:', rawEvents.length);
-
         // First, convert API events to our Event type
         const convertedEvents = rawEvents.map(convertApiEventToEvent);
-        console.log('Converted events:', convertedEvents.length);
 
         // Then calculate recurrent events
         const occurrences = calculateRecurrentEventOccurrences(
@@ -226,15 +196,12 @@ export const useEventCalendar = () => {
             currentDateRange.to
         );
 
-        console.log('Calculated occurrences:', occurrences.length);
-
         // Convert occurrences to Event type
         const occurrenceEvents = occurrences.map(convertOccurrenceToEvent);
 
         // Combine regular events and occurrence events
         const allEvents = [...convertedEvents, ...occurrenceEvents];
 
-        console.log('Total processed events:', allEvents.length);
         return allEvents;
     }, [rawEvents, currentDateRange, convertApiEventToEvent, convertOccurrenceToEvent]);
 
@@ -248,21 +215,16 @@ export const useEventCalendar = () => {
         anoAtual
     );
 
-    console.log('Filtered events:', eventosFiltrados.length);
-
     // Event handlers
     const handleDateChange = useCallback((date: Date) => {
         const newMonth = date.getMonth();
         const newYear = date.getFullYear();
-
-        console.log('Date changed:', { newMonth, newYear, oldMonth: mesAtual, oldYear: anoAtual });
 
         setMesAtual(newMonth);
         setAnoAtual(newYear);
     }, [mesAtual, anoAtual]);
 
     const handleViewChange = useCallback((view: string) => {
-        console.log('View changed:', { newView: view, oldView: visualizacao });
         setVisualizacao(view);
     }, [visualizacao]);
 
@@ -293,15 +255,11 @@ export const useEventCalendar = () => {
         const newMonth = date.getMonth();
         const newYear = date.getFullYear();
         
-        console.log('Calendar date changed:', { newMonth, newYear, oldMonth: mesAtual, oldYear: anoAtual });
-        
         setMesAtual(newMonth);
         setAnoAtual(newYear);
     }, [mesAtual, anoAtual]);
 
     const handleCalendarViewChange = useCallback((view: string) => {
-        console.log('Calendar view changed:', { newView: view, oldView: visualizacao });
-        
         // Map FullCalendar view types to our internal view types
         let mappedView = view;
         switch (view) {
