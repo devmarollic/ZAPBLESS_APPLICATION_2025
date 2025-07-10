@@ -13,7 +13,7 @@ interface FullCalendarViewProps {
   visualizacao: string;
   onEventClick: (event: Event) => void;
   onDateClick?: (date: Date) => void;
-  onDateChange?: (date: Date) => void;
+  onDateChange?: (start: Date, end: Date) => void;
   onViewChange?: (view: string) => void;
 }
 
@@ -89,10 +89,10 @@ const FullCalendarView = ({
   };
 
   const handleDatesSet = (dateSetInfo: any) => {
+    console.log(new Date(dateSetInfo.start));
+    console.log(new Date(dateSetInfo.end));
     if (onDateChange) {
-      // Get the first visible date (usually the first day of the month/week)
-      const firstVisibleDate = new Date(dateSetInfo.start);
-      onDateChange(firstVisibleDate);
+      onDateChange(dateSetInfo.start, dateSetInfo.end);
     }
   };
 

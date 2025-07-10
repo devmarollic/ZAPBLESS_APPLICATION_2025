@@ -138,17 +138,32 @@ export const aplicarFiltros = (
   // Filtrar por data
   if (dataInicio || dataFim) {
     const beforeFilter = eventosFiltrados.length;
+    console.log('Filtering events by date range:', {
+      totalEvents: beforeFilter,
+      dataInicio: dataInicio?.toISOString(),
+      dataFim: dataFim?.toISOString()
+    });
+    
     eventosFiltrados = eventosFiltrados.filter(evento => {
       const eventoData = new Date(evento.startAtTimestamp);
       
       if (dataInicio && dataFim) {
-        return eventoData >= dataInicio && eventoData <= dataFim;
+        const isInRange = eventoData >= dataInicio && eventoData <= dataFim;
+        if (!isInRange) {
+          console.log(`Filtering out event "${evento.title}" - date ${eventoData.toISOString()} not in range`);
+        }
+        return isInRange;
       } else if (dataInicio) {
         return eventoData >= dataInicio;
       } else if (dataFim) {
         return eventoData <= dataFim;
       }
       return true;
+    });
+    
+    console.log('After date filtering:', {
+      remainingEvents: eventosFiltrados.length,
+      filteredOut: beforeFilter - eventosFiltrados.length
     });
   }
   

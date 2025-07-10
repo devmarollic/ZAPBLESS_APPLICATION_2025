@@ -9,7 +9,7 @@ interface CalendarViewRendererProps {
   mesAtual: number;
   anoAtual: number;
   onEventClick: (event: Event) => void;
-  onDateChange?: (date: Date) => void;
+  onDateChange?: (start: Date, end: Date) => void;
   onViewChange?: (view: string) => void;
 }
 
