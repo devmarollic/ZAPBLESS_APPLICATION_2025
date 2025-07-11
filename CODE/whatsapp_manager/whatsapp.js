@@ -17,9 +17,10 @@ const path = require('path');
 const qrcode = require('qrcode-terminal');
 const events = require('events');
 const NodeCache = require('node-cache');
-const { getUuidFromText, getRandomTuid } = require('./utils');
+const { getRandomTuid, getTuidFromText } = require('./utils');
 const { contactService } = require('./contact_service');
 const { whatsappService } = require('./whatsapp_service');
+const churchId = process.env.CHURCH_ID;
 
 class WhatsappSessionMapper {
     static toDomain(
@@ -132,6 +133,10 @@ class WhatsAppManager extends events.EventEmitter {
             this.sock.ev.on('connection.update', async (update) => {
                 const { connection, lastDisconnect, qr } = update;
 
+                console.log( '===========================' );
+                console.log( this.sock.user );
+                console.log( '===========================' );
+
                 if (connection === 'close') {
                     let reason = new Boom(lastDisconnect.error).output.statusCode;
 
@@ -212,11 +217,9 @@ class WhatsAppManager extends events.EventEmitter {
                             // Foto de perfil não disponível, continua sem ela
                         }
 
-                        let name = [ contact.name, contact.notify, contact.verifiedName ].filter( Boolean )?.[ 0 ];
-
                         filteredContactArray.push({
-                            name,
-                            id: getRandomTuid(),
+                            name: [ contact.name, contact.notify, contact.verifiedName ].filter( Boolean )?.[ 0 ],
+                            id: getTuidFromText( contact.id + churchId),
                             number: phoneNumberWithPrefix,
                             churchId: process.env.CHURCH_ID,
                             imgUrl: profilePicture,
@@ -245,12 +248,10 @@ class WhatsAppManager extends events.EventEmitter {
                             // Foto de perfil não disponível, continua sem ela
                         }
 
-                        let name = [ contact.name, contact.notify, contact.verifiedName ].filter( Boolean )?.[ 0 ];
-
                         contactService.upsertContact(
                             {
-                                name,
-                                id: getRandomTuid(),
+                                name: [ contact.name, contact.notify, contact.verifiedName ].filter( Boolean )?.[ 0 ],
+                                id: getTuidFromText( contact.id + churchId),
                                 number: phoneNumberWithPrefix,
                                 churchId: process.env.CHURCH_ID,
                                 imgUrl: profilePicture,
