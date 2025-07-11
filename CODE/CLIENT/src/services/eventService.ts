@@ -7,14 +7,18 @@ export interface RecurrenceData {
     dayOfMonthArray: number[];
     endAtTimestamp: string;
     typeId: string;
+    weekOfMonth: number;
+    specificDay: number;
+    month: number;
+    timeOfDayTimestamp: string;
 }
 
 export interface ReminderData {
     notificationMediumId: string;
-    templateId: string;
+    templateId?: string;
+    customMessage?: string;
     offset: string;
-    variables: {
-        customMessage?: string;
+    variables?: {
     };
 }
 
@@ -32,6 +36,11 @@ export interface CreateEventRequest {
     reminders?: ReminderData[];
     leaders?: string[];
     viceLeaders?: string[];
+    notify?: boolean;
+    otherTypeReason?: string;
+    targetRoleArray?: string[];
+    leaderArray?: string[];
+    viceLeaderArray?: string[];
 }
 
 export interface UpdateEventRequest {

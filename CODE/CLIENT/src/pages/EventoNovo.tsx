@@ -26,6 +26,10 @@ import { EventType, EventTypeService } from '@/services/eventTypeService';
 import { Plus, X, Bell, Users, UserCog, Crown } from 'lucide-react';
 import EventLeadersForm from '@/components/events/EventLeadersForm';
 import { useQuery } from '@tanstack/react-query';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { TemplateService } from '@/services/templateService';
+import { AuthenticationService } from '@/lib/authentication_service';
+import { ContactService } from '@/services/contactService';
 
 const eventFormSchema = z.object({
     title: z.string().min(3, "O título deve ter pelo menos 3 caracteres"),
@@ -74,13 +78,14 @@ const EventoNovo = () => {
     const [multipleEvents, setMultipleEvents] = useState([
         { date: new Date(), startTime: '19:00', endTime: '21:00' }
     ]);
+    const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
     const [enableMultipleCreation, setEnableMultipleCreation] = useState(false);
-
+    const [reminderOffset, setReminderOffset] = useState('0d');
     const reminderGroups = [
-        { id: 'leaders', label: 'Líderes', icon: Crown },
-        { id: 'vice-leaders', label: 'Vice-líderes', icon: UserCog },
-        { id: 'volunteers', label: 'Voluntários', icon: Users },
-        { id: 'members', label: 'Membros', icon: Users }
+        { id: 'leader', label: 'Líderes', icon: Crown },
+        { id: 'vice-leader', label: 'Vice-líderes', icon: UserCog },
+        { id: 'volunteer', label: 'Voluntários', icon: Users },
+        { id: 'member', label: 'Membros', icon: Users }
     ];
 
     const form = useForm<EventFormValues>({
@@ -111,12 +116,17 @@ const EventoNovo = () => {
 
     const { data: ministries, isLoading: loadingMinistries } = useQuery({
         queryKey: ['ministries'],
-        queryFn: () => MinistryService.getMinistriesByChurch()
+        queryFn: () => MinistryService.getMinistriesByChurchWithMembers( 'leader,vice-leader' )
     });
 
     const { data: eventTypes, isLoading: loadingEventTypes } = useQuery({
         queryKey: ['eventTypes'],
         queryFn: () => EventTypeService.getEventTypes()
+    });
+
+    const { data: templates, isLoading: loadingTemplates } = useQuery({
+        queryKey: ['templates'],
+        queryFn: () => TemplateService.getTemplates()
     });
 
     const addEventDateTime = () => {
@@ -192,7 +202,11 @@ const EventoNovo = () => {
                             interval: data.recurrence_interval,
                             dayOfWeekArray: dayOfWeekArray,
                             dayOfMonthArray: [],
-                            endAtTimestamp: data.recurrence_end_date ? data.recurrence_end_date.toISOString() : endDateTime.toISOString()
+                            endAtTimestamp: data.recurrence_end_date ? data.recurrence_end_date.toISOString() : endDateTime.toISOString(),
+                            weekOfMonth: 1,
+                            specificDay: 1,
+                            month: 12,
+                            timeOfDayTimestamp: startDateTime.toLocaleTimeString()
                         };
                     }
 
@@ -201,16 +215,16 @@ const EventoNovo = () => {
                     if (enableReminders && selectedReminderGroups.length > 0) {
                         remindersData = [{
                             notificationMediumId: "whatsapp",
-                            templateId: "event_reminder",
-                            offset: "-1d",
+                            templateId: selectedTemplate,
+                            customMessage: reminderText || "Não esqueça do nosso evento!",
+                            offset: reminderOffset,
                             variables: {
-                                customMessage: reminderText || "Não esqueça do nosso evento!"
                             }
                         }];
                     }
 
                     const eventData: CreateEventRequest = {
-                        churchId: "Q3dmp5fTjBJcvr63HaBHkg", // This should come from user context
+                        churchId: AuthenticationService.getChurchId(),
                         title: data.title,
                         statusId: "is-coming",
                         typeId: data.typeId || "worship",
@@ -221,8 +235,10 @@ const EventoNovo = () => {
                         recurrenceTypeId: data.recurrence_type !== 'none' ? data.recurrence_type : undefined,
                         recurrence: recurrenceData,
                         reminders: remindersData.length > 0 ? remindersData : undefined,
-                        leaders: leaders,
-                        viceLeaders: viceLeaders,
+                        notify: enableReminders,
+                        targetRoleArray: selectedReminderGroups,
+                        leaderArray: leaders,
+                        viceLeaderArray: viceLeaders
                     };
 
                     await EventService.createEvent(eventData);
@@ -248,12 +264,18 @@ const EventoNovo = () => {
                         return dayMap[day] || 0;
                     }) || [];
 
+                    const dayOfMonthArray = data.recurrence_day_of_month || [];
+
                     recurrenceData = {
                         typeId: data.recurrence_type,
                         interval: data.recurrence_interval,
                         dayOfWeekArray: dayOfWeekArray,
-                        dayOfMonthArray: [],
-                        endAtTimestamp: data.recurrence_end_date ? data.recurrence_end_date.toISOString() : endDateTime.toISOString()
+                        dayOfMonthArray: dayOfMonthArray,
+                        endAtTimestamp: data.recurrence_end_date ? data.recurrence_end_date.toISOString() : endDateTime.toISOString(),
+                        weekOfMonth: 1,
+                        specificDay: 1,
+                        month: 12,
+                        timeOfDayTimestamp: startDateTime.toLocaleTimeString()
                     };
                 }
 
@@ -262,19 +284,20 @@ const EventoNovo = () => {
                 if (enableReminders && selectedReminderGroups.length > 0) {
                     remindersData = [{
                         notificationMediumId: "whatsapp",
-                        templateId: "event_reminder",
-                        offset: "-1d",
+                        templateId: selectedTemplate,
+                        customMessage: reminderText || "Não esqueça do nosso evento!",
+                        offset: reminderOffset,
                         variables: {
-                            customMessage: reminderText || "Não esqueça do nosso evento!"
                         }
                     }];
                 }
 
                 const eventData: CreateEventRequest = {
-                    churchId: "Q3dmp5fTjBJcvr63HaBHkg", // This should come from user context
+                    churchId: data.ministry, // This should come from user context
                     title: data.title,
                     statusId: "is-coming",
                     typeId: data.typeId || "worship",
+                    otherTypeReason: data.otherTypeReason,
                     description: data.description,
                     location: data.location,
                     startAtTimestamp: startDateTime.toISOString(),
@@ -282,8 +305,10 @@ const EventoNovo = () => {
                     recurrenceTypeId: data.recurrence_type !== 'none' ? data.recurrence_type : undefined,
                     recurrence: recurrenceData,
                     reminders: remindersData.length > 0 ? remindersData : undefined,
-                    leaders: leaders,
-                    viceLeaders: viceLeaders,
+                    notify: enableReminders,
+                    targetRoleArray: selectedReminderGroups,
+                    leaderArray: leaders,
+                    viceLeaderArray: viceLeaders
                 };
 
                 await EventService.createEvent(eventData);
@@ -473,18 +498,61 @@ const EventoNovo = () => {
                                         </div>
                                     </div>
 
-                                    <div>
-                                        <Label htmlFor="reminder-text" className="text-sm font-medium">
-                                            Texto personalizado (opcional)
-                                        </Label>
-                                        <Textarea
-                                            id="reminder-text"
-                                            placeholder="Adicione uma mensagem personalizada ao lembrete..."
-                                            value={reminderText}
-                                            onChange={(e) => setReminderText(e.target.value)}
-                                            className="mt-1"
-                                        />
-                                    </div>
+                                    <Select
+                                        value={reminderOffset}
+                                        onValueChange={setReminderOffset}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Offset">
+                                                Hora de envio
+                                            </SelectValue>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="-1d">Notificar 1 dia antes</SelectItem>
+                                            <SelectItem value="-2h">Notificar 2 horas antes</SelectItem>
+                                            <SelectItem value="-1h">Notificar 1 hora antes</SelectItem>
+                                            <SelectItem value="+0d">Notificar no mesmo horário</SelectItem>
+                                            <SelectItem value="+30m">Notificar 30 minutos depois</SelectItem>
+                                            <SelectItem value="0d:end">Notificar no final do evento</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+
+                                    <Tabs>
+                                        <TabsList>
+                                            <TabsTrigger value="customMessage">Texto personalizado</TabsTrigger>
+                                            <TabsTrigger value="template">Template</TabsTrigger>
+                                        </TabsList>
+                                        <TabsContent value="customMessage">
+                                            <div>
+                                                <Label htmlFor="reminder-text" className="text-sm font-medium">
+                                                    Texto personalizado (opcional)
+                                                </Label>
+                                                <Textarea
+                                                    id="reminder-text"
+                                                    placeholder="Adicione uma mensagem personalizada ao lembrete..."
+                                                    value={reminderText}
+                                                    onChange={(e) => setReminderText(e.target.value)}
+                                                    className="mt-1"
+                                                />
+                                            </div>
+                                        </TabsContent>
+                                        <TabsContent value="template">
+                                            <Select onValueChange={setSelectedTemplate}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Selecione um template" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {templates?.map(
+                                                        template => (
+                                                            <SelectItem key={template.id} value={template.id}>
+                                                                {template.name}
+                                                            </SelectItem>
+                                                        )
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                        </TabsContent>
+                                    </Tabs>
 
                                     {generateReminderPreview() && (
                                         <div className="p-3 bg-blue-50 rounded-lg">

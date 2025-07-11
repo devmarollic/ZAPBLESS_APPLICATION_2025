@@ -87,7 +87,8 @@ class MinistryService
     // ~~
 
     async getMinistriesByChurchId(
-        churchId
+        churchId,
+        roleSlug = null
         )
     {
         const { data, error } = await supabaseService
@@ -107,7 +108,11 @@ class MinistryService
                 + `memberCountArray:MINISTRY_MEMBER(count)`
             )
             .eq( 'churchId', churchId )
-            .eq( 'leaderArray.roleSlug', ministryMemberRoleSlug.leader );
+
+        if ( roleSlug !== null )
+        {
+            query = query.eq( 'leaderArray.roleSlug', roleSlug );
+        }
 
         if ( error !== null )
         {

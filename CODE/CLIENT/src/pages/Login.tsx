@@ -133,7 +133,7 @@ const Login = () => {
 
                 {loginMode === 'social' && (
                     <div className="space-y-6">
-                        <SocialLoginButtons onSuccess={handleLoginSuccess} />
+                        {/* <SocialLoginButtons onSuccess={handleLoginSuccess} />
                         
                         <div className="relative">
                             <div className="absolute inset-0 flex items-center">
@@ -142,7 +142,7 @@ const Login = () => {
                             <div className="relative flex justify-center text-xs uppercase">
                                 <span className="bg-white px-2 text-gray-500">ou</span>
                             </div>
-                        </div>
+                        </div> */}
 
                         <div className="space-y-3">
                             <Button

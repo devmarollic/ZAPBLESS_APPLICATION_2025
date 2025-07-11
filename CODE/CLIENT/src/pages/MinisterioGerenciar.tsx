@@ -30,7 +30,7 @@ const MinisterioGerenciar = () => {
     const queryClient = useQueryClient();
     const { data: ministries, isLoading: isLoadingMinistries } = useQuery({
         queryKey: ['ministries'],
-        queryFn: async () => MinistryService.getMinistriesByChurch()
+        queryFn: async () => MinistryService.getMinistriesByChurchWithMembers( 'leader' )
     });
 
     const handleDelete = async (ministryId: string) => {
@@ -56,8 +56,8 @@ const MinisterioGerenciar = () => {
     };
 
     const getLeaderName = (ministry: Ministry) => {
-        if (ministry.leader) {
-            return ministry.leader.contact.name;
+        if (ministry.contactArray.length > 0) {
+            return ministry.contactArray[0].contact.name;
         }
 
         return 'Sem líder';
@@ -142,7 +142,7 @@ const MinisterioGerenciar = () => {
                                             </TableCell>
                                             <TableCell>
                                                 <Badge variant="secondary">
-                                                    {ministry.memberCount} membros
+                                                    {ministry.contactCount} {ministry.contactCount === 1 ? 'membro' : 'membros'}
                                                 </Badge>
                                             </TableCell>
                                             <TableCell className="text-right">

@@ -13,20 +13,6 @@ import TemplateManager from '@/components/templates/TemplateManager';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ScheduleResponse, ScheduleService } from '@/services/scheduleService';
 
-type ReminderCategory = 'culto' | 'reuniao' | 'evento' | 'aniversario' | 'outros';
-
-interface Reminder {
-    id: string;
-    title: string;
-    description: string;
-    category: ReminderCategory;
-    dueDate: string;
-    dueTime: string;
-    status: 'pending' | 'completed';
-    priority: 'low' | 'medium' | 'high';
-}
-
-
 const Lembretes = () => {
     const { toast } = useToast();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -101,7 +87,7 @@ const Lembretes = () => {
         return names[role];
     };
 
-    const getCategoryColor = (category: ReminderCategory) => {
+    const getCategoryColor = (category: string) => {
         const colors = {
             culto: 'bg-blue-100 text-blue-800',
             reuniao: 'bg-green-100 text-green-800',
@@ -300,7 +286,7 @@ const Lembretes = () => {
                                                 </div>
                                             </TableCell>
                                             <TableCell>
-                                                <Badge className={reminder.event?.ministry?.color ? `bg-[${reminder.event.ministry.color}] whitespace-nowrap` : ''}>
+                                                <Badge className="whitespace-nowrap">
                                                     {reminder.event?.ministry?.name ?? 'Sem ministério'}
                                                 </Badge>
                                             </TableCell>
@@ -318,7 +304,7 @@ const Lembretes = () => {
                                                 </div>
                                             </TableCell>
                                             <TableCell>
-                                                {JSON.parse(reminder.targetRoleArray)?.map((role) => (
+                                                {reminder.targetRoleArray?.map((role) => (
                                                     <Badge key={role} className={`bg-[${getRoleColor(role)}] whitespace-nowrap`}>
                                                         {getRoleName(role)}
                                                     </Badge>

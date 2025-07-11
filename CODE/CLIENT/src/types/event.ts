@@ -71,7 +71,7 @@ export type EventFormValues = {
   recurrence_type: RecurrenceType;
   recurrence_interval: number;
   recurrence_days_of_week?: number[];
-  recurrence_day_of_month?: number | 'last' | 'week-pattern';
+  recurrence_day_of_month?: number[];
   recurrence_end_date: Date | null;
   // Novos campos para configurações avançadas
   recurrence_daily_times?: string[];

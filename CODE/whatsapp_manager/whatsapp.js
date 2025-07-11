@@ -215,12 +215,12 @@ class WhatsAppManager extends events.EventEmitter {
                         let name = [ contact.name, contact.notify, contact.verifiedName ].filter( Boolean )?.[ 0 ];
 
                         filteredContactArray.push({
-                            ...contact,
                             name,
                             id: getRandomTuid(),
                             number: phoneNumberWithPrefix,
                             churchId: process.env.CHURCH_ID,
-                            imgUrl: profilePicture
+                            imgUrl: profilePicture,
+                            status: 'active'
                         });
                     }
                 }
@@ -249,12 +249,12 @@ class WhatsAppManager extends events.EventEmitter {
 
                         contactService.upsertContact(
                             {
-                                ...contact,
                                 name,
                                 id: getRandomTuid(),
                                 number: phoneNumberWithPrefix,
                                 churchId: process.env.CHURCH_ID,
-                                imgUrl: profilePicture
+                                imgUrl: profilePicture,
+                                status: 'active'
                             }
                         );
                     }

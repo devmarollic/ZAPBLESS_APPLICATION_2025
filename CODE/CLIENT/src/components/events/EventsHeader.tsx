@@ -15,14 +15,14 @@ const EventsHeader = () => {
       </div>
       
       <div className="flex flex-wrap gap-2">
-        <Button variant="outline" size="icon" className="h-9 w-9">
+        {/* <Button variant="outline" size="icon" className="h-9 w-9">
           <Settings className="h-4 w-4" />
-        </Button>
-        <Button variant="outline" asChild className="gap-2">
+        </Button> */}
+        {/* <Button variant="outline" asChild className="gap-2">
           <Link to="/dashboard/eventos/recorrentes">
             <Repeat className="h-4 w-4" /> {isMobile ? "" : "Recorrentes"}
           </Link>
-        </Button>
+        </Button> */}
         <Button asChild>
           <Link to="/dashboard/eventos/novo">
             <Plus className="mr-2 h-4 w-4" /> {isMobile ? "Adicionar" : "Adicionar evento"}

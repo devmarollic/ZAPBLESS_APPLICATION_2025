@@ -9,26 +9,26 @@ import CalendarViewRenderer from "@/components/events/CalendarViewRenderer";
 import { useEventCalendar } from "@/hooks/useEventCalendar";
 
 const Eventos = () => {
-  const {
-    selectedCategories,
-    eventosFiltrados,
-    selectedEvent,
-    isEventDetailsOpen,
-    isLoading,
-    error,
-    handleCategoriesChange,
-    handleEventClick,
-    handleCloseEventDetails
-  } = useEventCalendar();
+    const {
+        selectedCategories,
+        eventosFiltrados,
+        selectedEvent,
+        isEventDetailsOpen,
+        isLoading,
+        error,
+        handleCategoriesChange,
+        handleEventClick,
+        handleCloseEventDetails
+    } = useEventCalendar();
 
-  return (
-    <div className="space-y-4 md:space-y-6">
-      <EventsHeader />
-      
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            {/* <CalendarHeader 
+    return (
+        <div className="space-y-4 md:space-y-6">
+            <EventsHeader />
+
+            <Card>
+                <CardHeader className="pb-3">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        {/* <CalendarHeader 
               selectedDate={new Date(anoAtual, mesAtual, 1)}
               onDateChange={handleDateChange}
               onRangeChange={handleRangeChange}
@@ -41,38 +41,38 @@ const Eventos = () => {
               selectedCategories={selectedCategories}
               onCategoriesChange={handleCategoriesChange}
             /> */}
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-              <span className="ml-2 text-muted-foreground">Carregando eventos...</span>
-            </div>
-          ) : error ? (
-            <div className="text-center py-12">
-              <p className="text-destructive">Erro ao carregar eventos. Tente novamente.</p>
-              <p className="text-sm text-muted-foreground mt-2">{error.message}</p>
-            </div>
-          ) : (
-            <CalendarViewRenderer
-              visualizacao="monthly"
-              eventosFiltrados={eventosFiltrados}
-              mesAtual={new Date().getMonth()}
-              anoAtual={new Date().getFullYear()}
-              onEventClick={handleEventClick}
-            />
-          )}
-        </CardContent>
-      </Card>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    {isLoading ? (
+                        <div className="flex items-center justify-center py-12">
+                            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                            <span className="ml-2 text-muted-foreground">Carregando eventos...</span>
+                        </div>
+                    ) : error ? (
+                        <div className="text-center py-12">
+                            <p className="text-destructive">Erro ao carregar eventos. Tente novamente.</p>
+                            <p className="text-sm text-muted-foreground mt-2">{error.message}</p>
+                        </div>
+                    ) : (
+                        <CalendarViewRenderer
+                            visualizacao="monthly"
+                            eventosFiltrados={eventosFiltrados}
+                            mesAtual={new Date().getMonth()}
+                            anoAtual={new Date().getFullYear()}
+                            onEventClick={handleEventClick}
+                        />
+                    )}
+                </CardContent>
+            </Card>
 
-      <EventDetailsCard 
-        event={selectedEvent}
-        isOpen={isEventDetailsOpen}
-        onClose={handleCloseEventDetails}
-      />
-    </div>
-  );
+            <EventDetailsCard
+                event={selectedEvent}
+                isOpen={isEventDetailsOpen}
+                onClose={handleCloseEventDetails}
+            />
+        </div>
+    );
 };
 
 export default Eventos;

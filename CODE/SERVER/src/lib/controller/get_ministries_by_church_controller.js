@@ -21,9 +21,11 @@ export class GetMinistriesByChurchController extends Controller
         }
 
         let churchId = request.profileLogged.user_metadata.church_id;
+        let { roleSlug = null } = request.query;
 
         let ministries = await getMinistriesByChurchUseCase.execute(
-            churchId
+            churchId,
+            roleSlug
             );
 
         return ministries;

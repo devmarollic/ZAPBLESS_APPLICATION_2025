@@ -35,7 +35,7 @@ const Pagamento = () => {
     });
 
     const price = isAnnual ? planByIdMap[selectedPlan]?.annualPrice : planByIdMap[selectedPlan]?.monthlyPrice;
-    const [ real, cents ] = price?.toFixed(2).replace('.', ',').split(',');
+    const [ real, cents ] = typeof price === 'number' ? price.toFixed(2).replace('.', ',').split(',') : ['0', '00'];
 
     useEffect(() => {
         if (!selectedPlan) {

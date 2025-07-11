@@ -1,4 +1,5 @@
 
+import { AuthenticationService } from '@/lib/authentication_service';
 import { HttpClient } from '@/lib/http_client';
 
 export interface Contact {
@@ -58,7 +59,8 @@ export class ContactService {
         return this.httpClient.post<Contact>('/contacts', contactData);
     }
 
-    public static async getContactsByChurch(churchId: string): Promise<Contact[]> {
+    public static async getContactsByChurch(): Promise<Contact[]> {
+        const churchId = await AuthenticationService.getChurchId();
         return this.httpClient.get<Contact[]>(`/contacts?churchId=${churchId}`);
     }
 

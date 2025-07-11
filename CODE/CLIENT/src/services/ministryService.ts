@@ -4,12 +4,11 @@ import { AuthenticationService } from '@/lib/authentication_service';
 import { Contact } from './contactService';
 
 export interface MinistryMember {
-    ministryId: string;
     contactId: string;
     roleSlug: string;
-    joinedAtTimestamp: string;
     contact: {
         id: string;
+        name: string;
     };
 }
 
@@ -19,21 +18,8 @@ export interface Ministry {
     description: string;
     color: string;
     churchId: string;
-    members: MinistryMember[];
-    memberCount: number;
-    leader?: {
-        contactId: string;
-        contact: {
-            id: string;
-            name: string;
-            notify: string;
-            verifiedName: string;
-        };
-    };
-    viceLeader: {
-        contactId: string;
-        name: string;
-    };
+    contactArray: MinistryMember[];
+    contactCount: number;
 }
 
 export interface CreateMinistryRequest {
@@ -75,6 +61,11 @@ export class MinistryService {
     public static async getMinistriesByChurch(): Promise<Ministry[]> {
         const churchId = AuthenticationService.getChurchId();
         return this.httpClient.get<Ministry[]>(`/ministries?churchId=${churchId}`); 
+    }
+
+    public static async getMinistriesByChurchWithMembers(roleSlug: string): Promise<Ministry[]> {
+        const churchId = AuthenticationService.getChurchId();
+        return this.httpClient.get<Ministry[]>(`/ministries?churchId=${churchId}&roleSlug=${roleSlug}`); 
     }
 
     public static async getMinistryById(ministryId: string): Promise<Ministry> {

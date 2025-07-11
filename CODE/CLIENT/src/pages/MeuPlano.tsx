@@ -237,17 +237,24 @@ const MeuPlano = () => {
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-3">
-                        <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                            <div>
-                                <p className="font-medium">{subscriptionOverview?.nextBilling.description}</p>
-                                <p className="text-sm text-gray-600">
-                                    {new Date(subscriptionOverview?.nextBilling.date).toLocaleDateString('pt-BR')}
-                                </p>
+                        {subscriptionOverview?.nextBilling && (
+                            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                <div>
+                                    <p className="font-medium">{subscriptionOverview?.nextBilling?.description}</p>
+                                    <p className="text-sm text-gray-600">
+                                        {new Date(subscriptionOverview?.nextBilling?.date).toLocaleDateString('pt-BR')}
+                                    </p>
+                                </div>
+                                <span className="font-bold text-zapPurple-600">
+                                    {subscriptionOverview?.nextBilling?.amount.toLocaleString('pt-BR', { style: 'currency', currency: subscriptionOverview?.nextBilling.currency })}
+                                </span>
                             </div>
-                            <span className="font-bold text-zapPurple-600">
-                                {subscriptionOverview?.nextBilling.amount.toLocaleString('pt-BR', { style: 'currency', currency: subscriptionOverview?.nextBilling.currency })}
-                            </span>
-                        </div>
+                        )}
+                        { !subscriptionOverview?.nextBilling && (
+                            <div className="flex justify-center items-center p-3 bg-gray-50 rounded-lg">
+                                <p className="text-sm text-gray-600">Nenhuma cobrança programada</p>
+                            </div>
+                        )}
                     </div>
                 </CardContent>
             </Card>
