@@ -6,6 +6,7 @@ import { EventService, EventResponse } from "@/services/eventService";
 import { Event } from "@/types/event";
 import { aplicarFiltros } from "@/utils/calendarUtils";
 import { calculateRecurrentEventOccurrences, CalculatedEventOccurrence } from "@/utils/recurrenceUtils";
+import dayjs from "dayjs";
 
 // -- CONSTANTS
 
@@ -32,7 +33,7 @@ interface DateRange {
 
 export const useEventCalendar = () => {
     // -- VARIABLES
-    
+
     const [selectedCategories, setSelectedCategories] = useState<string[]>(['todas']);
     const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
     const [isEventDetailsOpen, setIsEventDetailsOpen] = useState(false);
@@ -144,40 +145,83 @@ export const useEventCalendar = () => {
 
     // ~~
 
+    function generateVirtualEventsInRange(event, rangeStart, rangeEnd) {
+        const virtualEvents = [];
+
+        const duration = dayjs(event.endAtTimestamp).diff(dayjs(event.startAtTimestamp), 'minute');
+
+        let currentStart = dayjs(event.startAtTimestamp);
+        const endRecurrence = event.recurrence?.endAtTimestamp ? dayjs(event.recurrence.endAtTimestamp) : null;
+
+        const from = dayjs(rangeStart);
+        const to = dayjs(rangeEnd);
+
+        // Proteção: se não for recorrente ou não tiver intervalo definido
+        if (!event.recurrenceTypeId || !event.recurrence?.interval) return [];
+
+        while (true) {
+            // Interrompe se passar da data final do intervalo
+            if (currentStart.isAfter(to)) break;
+
+            // Interrompe se passar da data final da recorrência, se houver
+            if (endRecurrence && currentStart.isAfter(endRecurrence)) break;
+
+            // Se a instância cair dentro do range desejado, adiciona
+            if (currentStart.isAfter(from) || currentStart.isSame(from)) {
+                const currentEnd = currentStart.add(duration, 'minute');
+
+                virtualEvents.push({
+                    ...event,
+                    startAtTimestamp: currentStart.toISOString(),
+                    endAtTimestamp: currentEnd.toISOString(),
+                    isVirtual: true
+                });
+            }
+
+            // Avança para a próxima ocorrência
+            switch (event.recurrenceTypeId) {
+                case 'daily':
+                    currentStart = currentStart.add(event.recurrence.interval, 'day');
+                    break;
+                case 'weekly':
+                    currentStart = currentStart.add(event.recurrence.interval * 7, 'day');
+                    break;
+                case 'monthly':
+                    currentStart = currentStart.add(event.recurrence.interval, 'month');
+                    break;
+                case 'yearly':
+                    currentStart = currentStart.add(event.recurrence.interval, 'year');
+                    break;
+                default:
+                    return [];
+            }
+        }
+
+        return virtualEvents;
+    }
+
     const processedEvents = useCallback(() => {
         if (!rawEvents || rawEvents.length === 0) {
             return [];
         }
 
         // Separar eventos recorrentes dos não recorrentes
-        const recurringEvents = rawEvents.filter(event => 
-            event.recurrenceTypeId && 
-            event.recurrenceTypeId !== 'none' && 
-            event.recurrence
-        );
-        
-        const nonRecurringEvents = rawEvents.filter(event => 
-            !event.recurrenceTypeId || 
-            event.recurrenceTypeId === 'none' || 
-            !event.recurrence
-        );
+        const recurringEvents = [];
 
-        // Converter eventos não recorrentes
-        const convertedEvents = nonRecurringEvents.map(convertApiEventToEvent);
+        for (const event of rawEvents) {
+            recurringEvents.push(
+                ...generateVirtualEventsInRange(
+                    event,
+                    dateRangeRef.current.from,
+                    dateRangeRef.current.to
+                )
+            );
+        }
 
-        // Calcular ocorrências apenas para eventos recorrentes
-        const occurrences = calculateRecurrentEventOccurrences(
-            recurringEvents,
-            monthStart,
-            monthEnd
-        );
 
-        const occurrenceEvents = occurrences.map(convertOccurrenceToEvent);
+        const occurrenceEvents = recurringEvents.map(convertOccurrenceToEvent);
 
-        // Combinar eventos sem duplicação
-        const allEvents = [...convertedEvents, ...occurrenceEvents];
-
-        return allEvents;
+        return occurrenceEvents;
     }, [rawEvents, monthStart, monthEnd, convertApiEventToEvent, convertOccurrenceToEvent]);
 
     // ~~

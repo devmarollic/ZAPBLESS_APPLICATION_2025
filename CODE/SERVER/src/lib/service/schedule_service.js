@@ -69,6 +69,68 @@ class ScheduleService
         return data;
     }
 
+    // ~~~~
+
+    async getScheduleArrayWithDetails(
+        churchId
+        )
+    {
+        let { data, error } = await supabaseService
+            .getClient()
+            .from( 'SCHEDULE' )
+            .select(
+                `id,
+                church:CHURCH!inner(
+                    id,
+                    name
+                ),
+                event:EVENT!inner(
+                    id,
+                    title,
+                    description,
+                    ministry:MINISTRY (
+                        id,
+                        name,
+                        color
+                    ),
+                    eventType:EVENT_TYPE!inner(
+                        id,
+                        name
+                    )
+                ),
+                notificationType:NOTIFICATION_TYPE!inner(
+                    id,
+                    name
+                ),
+                notificationMedium:NOTIFICATION_MEDIUM!inner(
+                    id,
+                    name
+                ),
+                status:SCHEDULE_STATUS!inner(
+                    id,
+                    name
+                ),
+                recurrence:RECURRENCE!left(
+                    id,
+                    typeId,
+                    timeOfDayTimestamp
+                ),
+                scheduleAtTimestamp,
+                errorMessage,
+                payload,
+                targetRoleArray
+                `
+            )
+            .eq( 'churchId', churchId );
+
+        if ( error !== null )
+        {
+            logError( error );
+        }
+
+        return data;
+    }
+
     // -- OPERATIONS
 
     async addSchedule(
@@ -111,6 +173,27 @@ class ScheduleService
         }
 
         return data;
+    }
+
+    // ~~
+
+    async deleteScheduleById(
+        id
+        )
+    {
+        let { error } = await supabaseService
+            .getClient()
+            .from( 'SCHEDULE' )
+            .delete()
+            .eq( 'id', id );
+
+        if ( error !== null )
+        {
+            logError( error );
+            return false;
+        }
+
+        return true;
     }
 }
 

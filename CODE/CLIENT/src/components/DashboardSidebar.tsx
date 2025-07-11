@@ -45,9 +45,9 @@ const DashboardSidebar = () => {
 
                 <SidebarSeparator />
 
-                <SidebarAvisosGroup />
+                {/* <SidebarAvisosGroup />
 
-                <SidebarSeparator />
+                <SidebarSeparator /> */}
 
                 <SidebarMinisteriosGroup />
 

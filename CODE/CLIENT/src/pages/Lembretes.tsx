@@ -10,6 +10,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Bell, Plus, Calendar, Clock, AlertTriangle, CheckCircle, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import TemplateManager from '@/components/templates/TemplateManager';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { ScheduleResponse, ScheduleService } from '@/services/scheduleService';
 
 type ReminderCategory = 'culto' | 'reuniao' | 'evento' | 'aniversario' | 'outros';
 
@@ -24,78 +26,20 @@ interface Reminder {
     priority: 'low' | 'medium' | 'high';
 }
 
-const mockReminders: Reminder[] = [
-    {
-        id: '1',
-        title: 'Preparar material do culto',
-        description: 'Organizar hinário e materiais para o culto de domingo',
-        category: 'culto',
-        dueDate: '2024-01-15',
-        dueTime: '18:00',
-        status: 'pending',
-        priority: 'high'
-    },
-    {
-        id: '2',
-        title: 'Reunião de liderança',
-        description: 'Reunião mensal com os líderes dos ministérios',
-        category: 'reuniao',
-        dueDate: '2024-01-20',
-        dueTime: '19:30',
-        status: 'pending',
-        priority: 'medium'
-    },
-    {
-        id: '3',
-        title: 'Aniversário João Silva',
-        description: 'Enviar mensagem de parabéns',
-        category: 'aniversario',
-        dueDate: '2024-01-18',
-        dueTime: '09:00',
-        status: 'completed',
-        priority: 'low'
-    }
-];
 
 const Lembretes = () => {
     const { toast } = useToast();
-    const [reminders, setReminders] = useState<Reminder[]>(mockReminders);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'reminders' | 'templates'>('reminders');
-    const [newReminder, setNewReminder] = useState({
-        title: '',
-        description: '',
-        category: 'outros' as ReminderCategory,
-        dueDate: '',
-        dueTime: '',
-        priority: 'medium' as 'low' | 'medium' | 'high'
+
+    const queryClient = useQueryClient();
+    const { data: reminders, isLoading: isLoadingSchedules } = useQuery<ScheduleResponse[]>({
+        queryKey: ['schedules'],
+        queryFn: () => ScheduleService.getSchedules()
     });
 
     const handleCreateReminder = () => {
-        if (!newReminder.title || !newReminder.dueDate || !newReminder.dueTime) {
-            toast({
-                title: 'Erro',
-                description: 'Preencha todos os campos obrigatórios',
-                variant: 'destructive'
-            });
-            return;
-        }
-
-        const reminder: Reminder = {
-            id: Date.now().toString(),
-            ...newReminder,
-            status: 'pending'
-        };
-
-        setReminders([...reminders, reminder]);
-        setNewReminder({
-            title: '',
-            description: '',
-            category: 'outros',
-            dueDate: '',
-            dueTime: '',
-            priority: 'medium'
-        });
+        
         setIsDialogOpen(false);
 
         toast({
@@ -104,20 +48,57 @@ const Lembretes = () => {
         });
     };
 
-    const handleToggleStatus = (id: string) => {
-        setReminders(reminders.map(reminder => 
-            reminder.id === id 
-                ? { ...reminder, status: reminder.status === 'pending' ? 'completed' : 'pending' }
-                : reminder
-        ));
+    const handleToggleStatus = async (id: string, status: 'sent' | 'pending') => {
+        try {
+            await ScheduleService.updateScheduleStatus(id, status);
+    
+            queryClient.invalidateQueries({ queryKey: ['schedules'] });
+        } catch (error) {
+            toast({
+                title: 'Erro',
+                description: 'Erro ao atualizar o status do lembrete',
+                variant: 'destructive'
+            });
+        }
     };
 
-    const handleDeleteReminder = (id: string) => {
-        setReminders(reminders.filter(reminder => reminder.id !== id));
-        toast({
-            title: 'Lembrete excluído',
-            description: 'O lembrete foi excluído com sucesso!'
-        });
+    const handleDeleteReminder = async (id: string) => {
+        try {
+            await ScheduleService.deleteSchedule(id);
+
+            queryClient.invalidateQueries({ queryKey: ['schedules'] });
+
+            toast({
+                title: 'Lembrete excluído',
+                description: 'O lembrete foi excluído com sucesso!'
+            });
+        } catch (error) {
+            toast({
+                title: 'Erro',
+                description: 'Erro ao excluir o lembrete',
+                variant: 'destructive'
+            });
+        }
+    };
+
+    const getRoleColor = (role: string) => {
+        const colors = {
+            'leader': 'bg-blue-100 text-blue-800',
+            'member': 'bg-green-100 text-green-800',
+            'volunteer': 'bg-yellow-100 text-yellow-800',
+            'vice-leader': 'bg-purple-100 text-purple-800'
+        };
+        return colors[role];
+    };
+
+    const getRoleName = (role: string) => {
+        const names = {
+            'leader': 'Lideres',
+            'member': 'Membros',
+            'volunteer': 'Voluntários',
+            'vice-leader': 'Vice-líderes'
+        };
+        return names[role];
     };
 
     const getCategoryColor = (category: ReminderCategory) => {
@@ -181,12 +162,12 @@ const Lembretes = () => {
                 <>
                     <div className="flex justify-end">
                         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                            <DialogTrigger asChild>
+                            {/* <DialogTrigger asChild>
                                 <Button>
                                     <Plus className="mr-2 h-4 w-4" />
                                     Novo Lembrete
                                 </Button>
-                            </DialogTrigger>
+                            </DialogTrigger> */}
                             <DialogContent>
                                 <DialogHeader>
                                     <DialogTitle>Criar Novo Lembrete</DialogTitle>
@@ -194,7 +175,7 @@ const Lembretes = () => {
                                         Preencha os dados do lembrete
                                     </DialogDescription>
                                 </DialogHeader>
-                                <div className="space-y-4">
+                                {/* <div className="space-y-4">
                                     <div>
                                         <label className="text-sm font-medium">Título *</label>
                                         <Input
@@ -279,7 +260,7 @@ const Lembretes = () => {
                                             Criar Lembrete
                                         </Button>
                                     </div>
-                                </div>
+                                </div> */}
                             </DialogContent>
                         </Dialog>
                     </div>
@@ -299,46 +280,53 @@ const Lembretes = () => {
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Título</TableHead>
+                                        <TableHead>Ministério</TableHead>
                                         <TableHead>Categoria</TableHead>
                                         <TableHead>Data/Hora</TableHead>
-                                        <TableHead>Prioridade</TableHead>
+                                        <TableHead>Alvos</TableHead>
                                         <TableHead>Status</TableHead>
                                         <TableHead>Ações</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {reminders.map((reminder) => (
+                                    {(reminders || []).map((reminder) => (
                                         <TableRow key={reminder.id}>
                                             <TableCell>
                                                 <div>
-                                                    <div className="font-medium">{reminder.title}</div>
-                                                    {reminder.description && (
-                                                        <div className="text-sm text-muted-foreground">{reminder.description}</div>
+                                                    <div className="font-medium">{reminder.event.title}</div>
+                                                    {reminder.event.description && (
+                                                        <div className="text-sm text-muted-foreground">{reminder.event.description}</div>
                                                     )}
                                                 </div>
                                             </TableCell>
                                             <TableCell>
-                                                <Badge className={getCategoryColor(reminder.category)}>
-                                                    {reminder.category}
+                                                <Badge className={reminder.event?.ministry?.color ? `bg-[${reminder.event.ministry.color}] whitespace-nowrap` : ''}>
+                                                    {reminder.event?.ministry?.name ?? 'Sem ministério'}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge className={getCategoryColor(reminder.event.eventType.name)}>
+                                                    {reminder.event.eventType.name}
                                                 </Badge>
                                             </TableCell>
                                             <TableCell>
                                                 <div className="flex items-center">
                                                     <Calendar className="mr-1 h-4 w-4" />
                                                     <span className="text-sm">
-                                                        {new Date(reminder.dueDate).toLocaleDateString('pt-BR')} às {reminder.dueTime}
+                                                        {new Date(reminder.scheduleAtTimestamp).toLocaleDateString('pt-BR')} às {new Date(reminder.scheduleAtTimestamp).toLocaleTimeString('pt-BR')}
                                                     </span>
                                                 </div>
                                             </TableCell>
                                             <TableCell>
-                                                <Badge className={getPriorityColor(reminder.priority)}>
-                                                    {getPriorityIcon(reminder.priority)}
-                                                    <span className="ml-1 capitalize">{reminder.priority}</span>
-                                                </Badge>
+                                                {JSON.parse(reminder.targetRoleArray)?.map((role) => (
+                                                    <Badge key={role} className={`bg-[${getRoleColor(role)}] whitespace-nowrap`}>
+                                                        {getRoleName(role)}
+                                                    </Badge>
+                                                ))}
                                             </TableCell>
                                             <TableCell>
-                                                <Badge variant={reminder.status === 'completed' ? 'default' : 'secondary'}>
-                                                    {reminder.status === 'completed' ? 'Concluído' : 'Pendente'}
+                                                <Badge variant={reminder.status.id === 'sent' ? 'default' : 'secondary'}>
+                                                    {reminder.status.name}
                                                 </Badge>
                                             </TableCell>
                                             <TableCell>
@@ -346,9 +334,9 @@ const Lembretes = () => {
                                                     <Button
                                                         size="sm"
                                                         variant="outline"
-                                                        onClick={() => handleToggleStatus(reminder.id)}
+                                                        onClick={() => handleToggleStatus(reminder.id, reminder.status.id === 'sent' ? 'pending' : 'sent')}
                                                     >
-                                                        {reminder.status === 'completed' ? 'Reabrir' : 'Concluir'}
+                                                        {reminder.status.id === 'sent' ? 'Reenviar' : 'Concluir'}
                                                     </Button>
                                                     <Button
                                                         size="sm"

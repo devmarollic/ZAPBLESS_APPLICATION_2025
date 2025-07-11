@@ -61,6 +61,8 @@
 - [ ] Criar tabelas SCHEDULE, SCHEDULE_PROFILE
 - [ ] Criar agendador para lembretes antes dos eventos
 - [ ] Validar canal permitido (WhatsApp)
+- [x] Implementar rota para excluir schedule - 2025-01-30
+- [x] Implementar rota para mudar statusId do schedule - 2025-01-30
 
 ---
 

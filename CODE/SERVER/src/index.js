@@ -19,7 +19,8 @@ import
         dashboardRoutes,
         subscriptionRoutes,
         eventTypesRoutes,
-        templateRoutes
+        templateRoutes,
+        scheduleRoutes
     } from './lib/routes';
 import { initIO } from './socket';
 import { authMiddleware } from './middleware/auth_middleware';
@@ -77,6 +78,7 @@ fastify.register( dashboardRoutes, { prefix: '/dashboard' } );
 fastify.register( subscriptionRoutes, { prefix: '/subscriptions' } );
 fastify.register( eventTypesRoutes, { prefix: '/event-type' } );
 fastify.register( templateRoutes, { prefix: '/message-template' } );
+fastify.register( scheduleRoutes, { prefix: '/schedule' } );
 
 fastify.post( '/webhook', async ( request, reply ) =>
     {

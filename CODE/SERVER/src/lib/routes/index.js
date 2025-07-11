@@ -11,3 +11,4 @@ export * from './dashboard_routes';
 export * from './subscription_routes';
 export * from './event_type_routes';
 export * from './template_routes';
+export * from './schedule_routes';

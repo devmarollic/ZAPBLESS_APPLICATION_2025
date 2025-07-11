@@ -16,14 +16,14 @@ const SidebarDashboardGroup = () => {
       <SidebarGroupLabel>Dashboard</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
-          <SidebarMenuItem>
+          {/* <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Gráficos de acesso">
               <NavLink to="/dashboard/graficos/acesso" className={({isActive}) => isActive ? "data-[active=true]" : ""}>
                 <ChartArea className="h-5 w-5" />
                 <span>Gráficos de acesso</span>
               </NavLink>
             </SidebarMenuButton>
-          </SidebarMenuItem>
+          </SidebarMenuItem> */}
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Gráficos de mensagens">
               <NavLink to="/dashboard/graficos/mensagens" className={({isActive}) => isActive ? "data-[active=true]" : ""}>
@@ -48,14 +48,14 @@ const SidebarDashboardGroup = () => {
               </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenuItem>
+          {/* <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Gráficos de avisos">
               <NavLink to="/dashboard/graficos/avisos" className={({isActive}) => isActive ? "data-[active=true]" : ""}>
                 <Bell className="h-5 w-5" />
                 <span>Gráficos de avisos</span>
               </NavLink>
             </SidebarMenuButton>
-          </SidebarMenuItem>
+          </SidebarMenuItem> */}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
