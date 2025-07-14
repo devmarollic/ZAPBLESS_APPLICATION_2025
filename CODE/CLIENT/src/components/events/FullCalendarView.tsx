@@ -13,13 +13,15 @@ interface FullCalendarViewProps {
   visualizacao: string;
   onEventClick: (event: Event) => void;
   onDateClick?: (date: Date) => void;
+  onRangeChange?: (start: Date, end: Date) => void;
 }
 
 const FullCalendarView = ({ 
   eventos, 
   visualizacao, 
   onEventClick,
-  onDateClick
+  onDateClick,
+  onRangeChange
 }: FullCalendarViewProps) => {
   // Convert events to FullCalendar format
   const calendarEvents = eventos.map(evento => {
@@ -84,6 +86,12 @@ const FullCalendarView = ({
     }
   };
 
+  // Função para emitir o range visível
+  const handleDatesSet = (arg: any) => {
+    if (onRangeChange) {
+      onRangeChange(new Date(arg.start), new Date(arg.end));
+    }
+  };
 
 
   return (
@@ -118,6 +126,7 @@ const FullCalendarView = ({
           minute: '2-digit',
           hour12: false
         }}
+        datesSet={handleDatesSet}
       />
     </div>
   );

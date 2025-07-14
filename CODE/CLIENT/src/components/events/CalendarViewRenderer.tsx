@@ -9,6 +9,7 @@ interface CalendarViewRendererProps {
   mesAtual: number;
   anoAtual: number;
   onEventClick: (event: Event) => void;
+  onRangeChange: (start: Date, end: Date) => void;
   onDateChange?: (start: Date, end: Date) => void;
   onViewChange?: (view: string) => void;
 }
@@ -19,6 +20,7 @@ const CalendarViewRenderer = ({
   mesAtual, 
   anoAtual, 
   onEventClick,
+  onRangeChange,
   onDateChange,
   onViewChange
 }: CalendarViewRendererProps) => {
@@ -31,6 +33,7 @@ const CalendarViewRenderer = ({
         eventos={eventosFiltrados}
         visualizacao={visualizacao}
         onEventClick={onEventClick}
+        onRangeChange={onRangeChange}
       />
     );
   }

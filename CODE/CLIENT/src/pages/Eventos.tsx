@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import CalendarHeader from "@/components/events/CalendarHeader";
@@ -18,7 +17,8 @@ const Eventos = () => {
         error,
         handleCategoriesChange,
         handleEventClick,
-        handleCloseEventDetails
+        handleCloseEventDetails,
+        handleRangeChange
     } = useEventCalendar();
 
     return (
@@ -61,6 +61,7 @@ const Eventos = () => {
                             mesAtual={new Date().getMonth()}
                             anoAtual={new Date().getFullYear()}
                             onEventClick={handleEventClick}
+                            onRangeChange={handleRangeChange}
                         />
                     )}
                 </CardContent>
