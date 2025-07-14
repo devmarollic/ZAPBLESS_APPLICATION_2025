@@ -13,13 +13,17 @@ interface FullCalendarViewProps {
   visualizacao: string;
   onEventClick: (event: Event) => void;
   onDateClick?: (date: Date) => void;
+  onRangeChange?: (start: Date, end: Date) => void;
+  onViewChange?: (view: string) => void;
 }
 
-const FullCalendarView = ({ 
-  eventos, 
-  visualizacao, 
+const FullCalendarView = ({
+  eventos,
+  visualizacao,
   onEventClick,
-  onDateClick
+  onDateClick,
+  onRangeChange,
+  onViewChange
 }: FullCalendarViewProps) => {
   // Convert events to FullCalendar format
   const calendarEvents = eventos.map(evento => {
@@ -96,6 +100,10 @@ const FullCalendarView = ({
         events={calendarEvents}
         eventClick={handleEventClick}
         dateClick={handleDateClick}
+        datesSet={(arg) => {
+          onRangeChange?.(arg.start, arg.end);
+          onViewChange?.(arg.view.type);
+        }}
         locale="pt-br"
         height="auto"
         headerToolbar={{

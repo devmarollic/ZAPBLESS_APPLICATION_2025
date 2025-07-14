@@ -17,6 +17,7 @@ const Eventos = () => {
     isLoading,
     error,
     handleCategoriesChange,
+    handleRangeChange,
     handleEventClick,
     handleCloseEventDetails
   } = useEventCalendar();
@@ -61,6 +62,7 @@ const Eventos = () => {
               mesAtual={new Date().getMonth()}
               anoAtual={new Date().getFullYear()}
               onEventClick={handleEventClick}
+              onDateChange={handleRangeChange}
             />
           )}
         </CardContent>

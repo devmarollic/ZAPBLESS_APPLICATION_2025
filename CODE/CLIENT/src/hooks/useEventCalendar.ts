@@ -122,17 +122,18 @@ export const useEventCalendar = () => {
 
     // ~~
 
-    // Usar uma data fixa baseada no mês atual para evitar conflitos
-    const currentMonth = new Date();
-    const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-    const monthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+    const monthStart = fullCalendarDateRange.from;
+    const monthEnd = fullCalendarDateRange.to;
 
     const { data: rawEvents = [], isLoading, error, refetch } = useQuery({
         queryKey: [EVENTS_QUERY_KEY, monthStart, monthEnd],
         queryFn: async () => {
+            const fetchStart = new Date(monthStart);
+            fetchStart.setMonth(fetchStart.getMonth() - 12);
+
             const response = await EventService.getEvents(
                 'is-coming',
-                format(monthStart, 'yyyy-MM-dd'),
+                format(fetchStart, 'yyyy-MM-dd'),
                 format(monthEnd, 'yyyy-MM-dd')
             );
 
@@ -197,6 +198,10 @@ export const useEventCalendar = () => {
         setSelectedCategories(categories);
     }, []);
 
+    const handleRangeChange = useCallback((start: Date, end: Date) => {
+        setFullCalendarDateRange({ from: start, to: end });
+    }, []);
+
     // ~~
 
     const handleEventClick = useCallback((event: Event) => {
@@ -221,6 +226,7 @@ export const useEventCalendar = () => {
         isLoading,
         error,
         handleCategoriesChange,
+        handleRangeChange,
         handleEventClick,
         handleCloseEventDetails,
         refetch
