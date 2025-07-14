@@ -126,18 +126,22 @@ export const useEventCalendar = () => {
 
     // ~~
 
-    // Usar uma data fixa baseada no mês atual para evitar conflitos
+    // Usar uma data fixa baseada no mês atual para o carregamento inicial
     const currentMonth = new Date();
     const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
     const monthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
 
+    // Range considerado para busca na API: usa o intervalo do calendário, se definido
+    const rangeStart = fullCalendarDateRange?.from ?? monthStart;
+    const rangeEnd = fullCalendarDateRange?.to ?? monthEnd;
+
     const { data: rawEvents = [], isLoading, error, refetch } = useQuery({
-        queryKey: [EVENTS_QUERY_KEY, monthStart, monthEnd],
+        queryKey: [EVENTS_QUERY_KEY, rangeStart.toISOString(), rangeEnd.toISOString()],
         queryFn: async () => {
             const response = await EventService.getEvents(
                 'is-coming',
-                format(monthStart, 'yyyy-MM-dd'),
-                format(monthEnd, 'yyyy-MM-dd')
+                format(rangeStart, 'yyyy-MM-dd'),
+                format(rangeEnd, 'yyyy-MM-dd')
             );
 
             return response || [];
