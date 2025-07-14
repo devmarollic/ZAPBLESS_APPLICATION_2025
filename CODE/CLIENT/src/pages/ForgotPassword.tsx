@@ -10,6 +10,7 @@ import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { HttpClient } from '@/lib/http_client';
 
 const forgotPasswordSchema = z.object({
     email: z.string().email({ message: 'Email inválido' }),
@@ -38,8 +39,7 @@ const ForgotPassword = () => {
         setIsLoading(true);
 
         try {
-            // Simular envio do email de recuperação
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await HttpClient.getDefault().post('/login/reset-password', { email: data.email });
             
             setEmailSent(true);
             toast({

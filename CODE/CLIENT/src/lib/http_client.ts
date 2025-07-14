@@ -40,7 +40,8 @@ export class HttpClient {
             method: 'POST',
             body: JSON.stringify(body),
             redirect: 'follow',
-            headers: headers
+            headers: headers,
+            credentials: 'include'
         };
 
         const url = this.baseUrl + resource;
@@ -76,7 +77,8 @@ export class HttpClient {
             method: 'POST',
             body: body,
             redirect: 'follow',
-            headers: headers
+            headers: headers,
+            credentials: 'include'
         };
 
         const url = this.baseUrl + resource;
@@ -110,7 +112,8 @@ export class HttpClient {
             method: 'PUT',
             body: body ? JSON.stringify(body) : null,
             redirect: 'follow',
-            headers: headers
+            headers: headers,
+            credentials: 'include'
         };
 
         const url = this.baseUrl + resource;
@@ -152,7 +155,8 @@ export class HttpClient {
             method: 'PATCH',
             body: body ? JSON.stringify(body) : null,
             redirect: 'follow',
-            headers: headers
+            headers: headers,
+            credentials: 'include'
         };
 
         const url = this.baseUrl + resource;
@@ -194,7 +198,8 @@ export class HttpClient {
             method: 'DELETE',
             redirect: 'follow',
             headers: headers,
-            body: JSON.stringify({})
+            body: JSON.stringify({}),
+            credentials: 'include'
         };
 
         const url = this.baseUrl + resource;
@@ -235,7 +240,8 @@ export class HttpClient {
         const requestOptions: RequestInit = {
             method: 'GET',
             redirect: 'follow',
-            headers: headers
+            headers: headers,
+            credentials: 'include'
         };
 
         const url = this.baseUrl + resource;
@@ -306,6 +312,7 @@ export class HttpClient {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ refreshToken: refreshToken }),
+                credentials: 'include'
             });
 
             if (response.ok) {

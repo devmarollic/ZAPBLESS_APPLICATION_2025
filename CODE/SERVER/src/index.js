@@ -41,9 +41,9 @@ let fastify = Fastify( { logger: true } );
 fastify.register(
     fastifyCors,
     {
-        origin: '*',
+        origin: enviroment.FRONTEND_URL,
         credentials: true,
-        allowedHeaders: [ 'Content-Type', 'Authorization', 'ngrok-skip-browser-warning' ]
+        allowedHeaders: [ 'Content-Type', 'Authorization', 'ngrok-skip-browser-warning', 'Access-Control-Allow-Origin', 'Access-Control-Allow-Credentials' ]
     }
     );
 
@@ -65,6 +65,7 @@ fastify.register(
     );
 
 fastify.addHook( 'onRequest', authMiddleware );
+
 fastify.setErrorHandler( errorMiddleware );
 
 fastify.register( churchRoutes, { prefix: '/church' } );
@@ -79,6 +80,15 @@ fastify.register( subscriptionRoutes, { prefix: '/subscriptions' } );
 fastify.register( eventTypesRoutes, { prefix: '/event-type' } );
 fastify.register( templateRoutes, { prefix: '/message-template' } );
 fastify.register( scheduleRoutes, { prefix: '/schedule' } );
+
+fastify.addHook(
+    'preHandler',
+    ( request, reply, done ) =>
+    {
+        supabaseService.getClient( request, reply );
+        done();
+    }
+    );
 
 fastify.post( '/webhook', async ( request, reply ) =>
     {
@@ -140,11 +150,8 @@ fastify.setNotFoundHandler(
 let start =
     async () =>
     {
-        supabaseService.getClient();
-
         try
         {
-            
             await fastify.listen( { port : enviroment.PORT, host : '0.0.0.0' } );
         }
         catch ( error )

@@ -10,6 +10,8 @@ import { Eye, EyeOff, Lock, CheckCircle, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { HttpClient } from '@/lib/http_client';
+import { AuthenticationService } from '@/lib/authentication_service';
 
 const resetPasswordSchema = z.object({
     password: z.string().min(6, { message: 'Senha deve ter no mínimo 6 caracteres' }),
@@ -31,7 +33,7 @@ const ResetPassword = () => {
     const [tokenValid, setTokenValid] = useState<boolean | null>(null);
     const [passwordReset, setPasswordReset] = useState(false);
 
-    const token = searchParams.get('token');
+    const token = searchParams.get('code');
 
     const {
         register,
@@ -54,8 +56,9 @@ const ResetPassword = () => {
             }
 
             try {
-                // Simular verificação do token
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                let response = await HttpClient.getDefault().get<{ access_token: string, refresh_token: string }>('/login/exchange-code?code=' + token);
+
+                AuthenticationService.updateTokens(response.access_token, response.refresh_token);
                 
                 // Para demonstração, considerar token válido se tiver mais de 10 caracteres
                 setTokenValid(token.length > 10);
@@ -71,8 +74,7 @@ const ResetPassword = () => {
         setIsLoading(true);
 
         try {
-            // Simular reset da senha
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await HttpClient.getDefault().post('/login/update-password?access_token=' + AuthenticationService.getAccessToken(), { newPassword: data.password });
             
             setPasswordReset(true);
             toast({

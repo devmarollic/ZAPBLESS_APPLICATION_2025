@@ -237,6 +237,81 @@ class AuthentificationService
 
         return data;
     }
+
+    // ~~~
+
+    async resetPasswordForEmail(
+        email
+        )
+    {
+        let { data, error } = await supabaseService.getClient().auth.resetPasswordForEmail(
+            email,
+            {
+                redirectTo: enviroment.FRONTEND_URL + '/reset-password'
+            }
+            );
+
+        if ( error !== null )
+        {
+            logError( error );
+            throw new AppError( 'Failed to send password reset email' );
+        }
+
+        return data;
+    }
+
+    // ~~~
+
+    async exchangeCodeForSession(
+        code
+        )
+    {
+        let client = supabaseService.getClient();
+        let { data, error } = await client.auth.exchangeCodeForSession( code );
+
+        if ( error !== null )
+        {
+            logError( error );
+            throw new AppError( 'Failed to exchange code for session' );
+        }
+
+        return data;
+    }
+
+    // ~~
+
+    async updateUserPassword(
+        accessToken,
+        newPassword
+        )
+    {
+        let client = supabaseService.getClient();
+
+        let { data: user, error: userError } = await client.auth.getUser( accessToken );
+
+        // let { error: setSessionError } = await client.auth.setSession(
+        //     {
+        //         access_token: accessToken,
+        //         refresh_token: null
+        //     }
+        // );
+
+        if ( userError !== null )
+        {
+            logError( userError );
+            throw new AppError( 'Failed to authenticate session for password update' );
+        }
+
+        let { data, error } = await client.auth.updateUser( { password: newPassword } );
+
+        if ( error !== null )
+        {
+            logError( error );
+            throw new AppError( 'Failed to update password' );
+        }
+
+        return data;
+    }
 }
 
 // -- VARIABLES
