@@ -289,13 +289,6 @@ class AuthentificationService
 
         let { data: user, error: userError } = await client.auth.getUser( accessToken );
 
-        // let { error: setSessionError } = await client.auth.setSession(
-        //     {
-        //         access_token: accessToken,
-        //         refresh_token: null
-        //     }
-        // );
-
         if ( userError !== null )
         {
             logError( userError );

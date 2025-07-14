@@ -9,6 +9,10 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, EyeOff, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { HttpClient } from '@/lib/http_client';
+import { AuthenticationService } from '@/lib/authentication_service';
+import { AuthenticationResult } from '@/lib/authentication_result';
+import { useNavigate } from 'react-router-dom';
 
 const changePasswordSchema = z.object({
     currentPassword: z.string().min(1, { message: 'Senha atual é obrigatória' }),
@@ -27,6 +31,7 @@ const ChangePassword = () => {
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
 
     const {
         register,
@@ -46,19 +51,32 @@ const ChangePassword = () => {
         setIsLoading(true);
 
         try {
-            // Simular mudança de senha
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            
+            let user = AuthenticationService.getUser();
+            let email = user?.user_metadata?.email;
+            if (!email) {
+                throw new Error('Usuário não autenticado. Faça login novamente.');
+            }
+
+            let loginResponse = await HttpClient.getDefault().post<AuthenticationResult>('/login/set-password', {
+                currentPassword: data.currentPassword,
+                newPassword: data.newPassword
+            });
+
+            AuthenticationService.logOff();
+
+            navigate('/login');
+
             toast({
                 title: 'Senha alterada',
-                description: 'Sua senha foi alterada com sucesso',
+                description: 'Sua senha foi alterada com sucesso, faça login novamente.',
             });
 
             reset();
-        } catch (error) {
+        } catch (error: any) {
+            let errorMessage = error?.message || 'Não foi possível alterar a senha. Verifique sua senha atual.';
             toast({
                 title: 'Erro ao alterar senha',
-                description: 'Não foi possível alterar a senha. Verifique sua senha atual.',
+                description: errorMessage,
                 variant: 'destructive',
             });
         } finally {

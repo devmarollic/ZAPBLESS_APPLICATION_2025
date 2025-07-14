@@ -9,6 +9,8 @@ import { GoogleCallbackController } from '../controller/google_callback_controll
 import { UpdatePasswordController } from '../controller/update_password_controller';
 import { ResetPasswordController } from '../controller/reset_password_controller';
 import { ExchangeCodeController } from '../controller/exchange_code_controller';
+import { UpdatePasswordLoggedController } from '../controller/update_password_logged_controller';
+import { authMiddleware } from '../../middleware/auth_middleware';
 
 // -- CONSTANTS
 
@@ -21,6 +23,7 @@ const googleCallbackController = new GoogleCallbackController();
 const updatePasswordController = new UpdatePasswordController();
 const resetPasswordController = new ResetPasswordController();
 const exchangeCodeController = new ExchangeCodeController();
+const updatePasswordLoggedController = new UpdatePasswordLoggedController();
 
 // -- FUNCTIONS
 
@@ -72,6 +75,11 @@ export async function authenticateRoutes(
     fastify.get(
         '/exchange-code',
         ( request, response ) => exchangeCodeController.handle( request, response )
+        );
+
+    fastify.post(
+        '/set-password',
+        ( request, response ) => updatePasswordLoggedController.handle( request, response )
         );
 }
 
