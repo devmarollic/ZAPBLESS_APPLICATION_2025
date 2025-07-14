@@ -51,7 +51,7 @@ const Navbar = () => {
         
       <div className="max-w-7xl mx-auto px-4 md:px-8 flex justify-between items-center">
         <div className="flex items-center">
-          <a href="#" className="text-2xl font-bold flex items-center gap-2">
+          <a href="/" className="text-2xl font-bold flex items-center gap-2">
             <span className="text-zapPurple-600">Zap</span>
             <span className="text-zapBlue-600">Bless</span>
           </a>
@@ -59,19 +59,19 @@ const Navbar = () => {
 
         <nav className="hidden md:flex items-center space-x-8">
           <a
-            href="#features"
+            href="/#features"
             className="font-medium text-gray-700 hover:text-zapBlue-600 transition"
           >
             Recursos
           </a>
           <a
-            href="#how-it-works"
+            href="/#how-it-works"
             className="font-medium text-gray-700 hover:text-zapBlue-600 transition"
           >
             Como Funciona
           </a>
           <a
-            href="#pricing"
+            href="/#pricing"
             className="font-medium text-gray-700 hover:text-zapBlue-600 transition"
           >
             Planos
@@ -120,21 +120,21 @@ const Navbar = () => {
         <div className="md:hidden absolute top-16 inset-x-0 bg-white shadow-lg rounded-b-2xl p-4">
           <nav className="flex flex-col space-y-4">
             <a
-              href="#features"
+              href="/#features"
               onClick={() => setMobileMenuOpen(false)}
               className="font-medium text-gray-700 hover:text-zapBlue-600 transition p-2"
             >
               Recursos
             </a>
             <a
-              href="#how-it-works"
+              href="/#how-it-works"
               onClick={() => setMobileMenuOpen(false)}
               className="font-medium text-gray-700 hover:text-zapBlue-600 transition p-2"
             >
               Como Funciona
             </a>
             <a
-              href="#pricing"
+              href="/#pricing"
               onClick={() => setMobileMenuOpen(false)}
               className="font-medium text-gray-700 hover:text-zapBlue-600 transition p-2"
             >

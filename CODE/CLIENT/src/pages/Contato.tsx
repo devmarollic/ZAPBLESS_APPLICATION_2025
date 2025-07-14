@@ -155,7 +155,12 @@ const Contato = () => {
               <h2 className="text-2xl font-bold mb-6">Envie uma Mensagem</h2>
               
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form
+                    // onSubmit={form.handleSubmit(onSubmit)}
+                    action="https://formspree.io/f/mqalzwka"
+                    method="POST"
+                    className="space-y-4"
+                >
                   <FormField
                     control={form.control}
                     name="nome"

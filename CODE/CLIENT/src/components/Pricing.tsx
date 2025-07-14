@@ -4,10 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Check, TrendingUp } from 'lucide-react';
 import { PlanOption } from './register/PlanSelectionStep';
 import { usePlan } from '@/hooks/use-plan';
+import { useNavigate } from 'react-router-dom';
 
 const Pricing = () => {
     const [isAnnual, setIsAnnual] = useState(true);
-    const { plans, isLoading } = usePlan();
+    const { plans, isLoading, setSelectedPlan } = usePlan();
+    const navigate = useNavigate();
 
     const planBorderColorByIndexMap =
     {
@@ -32,6 +34,11 @@ const Pricing = () => {
         const annualMonthly = annualPrice / 12;
         const savings = ((monthlyPrice - annualMonthly) / monthlyPrice) * 100;
         return Math.round(savings);
+    };
+
+    const handlePlanClick = (planId: string) => {
+        setSelectedPlan(planId);
+        navigate(`/register`);
     };
 
     return (
@@ -66,7 +73,7 @@ const Pricing = () => {
                 {plans.map((plan, index) => (
                     <div
                         key={index}
-                        className={`bg-white rounded-xl border-2 ${ planBorderColorByIndexMap[index] } p-6 md:p-8 transition-all ${plan.isPromoted ? "md:-translate-y-4 shadow-xl" : "shadow-sm"
+                        className={`bg-white rounded-xl border-2 ${planBorderColorByIndexMap[index]} p-6 md:p-8 transition-all ${plan.isPromoted ? "md:-translate-y-4 shadow-xl" : "shadow-sm"
                             } relative flex flex-col h-full`}
                     >
                         {plan.isPromoted && (
@@ -78,7 +85,7 @@ const Pricing = () => {
                             <div className="text-center mb-8">
                                 <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
                                 <p className="text-gray-500 mb-6">{plan.description}</p>
-                                
+
                                 {/* Preço Principal */}
                                 <div className="mb-4">
                                     {isAnnual ? (
@@ -87,7 +94,7 @@ const Pricing = () => {
                                             <div className="text-lg text-gray-400 line-through">
                                                 {formatPrice(plan.monthlyPrice)}/mês
                                             </div>
-                                            
+
                                             {/* Preço com Desconto */}
                                             <div className="flex items-baseline justify-center gap-1">
                                                 <span className="text-sm text-gray-600">R$</span>
@@ -96,13 +103,13 @@ const Pricing = () => {
                                                 </span>
                                                 <span className="text-lg text-gray-600 font-medium">/mês</span>
                                             </div>
-                                            
+
                                             {/* Badge de Economia */}
                                             <div className="inline-flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">
                                                 <TrendingUp className="w-3 h-3" />
                                                 Economize {calculateSavings(plan.monthlyPrice, plan.annualPrice)}%
                                             </div>
-                                            
+
                                             {/* Valor Total Anual */}
                                             <div className="text-sm text-gray-500 mt-2">
                                                 Cobrança anual de <span className="font-semibold text-gray-700">{formatPrice(plan.annualPrice)}</span>
@@ -117,7 +124,7 @@ const Pricing = () => {
                                                 </span>
                                                 <span className="text-lg text-gray-600 font-medium">/mês</span>
                                             </div>
-                                            
+
                                             {/* Preço Anual Equivalente */}
                                             <div className="text-sm text-gray-500">
                                                 ou {formatPrice(plan.annualPrice)} por ano
@@ -150,7 +157,8 @@ const Pricing = () => {
                         </div>
 
                         <Button
-                            className={`w-full rounded-full mt-8 ${ index !== ( plans.length - 1 ) ? 'bg-gradient-to-r from-zapBlue-600 to-zapPurple-600 hover:from-zapBlue-700 hover:to-zapPurple-700' : 'bg-zapGold-600 hover:bg-zapGold-700' } py-6 text-white font-semibold text-lg`}
+                            onClick={() => handlePlanClick(plan.id)}
+                            className={`w-full rounded-full mt-8 ${index !== (plans.length - 1) ? 'bg-gradient-to-r from-zapBlue-600 to-zapPurple-600 hover:from-zapBlue-700 hover:to-zapPurple-700' : 'bg-zapGold-600 hover:bg-zapGold-700'} py-6 text-white font-semibold text-lg`}
                         >
                             {isAnnual ? 'Economizar Agora' : 'Comece Agora'}
                         </Button>

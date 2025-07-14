@@ -1,7 +1,10 @@
 
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const HowItWorks = () => {
+  const navigate = useNavigate();
+
   const steps = [
     {
       number: "01",
@@ -67,7 +70,10 @@ const HowItWorks = () => {
             Comece agora mesmo com nosso período de teste gratuito de 14 dias.
             Não é necessário cartão de crédito.
           </p>
-          <Button className="bg-white text-zapPurple-600 hover:bg-gray-100 rounded-full text-lg px-8 py-6">
+          <Button
+            className="bg-white text-zapPurple-600 hover:bg-gray-100 rounded-full text-lg px-8 py-6"
+            onClick={() => navigate('/register')}
+          >
             Começar Agora
           </Button>
         </div>
