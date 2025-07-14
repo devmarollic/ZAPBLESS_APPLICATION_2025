@@ -8,6 +8,7 @@
 
 const express = require('express');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const qrcode = require('qrcode');
@@ -54,11 +55,19 @@ const rabbitmq = new RabbitMQService({
 
 // Inicializa o servidor Express
 const app = express();
+app.use(cors({
+    origin: '*',
+    methods: '*',
+    allowedHeaders: '*',
+    exposedHeaders: '*',
+    credentials: true
+}));
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
 // Variáveis de estado
 let qrCodePath = null;
+let pairingCode = null;
 
 // Configura eventos do WhatsApp
 whatsapp.on('qr', async (qr) => {
@@ -81,8 +90,8 @@ whatsapp.on('qr', async (qr) => {
     }
 });
 
-whatsapp.on('pairingCode', (pairingCode) => {
-    console.log('Código de emparelhamento recebido:', pairingCode);
+whatsapp.on('pairingCode', (code) => {
+    pairingCode = code;
 });
 
 whatsapp.on('connection', ({ status }) => {
@@ -174,7 +183,8 @@ app.get('/status', (req, res) => {
             sessionId: SESSION_ID,
             status: state.state,
             qrCode: qrCodePath ? `/qr/${path.basename(qrCodePath)}` : null,
-            hasSession: state.hasSession
+            hasSession: state.hasSession,
+            pairingCode: pairingCode
         });
     } catch (error) {
         console.error('Erro ao obter status:', error);
@@ -197,13 +207,26 @@ app.post('/start', async (req, res) => {
             });
         }
 
+        let { phoneNumber = null } = req.body;
+
+        if (phoneNumber !== null) {
+            phoneNumber = phoneNumber.replace(/\D/g, '');
+
+            if (!phoneNumber.startsWith('55')) {
+                phoneNumber = '55' + phoneNumber;
+            }
+        }
+
+        console.log('phoneNumber', phoneNumber);
+
         // Inicia a conexão
-        await whatsapp.connect();
+        await whatsapp.connect(phoneNumber);
 
         res.json({
             success: true,
             status: whatsapp.getConnectionState().state,
-            qrCode: qrCodePath ? `/qr/${path.basename(qrCodePath)}` : null
+            qrCode: qrCodePath ? `/qr/${path.basename(qrCodePath)}` : null,
+            pairingCode
         });
     } catch (error) {
         console.error('Erro ao iniciar sessão:', error);
@@ -300,11 +323,11 @@ app.get('/user/info', checkConnection, async (req, res) => {
 app.get('/profile/picture/:number', checkConnection, async (req, res) => {
     try {
         const { number } = req.params;
-        
+
         if (!number) {
             return res.status(400).json({ error: 'Número de telefone é obrigatório' });
         }
-        
+
         const result = await whatsapp.getProfilePicture(number);
         res.json(result);
     } catch (error) {

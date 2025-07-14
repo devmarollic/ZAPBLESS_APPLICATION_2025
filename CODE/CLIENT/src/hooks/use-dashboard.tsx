@@ -33,6 +33,14 @@ interface WhatsApp {
     retries?: number;
 }
 
+interface WhatsAppStatus {
+    sessionId: string;
+    status: string;
+    qrCode: string;
+    hasSession: boolean;
+    pairingCode: string | null;
+}
+
 interface Contact {
     id: string;
     name: string;
@@ -54,6 +62,7 @@ type WhatsAppAction =
     | { type: 'LOAD_WHATSAPPS', payload: WhatsApp[] }
     | { type: 'UPDATE_WHATSAPPS', payload: WhatsApp }
     | { type: 'UPDATE_SESSION', payload: WhatsApp }
+    | { type: 'UPDATE_STATUS', payload: WhatsAppStatus }
     | { type: 'DELETE_WHATSAPPS', payload: string }
     | { type: 'RESET' };
 
@@ -121,6 +130,14 @@ function whatsappReducer(state: WhatsApp[], action: WhatsAppAction) {
         }
     }
 
+    if (action.type === 'UPDATE_STATUS') {
+        const whatsApp = action.payload;
+        const whatsAppIndex = state.findIndex(s => s.id === whatsApp.id);
+        if (whatsAppIndex !== -1) {
+            state[whatsAppIndex].status = whatsApp.status;
+        }
+    }
+
     if (action.type === 'DELETE_WHATSAPPS') {
         const whatsAppId = action.payload;
 
@@ -171,6 +188,15 @@ export function useDashboard() {
             try {
                 setIsLoading(true);
                 const data = await HttpClient.getDefault().get<DashboardData>('/dashboard/get');
+                const whatsappStatus = await HttpClient.getWhatsapp().get<WhatsAppStatus>('/status');
+
+                if (whatsappStatus) {
+                    setWhatsapp(
+                        (prev) => ({
+                            ...prev,
+                            connectionStatus: whatsappStatus.status,
+                        }));
+                }
 
                 if (data) {
                     if (data.whatsapp) {

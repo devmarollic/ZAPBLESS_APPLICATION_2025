@@ -30,7 +30,7 @@ const QrCode = ({ whatsapp, qrCode, qrStatus, timer }: { whatsapp: any, qrCode: 
             {qrCode && (
                 <div className="border p-4 rounded-md bg-white relative">
                     <img
-                        src={qrCode}
+                        src={ 'http://localhost:1234' + qrCode}
                         alt="QR Code para sincronização do WhatsApp"
                         className="w-48 h-48"
                     />
