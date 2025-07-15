@@ -19,7 +19,7 @@ COPY . .
 RUN mkdir -p public/qr data/sessions
 
 # Expõe a porta que será usada
-EXPOSE 1234
+EXPOSE 8080
 
 # Comando para iniciar a aplicação
 CMD ["node", "server.js"] 

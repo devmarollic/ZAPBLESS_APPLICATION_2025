@@ -1,0 +1,84 @@
+name: 📦 Build and Push WhatsApp Image
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - 'CODE/whatsapp_manager/**'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+
+    env:
+      APP_NAME: whatsapp-manager
+      APP_TYPE: backend
+      APP_VERSION: v1
+      APP_MAIN: whatsapp_manager
+      MIN_REPLICAS: 1
+      MAX_REPLICAS: 1
+      STABLE_MINUTES: 0
+      SUPABASE_DATABASE_URL: https://vmpwbxbfrrpzcaeuhtba.supabase.co
+      SUPABASE_DATABASE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtcHdieGJmcnJwemNhZXVodGJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0MDk4MjQsImV4cCI6MjA2Mjk4NTgyNH0.c1lhGi0kugi_KdcjGCuZrhrSC6WBs514iMjghNMgVIs
+      SUPABASE_STORAGE_URL: https://vmpwbxbfrrpzcaeuhtba.supabase.co/storage/v1/s3
+      PORT: 8080
+      SESSION_ID: session-Q3dmp5fTjBJcvr63HaBHkg
+      SESSION_DIR: ./data
+      DEBUG: false
+      CHURCH_ID: Q3dmp5fTjBJcvr63HaBHkg
+      RABBITMQ_URL: amqp://zapbless:zapbless@k8s-dev-sat.zapbless.com.br
+      RABBITMQ_OUTBOUND_QUEUE: zapbless.outbound
+      RABBITMQ_INBOUND_QUEUE: zapbless.inbound
+      RABBITMQ_DISCONNECTED_SESSIONS_QUEUE: zapbless.disconnected.sessions
+
+    steps:
+      - name: 💾 Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: 📁 Install Dependencies
+        run: sudo apt-get update && sudo apt-get install -y jq curl python3
+
+      - name: 🔢 Compute IMAGE_SUFFIX and Clean Registry
+        run: |
+          chmod +x ./scripts/scripts.sh
+          source scripts/scripts.sh
+          compute_image_suffix "$APP_NAME"
+          echo "IMAGE_SUFFIX=$IMAGE_SUFFIX" >> $GITHUB_ENV
+
+      - name: 🕒 Set Dynamic Tags
+        run: |
+          export BUILD_DATE=$(date -u +"%Y%m%dT%H%M%SZ")
+          export IMAGE_TAG="${BUILD_DATE}-${GITHUB_RUN_ID}-${GITHUB_SHA::7}-${APP_NAME}-${IMAGE_SUFFIX}"
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          echo "IMAGE_FULL=ghcr.io/${{ github.repository }}:$IMAGE_TAG" >> $GITHUB_ENV
+
+      - name: 💪 Build Docker Image
+        run: |
+          docker build -t $IMAGE_FULL CODE/whatsapp_manager \
+            --build-arg SUPABASE_DATABASE_URL=$SUPABASE_DATABASE_URL \
+            --build-arg SUPABASE_DATABASE_KEY=$SUPABASE_DATABASE_KEY \
+            --build-arg SUPABASE_STORAGE_URL=$SUPABASE_STORAGE_URL \
+            --build-arg PORT=$PORT \
+            --build-arg SESSION_ID=$SESSION_ID \
+            --build-arg SESSION_DIR=$SESSION_DIR \
+            --build-arg DEBUG=$DEBUG \
+            --build-arg CHURCH_ID=$CHURCH_ID \
+            --build-arg RABBITMQ_URL=$RABBITMQ_URL \
+            --build-arg RABBITMQ_OUTBOUND_QUEUE=$RABBITMQ_OUTBOUND_QUEUE \
+            --build-arg RABBITMQ_INBOUND_QUEUE=$RABBITMQ_INBOUND_QUEUE \
+            --build-arg RABBITMQ_DISCONNECTED_SESSIONS_QUEUE=$RABBITMQ_DISCONNECTED_SESSIONS_QUEUE
+
+      - name: 🔐 Login to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: 🚀 Push Image
+        run: docker push $IMAGE_FULL
+
+      - name: 🧑‍💻 Trigger Deployment to Main
+        run: |
+          source scripts/scripts.sh
+          trigger_deployment "$APP_MAIN" "$APP_NAME" "$IMAGE_FULL" "$APP_VERSION" "$APP_TYPE" "$MIN_REPLICAS" "$MAX_REPLICAS" "$STABLE_MINUTES"
