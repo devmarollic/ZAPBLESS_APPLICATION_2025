@@ -44,8 +44,8 @@ jobs:
 
       - name: 🔢 Compute IMAGE_SUFFIX and Clean Registry
         run: |
-          chmod +x ./scripts/scripts.sh
-          source scripts/scripts.sh
+          chmod +x ./scripts/script.sh
+          source scripts/script.sh
           compute_image_suffix "$APP_NAME"
           echo "IMAGE_SUFFIX=$IMAGE_SUFFIX" >> $GITHUB_ENV
 
@@ -80,5 +80,5 @@ jobs:
 
       - name: 🧑‍💻 Trigger Deployment to Main
         run: |
-          source scripts/scripts.sh
+          source scripts/script.sh
           trigger_deployment "$APP_MAIN" "$APP_NAME" "$IMAGE_FULL" "$APP_VERSION" "$APP_TYPE" "$MIN_REPLICAS" "$MAX_REPLICAS" "$STABLE_MINUTES"
