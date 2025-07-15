@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { HttpClient } from '@/lib/http_client';
 import { useQuery } from '@tanstack/react-query';
+import cityAndStates from '../../public/city_and_states.json';
 
 const personalDataSchema = z.object({
     firstName: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
@@ -81,6 +82,11 @@ const MeusDados = () => {
         }
     }, [churchAndProfileData]);
 
+    const cityArrayByStateCode = cityAndStates?.stateArray?.reduce((acc, item) => {
+        acc[item.code] = item.cityArray;
+        return acc;
+    }, {} as Record<string, string[]>);
+
     const personalForm = useForm<PersonalDataFormValues>({
         resolver: zodResolver(personalDataSchema),
         defaultValues: {
@@ -101,8 +107,8 @@ const MeusDados = () => {
             churchAddressLine1: churchAndProfileData?.church.addressLine1 || '',
             churchAddressLine2: churchAndProfileData?.church.addressLine2 || '',
             churchZipCode: churchAndProfileData?.church.zipCode || '',
-            churchCityCode: churchAndProfileData?.church.cityCode || '',
-            churchStateCode: churchAndProfileData?.church.stateCode || '',
+            churchCityCode: churchAndProfileData?.church.cityCode || 'SP',
+            churchStateCode: churchAndProfileData?.church.stateCode || 'SP',
             churchCountryCode: churchAndProfileData?.church.countryCode || 'BR',
             churchNeighborhood: churchAndProfileData?.church.neighborhood || ''
         },
@@ -513,9 +519,11 @@ const MeusDados = () => {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        <SelectItem value="sao-paulo">São Paulo</SelectItem>
-                                                        <SelectItem value="rio-janeiro">Rio de Janeiro</SelectItem>
-                                                        <SelectItem value="belo-horizonte">Belo Horizonte</SelectItem>
+                                                        {(cityArrayByStateCode[churchForm.watch('churchStateCode')] || []).map(
+                                                            (cityName) => (
+                                                                <SelectItem key={cityName} value={cityName}>{cityName}</SelectItem>
+                                                            )
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
@@ -538,9 +546,11 @@ const MeusDados = () => {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        <SelectItem value="SP">São Paulo</SelectItem>
-                                                        <SelectItem value="RJ">Rio de Janeiro</SelectItem>
-                                                        <SelectItem value="MG">Minas Gerais</SelectItem>
+                                                        {cityAndStates.stateArray.map((item) => (
+                                                            <SelectItem key={item.code} value={item.code}>
+                                                                {item.name}
+                                                            </SelectItem>
+                                                        ))}
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />

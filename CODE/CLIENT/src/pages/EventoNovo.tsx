@@ -513,7 +513,7 @@ const EventoNovo = () => {
                                             <SelectItem value="-1h">Notificar 1 hora antes</SelectItem>
                                             <SelectItem value="+0d">Notificar no mesmo horário</SelectItem>
                                             <SelectItem value="+30m">Notificar 30 minutos depois</SelectItem>
-                                            <SelectItem value="0d:end">Notificar no final do evento</SelectItem>
+                                            <SelectItem value="+0d:end">Notificar no final do evento</SelectItem>
                                         </SelectContent>
                                     </Select>
 

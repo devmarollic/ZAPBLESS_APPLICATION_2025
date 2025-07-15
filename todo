@@ -1,0 +1,27 @@
+- [x] resetar senha
+- [x] implementar conectar ao whatsapp pelo código
+- [x] corrigir links da home
+- [x] implementar agendar demonstração
+- [x] implementar formulário de contato
+- [x] corrigir evento como nulo quando não tem fim de recorrência
+- [x] delay ao enviar mensagem
+- [x] implementar presença
+- [ ] integrar com o whatsapp
+- [ ] emitir mensagem de conexão perdida quando o whatsapp está desconectado ao enviar mensagem
+- [ ] revisar criação e exibição de eventos
+- [ ] fazer upload de imagem da igreja
+- [ ] página de editar evento
+- [x] implementar envio de mensagens
+- [x] implementar envio de mensagens com template
+- [x] corrigir filtro por role
+- [x] implementar envio de mensagens página
+- [x] implementar envio de mensagens com template página
+- [x] corrigir offset fim evento
+- [x] corrigir nomes de variáveis na pagina de templates
+- [ ] remover restrição de número de whatsapp
+- [ ] salvar mensagens enviadas (se deram certo ou não, se foram lidas ou não)
+- [ ] corrigir métrica de mensagens enviadas na home page
+- [ ] implementar gerenciar assinatura
+- [ ] implementar alterar plano
+- [ ] popular banco com localizações reais
+- [ ] atualizar stateName, cityName e countryName quando atualizar dados da igreja

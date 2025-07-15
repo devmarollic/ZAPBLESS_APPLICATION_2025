@@ -43,7 +43,8 @@ fastify.register(
     {
         origin: enviroment.FRONTEND_URL,
         credentials: true,
-        allowedHeaders: [ 'Content-Type', 'Authorization', 'ngrok-skip-browser-warning', 'Access-Control-Allow-Origin', 'Access-Control-Allow-Credentials' ]
+        allowedHeaders: [ 'Content-Type', 'Authorization', 'ngrok-skip-browser-warning', 'Access-Control-Allow-Origin', 'Access-Control-Allow-Credentials' ],
+        methods: [ 'GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS' ]
     }
     );
 

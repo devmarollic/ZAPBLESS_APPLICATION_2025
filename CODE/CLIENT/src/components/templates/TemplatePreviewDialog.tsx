@@ -86,12 +86,13 @@ const TemplatePreviewDialog = ({ isOpen, onClose, template }: TemplatePreviewDia
           <div className="bg-blue-50 p-4 rounded-lg">
             <h4 className="font-medium text-blue-800 mb-2">Variáveis disponíveis:</h4>
             <div className="text-sm text-blue-700 space-y-1">
-              <div><code>{'{{nome}}'}</code> - Nome da pessoa</div>
-              <div><code>{'{{data}}'}</code> - Data do evento/lembrete</div>
-              <div><code>{'{{evento}}'}</code> - Nome do evento</div>
-              <div><code>{'{{local}}'}</code> - Local do evento</div>
-              <div><code>{'{{horario}}'}</code> - Horário do evento</div>
-              <div><code>{'{{igreja}}'}</code> - Nome da igreja</div>
+              <div><code>{'{{name}}'}</code> - Nome da pessoa</div>
+              <div><code>{'{{startAt}}'}</code> - Data de início do evento/lembrete</div>
+              <div><code>{'{{endAt}}'}</code> - Data de término do evento/lembrete</div>
+              <div><code>{'{{title}}'}</code> - Título do evento</div>
+              <div><code>{'{{description}}'}</code> - Descrição do evento</div>
+              <div><code>{'{{church}}'}</code> - Nome da igreja</div>
+              <div><code>{'{{location}}'}</code> - Local do evento</div>
             </div>
           </div>
         </div>

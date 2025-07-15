@@ -139,11 +139,12 @@ const WhatsAppSync = () => {
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
-                    <div className="flex flex-row gap-2 mb-2">
+                    <div className="flex flex-row gap-2 mb-2 flex-wrap">
                         <Button
                             variant={syncMode === 'qr' ? 'default' : 'outline'}
                             onClick={() => setSyncMode('qr')}
                             size="sm"
+                            className="flex-1"
                         >
                             <QrCodeIcon className="mr-2 h-4 w-4" /> QR Code
                         </Button>
@@ -151,6 +152,7 @@ const WhatsAppSync = () => {
                             variant={syncMode === 'number' ? 'default' : 'outline'}
                             onClick={() => setSyncMode('number')}
                             size="sm"
+                            className="flex-1"
                         >
                             <Phone className="mr-2 h-4 w-4" /> Pelo número
                         </Button>

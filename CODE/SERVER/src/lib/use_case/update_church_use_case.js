@@ -22,7 +22,9 @@ class UpdateChurchUseCase
         }
 
         let updatedChurch = await churchService.setChurchById(
-            data,
+            {
+                ...data,
+            },
             input.churchId
             );
 
