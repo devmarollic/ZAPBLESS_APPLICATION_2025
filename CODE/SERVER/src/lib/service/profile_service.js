@@ -67,7 +67,7 @@ class ProfileService
                     statusId,
                     creationTimestamp,
                     updateTimestamp,
-                    role:USER_CHURCH_ROLE( roleSlug )
+                    role:USER_CHURCH_ROLE!inner ( roleSlug )
                 `,
                 { count: 'exact' }
             )

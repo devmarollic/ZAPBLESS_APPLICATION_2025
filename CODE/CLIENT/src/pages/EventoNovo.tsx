@@ -224,7 +224,7 @@ const EventoNovo = () => {
                     }
 
                     const eventData: CreateEventRequest = {
-                        churchId: AuthenticationService.getChurchId(),
+                        ministryId: data.ministry,
                         title: data.title,
                         statusId: "is-coming",
                         typeId: data.typeId || "worship",
@@ -293,7 +293,7 @@ const EventoNovo = () => {
                 }
 
                 const eventData: CreateEventRequest = {
-                    churchId: data.ministry, // This should come from user context
+                    ministryId: data.ministry, // This should come from user context
                     title: data.title,
                     statusId: "is-coming",
                     typeId: data.typeId || "worship",

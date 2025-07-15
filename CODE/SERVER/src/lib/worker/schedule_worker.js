@@ -3,6 +3,8 @@
 import { scheduleService } from '../service/schedule_service';
 import { notificationService } from '../service/notification_service';
 import { evolutionService } from '../service/evolution_service';
+import { rabbitmqService } from '../service/rabbitmq_service.js';
+import { messageTemplateService } from '../service/message_template_service.js';
 
 // -- TYPES
 
@@ -15,6 +17,8 @@ class ScheduleWorker
     {
         this.isRunning = false;
         this.interval = 60000;
+        this.rabbitmq = rabbitmqService;
+        this.rabbitmq.connect();
     }
 
     // -- OPERATIONS
@@ -55,10 +59,36 @@ class ScheduleWorker
                 {
                     try
                     {
-                        // await notificationService.sendNotification( schedule );
                         let { payload } = schedule;
+                        let content = '';
 
-                        let response = await evolutionService.sendTextByIntanceNameAndNumber( schedule.churchId, payload.number, payload.text );
+                        if ( payload.template )
+                        {
+                            let messageTemplate = await messageTemplateService.getMessageTemplateById( payload.template );
+                            content = messageTemplate.content;
+                        }
+                        else if ( payload.customMessage )
+                        {
+                            content = payload.customMessage;
+                        }
+
+                        if ( content === '' )
+                        {
+                            throw new Error( 'Content is empty' );
+                        }
+
+                        for ( let number of payload.variables.contactNumberArray )
+                        {
+                            let message =
+                            {
+                                churchId: schedule.churchId,
+                                type: 'text',
+                                to: number,
+                                text: content,
+                                variables: payload.variables
+                            };
+
+                        await this.rabbitmq.publishOutboundMessage( message );
 
                         await scheduleService.setScheduleById(
                             {
@@ -66,6 +96,7 @@ class ScheduleWorker
                             },
                             schedule.id
                             );
+                        }
                     }
                     catch ( error )
                     {

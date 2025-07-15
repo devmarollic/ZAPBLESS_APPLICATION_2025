@@ -48,6 +48,8 @@ jobs:
           source scripts/script.sh
           compute_image_suffix "$APP_NAME"
           echo "IMAGE_SUFFIX=$IMAGE_SUFFIX" >> $GITHUB_ENV
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 🕒 Set Dynamic Tags
         run: |
@@ -82,3 +84,5 @@ jobs:
         run: |
           source scripts/script.sh
           trigger_deployment "$APP_MAIN" "$APP_NAME" "$IMAGE_FULL" "$APP_VERSION" "$APP_TYPE" "$MIN_REPLICAS" "$MAX_REPLICAS" "$STABLE_MINUTES"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

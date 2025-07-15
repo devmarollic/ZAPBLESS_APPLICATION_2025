@@ -496,6 +496,32 @@ class WhatsAppManager extends events.EventEmitter {
             return { url: null, error: error.message };
         }
     }
+
+    // ~~
+
+    async presenceSubscribe(number) {
+        if (!this.sock || this.state.connection !== 'open') {
+            throw new Error('WhatsApp não está conectado');
+        }
+
+        const jid = this._formatNumber(number);
+        await this.sock.presenceSubscribe(jid);
+    }
+
+    // ~~
+
+    async sendPresenceUpdate(status, number) {
+        if (!this.sock || this.state.connection !== 'open') {
+            throw new Error('WhatsApp não está conectado');
+        }
+
+        const jid = this._formatNumber(number);
+        await this.sock.sendPresenceUpdate(status, jid);
+    }
+
+    // ~~
+
+    
 }
 
 module.exports = WhatsAppManager; 

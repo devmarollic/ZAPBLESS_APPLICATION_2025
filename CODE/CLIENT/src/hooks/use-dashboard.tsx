@@ -188,15 +188,15 @@ export function useDashboard() {
             try {
                 setIsLoading(true);
                 const data = await HttpClient.getDefault().get<DashboardData>('/dashboard/get');
-                const whatsappStatus = await HttpClient.getWhatsapp().get<WhatsAppStatus>('/status');
+                // const whatsappStatus = await HttpClient.getWhatsapp().get<WhatsAppStatus>('/status');
 
-                if (whatsappStatus) {
-                    setWhatsapp(
-                        (prev) => ({
-                            ...prev,
-                            connectionStatus: whatsappStatus.status,
-                        }));
-                }
+                // if (whatsappStatus) {
+                //     setWhatsapp(
+                //         (prev) => ({
+                //             ...prev,
+                //             connectionStatus: whatsappStatus.status,
+                //         }));
+                // }
 
                 if (data) {
                     if (data.whatsapp) {
@@ -206,10 +206,6 @@ export function useDashboard() {
 
                     if (data.church) {
                         setChurch(data.church);
-                    }
-
-                    if (data.ministries) {
-                        dispatchMinistries({ type: 'FETCH_MINISTRIES_SUCCESS', payload: data.ministries });
                     }
 
                     if (data.contacts) {

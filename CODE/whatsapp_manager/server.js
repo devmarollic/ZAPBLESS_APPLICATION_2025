@@ -18,12 +18,13 @@ const { supabaseService } = require('./supabase_service');
 const { contactService } = require('./contact_service');
 const { RabbitMQService } = require('./rabbitmq_service');
 const { whatsappService } = require('./whatsapp_service');
+const { getSubstitutedText, sleep, getRandomDelay } = require('./utils');
 
 dotenv.config(
     {
         path: path.join(__dirname, '.env')
     }
-);
+    );
 
 // Configurações
 const PORT = process.env.PORT || 8080;
@@ -37,21 +38,25 @@ const RABBITMQ_DISCONNECTED_SESSIONS_QUEUE = process.env.RABBITMQ_DISCONNECTED_S
 const CHURCH_ID = process.env.CHURCH_ID;
 
 // Inicializa o gerenciador WhatsApp
-const whatsapp = new WhatsAppManager({
-    sessionDir: SESSION_DIR,
-    sessionId: SESSION_ID,
-    debug: DEBUG,
-    whatsappService: whatsappService.getWhatsapp()
-});
+const whatsapp = new WhatsAppManager(
+    {
+        sessionDir: SESSION_DIR,
+        sessionId: SESSION_ID,
+        debug: DEBUG,
+        whatsappService: whatsappService.getWhatsapp()
+    }
+    );
 
 // Inicializa o serviço RabbitMQ
-const rabbitmq = new RabbitMQService({
-    url: RABBITMQ_URL,
-    outboundQueue: RABBITMQ_OUTBOUND_QUEUE,
-    inboundQueue: RABBITMQ_INBOUND_QUEUE,
-    disconnectedSessionsQueue: RABBITMQ_DISCONNECTED_SESSIONS_QUEUE,
-    churchId: CHURCH_ID
-});
+const rabbitmq = new RabbitMQService(
+    {
+        url: RABBITMQ_URL,
+        outboundQueue: RABBITMQ_OUTBOUND_QUEUE,
+        inboundQueue: RABBITMQ_INBOUND_QUEUE,
+        disconnectedSessionsQueue: RABBITMQ_DISCONNECTED_SESSIONS_QUEUE,
+        churchId: CHURCH_ID
+    }
+    );
 
 // Inicializa o servidor Express
 const app = express();
@@ -194,6 +199,29 @@ const checkConnection = (req, res, next) =>
     }
 };
 
+// Função auxiliar para buscar template e substituir variáveis
+async function getProcessedTemplateText(
+    templateId,
+    variables = {}
+    )
+{
+    // Busca o template no Supabase
+    let { data, error } = await supabaseService.getClient()
+        .from('MESSAGE_TEMPLATE')
+        .select('content')
+        .eq('id', templateId)
+        .single();
+
+    if (error || !data || !data.content)
+    {
+        throw new Error('Template não encontrado');
+    }
+
+    // Substitui variáveis
+    let processedText = getSubstitutedText(data.content, variables);
+    return processedText;
+}
+
 // Rota principal
 app.get('/', (req, res) =>
 {
@@ -279,46 +307,64 @@ app.post('/start', async (req, res) =>
 });
 
 // Rota para enviar mensagem de texto
-app.post('/send/text', checkConnection, async (req, res) =>
-{
-    try
-    {
-        const { to, text } = req.body;
+app.post('/send/text', checkConnection, async (req, res) => {
+    try {
+        const { to, text, templateId, variables } = req.body;
 
-        if (!to || !text)
-        {
-            return res.status(400).json({ error: 'Parâmetros "to" e "text" são obrigatórios' });
+        if (!to || (!text && !templateId)) {
+            return res.status(400).json({ error: 'Parâmetros obrigatórios: "to" e "text" ou "templateId"' });
         }
 
-        const result = await whatsapp.sendText(to, text);
-        res.json(result);
-    } catch (error)
-    {
-        console.error('Erro ao enviar mensagem:', error);
-        res.status(500).json({ error: 'Erro ao enviar mensagem' });
+        let finalText = text;
+        if (templateId) {
+            finalText = await getProcessedTemplateText(templateId, variables);
+        }
+
+        // Monta o payload para RabbitMQ
+        let payload = {
+            type: 'text',
+            to,
+            text: finalText
+        };
+
+        await rabbitmq.publishOutboundMessage(payload);
+        res.json({ status: 'queued', to });
+    } catch (error) {
+        console.error('Erro ao enfileirar mensagem:', error);
+        res.status(500).json({ error: 'Erro ao enfileirar mensagem' });
     }
 });
 
 // Rota para enviar mensagem de mídia
-app.post('/send/media', checkConnection, async (req, res) =>
-{
-    try
-    {
-        const { to, mediaType, mediaUrl, caption } = req.body;
+app.post('/send/media', checkConnection, async (req, res) => {
+    try {
+        const { to, mediaType, mediaUrl, caption, templateId, variables } = req.body;
 
-        if (!to || !mediaType || !mediaUrl)
-        {
+        if (!to || !mediaType || !mediaUrl || (!caption && !templateId)) {
             return res.status(400).json({
-                error: 'Parâmetros "to", "mediaType" e "mediaUrl" são obrigatórios'
+                error: 'Parâmetros obrigatórios: "to", "mediaType", "mediaUrl" e "caption" ou "templateId"'
             });
         }
 
-        const result = await whatsapp.sendMedia(to, mediaType, mediaUrl, caption || '');
-        res.json(result);
-    } catch (error)
-    {
-        console.error('Erro ao enviar mídia:', error);
-        res.status(500).json({ error: 'Erro ao enviar mídia' });
+        let finalCaption = caption;
+        if (templateId) {
+            finalCaption = await getProcessedTemplateText(templateId, variables);
+        }
+
+        // Monta o payload para RabbitMQ
+        let payload = {
+            type: 'media',
+            to,
+            mediaType,
+            mediaUrl,
+            caption: finalCaption
+        };
+
+        await rabbitmq.publishOutboundMessage(payload);
+        res.json({ status: 'queued', to });
+    } catch (error) {
+        console.error('Erro ao enfileirar mídia:', error);
+        res.status(500).json({ error: 'Erro ao enfileirar mídia' });
     }
 });
 
@@ -526,6 +572,11 @@ async function processOutboundMessage(message)
             return;
         }
 
+        if ( message.to !== '5512981606045' && message.to !== '12981606045' )
+        {
+            return;
+        }
+
         // Verifica se o WhatsApp está conectado
         const state = whatsapp.getConnectionState();
         if (state.state !== 'open')
@@ -536,14 +587,21 @@ async function processOutboundMessage(message)
 
         console.log(`Processando mensagem do tipo: ${message.type}`);
 
-        switch (message.type)
-        {
+        await sleep(getRandomDelay(500, 1500));
+
+        await whatsapp.presenceSubscribe(message.to);
+        await whatsapp.sendPresenceUpdate('composing', message.to);
+        await sleep(getRandomDelay(2000, 5000));
+        await whatsapp.sendPresenceUpdate('paused', message.to);
+
+        switch (message.type) {
             case 'text':
                 if (!message.to || !message.text)
                 {
                     throw new Error('Campos "to" e "text" são obrigatórios para mensagens de texto');
                 }
-                await whatsapp.sendText(message.to, message.text);
+                let processedText = getSubstitutedText(message.text, message.variables);
+                await whatsapp.sendText(message.to, processedText);
                 break;
 
             case 'media':
@@ -557,6 +615,8 @@ async function processOutboundMessage(message)
             default:
                 throw new Error(`Tipo de mensagem não suportado: ${message.type}`);
         }
+
+        await sleep(getRandomDelay(800, 2500));
 
         console.log(`Mensagem enviada com sucesso para: ${message.to}`);
     } catch (error)
