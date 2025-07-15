@@ -545,3 +545,27 @@ public
         isActive : BOOL
         creationTimestamp : TIMESTAMP | generated
         updateTimestamp : TIMESTAMP | generated, updated
+
+    MESSAGE
+
+        id : UUID | key, unique
+        key : MAP[]
+        pushName : STRING
+        participant : LIST[]
+        messageType : STRING
+        message : MAP[]
+        contextInfo : LIST[]
+        source : STRING
+        messageTimestamp : TIMESTAMP
+        churchId : CHURCH.id | constrained
+
+    MESSAGE_UPDATE
+
+        id : UUID | key, unique
+        keyId : STRING
+        remoteJid : STRING
+        fromMe : BOOL
+        participant : STRING
+        status : STRING
+        messageId : MESSAGE.id | constrained
+        churchId : CHURCH.id | constrained
