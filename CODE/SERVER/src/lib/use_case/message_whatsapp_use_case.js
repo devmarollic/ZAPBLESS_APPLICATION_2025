@@ -3,7 +3,9 @@
 import z, { ZodError } from 'zod';
 import { contactService } from '../service/contact_service';
 import { rabbitmqService } from '../service/rabbitmq_service';
-import { isArray } from 'senselogic-gist';
+import { getRandomUuid, isArray } from 'senselogic-gist';
+import { messageOutboxService } from '../service/message_outbox_service';
+import { messageOutboxServiceRecipient } from '../service/message_outbox_service_recipient';
 
 // -- CONSTANTS
 
@@ -37,6 +39,27 @@ class MessageWhatsappUseCase
 
         let { title, content, recipientType, ministryId, memberIdArray, churchId } = data;
         let recipientContactArray = [];
+        let messageOutboxId = getRandomUuid();
+        let messageOutbox =
+            {
+                id: messageOutboxId,
+                churchId,
+                title,
+                content,
+                recipientType,
+                sentCount: 0,
+                deliveredCount: 0,
+                readCount: 0,
+                failedCount: 0,
+                // scheduledAt: null,
+                // isRecurring: false,
+                // recurrenceType: null,
+                // recurrenceInterval: null,
+                // recurrenceDayOfWeek: null,
+                // recurrenceDayOfMonth: null,
+                // recurrenceTime: null,
+                // recurrenceEndDate: null
+            }
 
         if ( recipientType === 'all' )
         {
@@ -54,6 +77,8 @@ class MessageWhatsappUseCase
                 throw new Error( 'ministryId is required for recipientType "ministry"' );
             }
 
+            messageOutbox.ministryId = ministryId;
+
             recipientContactArray = await contactService.getContactArrayByMinistryIdAndChurchId( ministryId, churchId );
         }
         else if ( recipientType === 'specific' )
@@ -69,6 +94,10 @@ class MessageWhatsappUseCase
         {
             throw new Error( 'Invalid recipientType' );
         }
+
+        let messageOutboxArray = [];
+        let messageOutboxRecipientArray = [];
+        messageOutbox.recipientCount = recipientContactArray.length;
 
         for ( let contact of recipientContactArray )
         {
@@ -87,10 +116,40 @@ class MessageWhatsappUseCase
                     churchId
                 };
 
+            messageOutboxArray.push(
+                messageOutbox
+                );
+
+            messageOutboxRecipientArray.push(
+                {
+                    id: getRandomUuid(),
+                    messageOutboxId,
+                    contactId: contact.id,
+                    number,
+                    status: 'pending',
+                    // sentAt: null,
+                    // deliveredAt: null,
+                    // readAt: null,
+                    // failedAt: null,
+                    // errorMessage: null
+                }
+                );
+
             await rabbitmqService.publishOutboundMessage( outboundMessage );
         }
 
-        return { success: true, sentCount: recipientContactArray.length };
+        console.log( { messageOutboxArray, messageOutboxRecipientArray })
+
+        await messageOutboxService.addMessageOutbox( messageOutboxArray );
+        await messageOutboxServiceRecipient.addMessageOutboxRecipient( messageOutboxRecipientArray );
+
+
+        return (
+            {
+                success: true,
+                sentCount: recipientContactArray.length
+            }
+            );
     }
 }
 

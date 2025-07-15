@@ -31,5 +31,10 @@ export async function whatsappRoutes(
         '/message',
         ( request, reply ) => messageWhatsappController.handle( request, reply )
         )
+
+    fastify.get(
+        '/message/stats',
+        ( request, reply ) => messageWhatsappController.stats( request, reply )
+        )
 }
 

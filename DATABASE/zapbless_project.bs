@@ -579,7 +579,7 @@ public
         recipientType : STRING
         ministryId : MINISTRY.id | constrained
         recipientCount : FLOAT64
-        status : STRING
+        status : STRING = "pending"
         sentCount : FLOAT64
         deliveredCount : FLOAT64
         readCount : FLOAT64

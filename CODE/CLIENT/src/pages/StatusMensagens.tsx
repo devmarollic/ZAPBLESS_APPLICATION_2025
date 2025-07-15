@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MessageSquare, Send, Clock, CheckCircle, XCircle, AlertCircle, Search, Calendar, Users } from 'lucide-react';
+import { HttpClient } from '@/lib/http_client';
+import { useQuery } from '@tanstack/react-query';
 
 interface SentMessage {
     id: string;
@@ -19,97 +21,49 @@ interface SentMessage {
     deliveredCount: number;
     readCount: number;
     failedCount: number;
-    status: 'scheduled' | 'sending' | 'sent' | 'failed' | 'partially_sent';
+    status: 'scheduled' | 'pending' | 'sent' | 'failed' | 'partially_sent';
     sentAt?: string;
     scheduledFor?: string;
     createdAt: string;
 }
 
-const mockSentMessages: SentMessage[] = [
-    {
-        id: '1',
-        title: 'Convite Culto Domingo',
-        content: 'Paz do Senhor! Você está convidado para nosso culto de domingo às 19h. Não falte!',
-        targetType: 'all',
-        recipientCount: 150,
-        sentCount: 150,
-        deliveredCount: 145,
-        readCount: 120,
-        failedCount: 5,
-        status: 'sent',
-        sentAt: '2024-01-15T10:30:00Z',
-        createdAt: '2024-01-15T10:25:00Z',
-    },
-    {
-        id: '2',
-        title: 'Reunião de Jovens',
-        content: 'Lembrete: Nossa reunião de jovens será hoje às 19h30. Venham todos!',
-        targetType: 'ministry',
-        targetName: 'Jovens',
-        recipientCount: 25,
-        sentCount: 23,
-        deliveredCount: 22,
-        readCount: 18,
-        failedCount: 2,
-        status: 'partially_sent',
-        sentAt: '2024-01-14T16:45:00Z',
-        createdAt: '2024-01-14T16:40:00Z',
-    },
-    {
-        id: '3',
-        title: 'Aniversário Maria',
-        content: 'Parabéns Maria! Que Deus abençoe sua vida neste novo ano!',
-        targetType: 'specific',
-        recipientCount: 1,
-        sentCount: 0,
-        deliveredCount: 0,
-        readCount: 0,
-        failedCount: 0,
-        status: 'scheduled',
-        scheduledFor: '2024-01-18T09:00:00Z',
-        createdAt: '2024-01-15T14:20:00Z',
-    },
-    {
-        id: '4',
-        title: 'Aviso Importante',
-        content: 'Informamos que o culto de quarta-feira será cancelado devido a reforma no templo.',
-        targetType: 'all',
-        recipientCount: 150,
-        sentCount: 0,
-        deliveredCount: 0,
-        readCount: 0,
-        failedCount: 150,
-        status: 'failed',
-        sentAt: '2024-01-13T08:00:00Z',
-        createdAt: '2024-01-13T07:55:00Z',
-    },
-    {
-        id: '5',
-        title: 'Ensaio Coral',
-        content: 'Ensaio do coral hoje às 18h. Não faltem!',
-        targetType: 'ministry',
-        targetName: 'Louvor',
-        recipientCount: 12,
-        sentCount: 8,
-        deliveredCount: 0,
-        readCount: 0,
-        failedCount: 0,
-        status: 'sending',
-        createdAt: '2024-01-15T17:30:00Z',
-    },
-];
+interface MessageStats {
+    messageCount: number;
+    recipientCount: number;
+    sendRate: number;
+    deliveryRate: number;
+    messageArray: {
+        id: string;
+        title: string;
+        content: string;
+        recipientCount: number;
+        status: string;
+        sentCount: number;
+        deliveredCount: number;
+        readCount: number;
+        failedCount: number;
+        dateTime: string;
+        successRate: number;
+        targetType: string;
+        sentAt: string;
+    }[]
+}
 
 const StatusMensagens = () => {
-    const [messages, setMessages] = useState<SentMessage[]>(mockSentMessages);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [targetFilter, setTargetFilter] = useState<string>('all');
+
+    const { data: messageStats, isLoading } = useQuery({
+        queryKey: ['messages'],
+        queryFn: () => HttpClient.getDefault().get<MessageStats>('/whatsapp/message/stats')
+    });
 
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'sent':
                 return 'bg-green-100 text-green-800';
-            case 'sending':
+            case 'pending':
                 return 'bg-blue-100 text-blue-800';
             case 'scheduled':
                 return 'bg-yellow-100 text-yellow-800';
@@ -126,7 +80,7 @@ const StatusMensagens = () => {
         switch (status) {
             case 'sent':
                 return <CheckCircle className="h-4 w-4" />;
-            case 'sending':
+            case 'pending':
                 return <Send className="h-4 w-4" />;
             case 'scheduled':
                 return <Clock className="h-4 w-4" />;
@@ -142,7 +96,7 @@ const StatusMensagens = () => {
     const getStatusLabel = (status: string) => {
         const labels = {
             sent: 'Enviada',
-            sending: 'Enviando',
+            pending: 'Enviando',
             scheduled: 'Agendada',
             failed: 'Falhou',
             partially_sent: 'Parcial'
@@ -168,19 +122,19 @@ const StatusMensagens = () => {
         return Math.round((message.deliveredCount / message.recipientCount) * 100);
     };
 
-    const filteredMessages = messages.filter(message => {
+    const filteredMessages = messageStats?.messageArray?.filter(message => {
         const matchesSearch = message.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            message.content.toLowerCase().includes(searchTerm.toLowerCase());
+            message.content.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilter === 'all' || message.status === statusFilter;
         const matchesTarget = targetFilter === 'all' || message.targetType === targetFilter;
-        
+
         return matchesSearch && matchesStatus && matchesTarget;
     });
 
-    const totalMessages = messages.length;
-    const totalRecipients = messages.reduce((sum, msg) => sum + msg.recipientCount, 0);
-    const totalSent = messages.reduce((sum, msg) => sum + msg.sentCount, 0);
-    const totalDelivered = messages.reduce((sum, msg) => sum + msg.deliveredCount, 0);
+    const totalMessages = messageStats?.messageCount || 0;
+    const totalRecipients = messageStats?.recipientCount || 0;
+    const totalSent = messageStats?.sendRate || 0;
+    const totalDelivered = messageStats?.deliveryRate || 0;
 
     return (
         <div className="space-y-6">
@@ -203,7 +157,7 @@ const StatusMensagens = () => {
                         </p>
                     </CardContent>
                 </Card>
-                
+
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Destinatários</CardTitle>
@@ -268,7 +222,7 @@ const StatusMensagens = () => {
                                 />
                             </div>
                         </div>
-                        
+
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Status</label>
                             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -278,7 +232,7 @@ const StatusMensagens = () => {
                                 <SelectContent>
                                     <SelectItem value="all">Todos os status</SelectItem>
                                     <SelectItem value="sent">Enviadas</SelectItem>
-                                    <SelectItem value="sending">Enviando</SelectItem>
+                                    <SelectItem value="pending">Enviando</SelectItem>
                                     <SelectItem value="scheduled">Agendadas</SelectItem>
                                     <SelectItem value="failed">Falharam</SelectItem>
                                     <SelectItem value="partially_sent">Parciais</SelectItem>
@@ -303,8 +257,8 @@ const StatusMensagens = () => {
 
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Ações</label>
-                            <Button 
-                                variant="outline" 
+                            <Button
+                                variant="outline"
                                 className="w-full"
                                 onClick={() => {
                                     setSearchTerm('');
@@ -341,7 +295,7 @@ const StatusMensagens = () => {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {filteredMessages.map((message) => (
+                                {filteredMessages?.map((message) => (
                                     <TableRow key={message.id}>
                                         <TableCell>
                                             <div>
@@ -396,7 +350,7 @@ const StatusMensagens = () => {
                                                     </div>
                                                 )}
                                                 <div className="text-muted-foreground mt-1">
-                                                    Criada: {new Date(message.createdAt).toLocaleDateString('pt-BR')}
+                                                    Criada: {new Date(message.dateTime).toLocaleDateString('pt-BR')}
                                                 </div>
                                             </div>
                                         </TableCell>
@@ -411,8 +365,8 @@ const StatusMensagens = () => {
                             </TableBody>
                         </Table>
                     </div>
-                    
-                    {filteredMessages.length === 0 && (
+
+                    {filteredMessages && filteredMessages?.length === 0 && (
                         <div className="text-center py-8">
                             <MessageSquare className="mx-auto h-12 w-12 text-gray-400" />
                             <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhuma mensagem encontrada</h3>

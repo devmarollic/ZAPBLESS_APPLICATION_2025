@@ -173,11 +173,11 @@ const EnviarMensagem = () => {
                 memberIdArray: targetType === 'specific' ? data.specificTarget || [] : []
             };
 
-            let response = await HttpClient.getDefault().post('/whatsapp/message', payload);
+            let response = await HttpClient.getDefault().post<{ sentCount: number }>('/whatsapp/message', payload);
 
             toast({
                 title: `Mensagem enviada`,
-                description: `Mensagem enviada com sucesso para ${previewData.recipients} destinatários.`,
+                description: `Mensagem enviada com sucesso para ${response.sentCount} destinatários.`,
             });
 
             navigate('/dashboard/mensagens/status');
