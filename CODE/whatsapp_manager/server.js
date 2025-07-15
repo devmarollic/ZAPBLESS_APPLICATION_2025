@@ -20,11 +20,7 @@ const { RabbitMQService } = require('./rabbitmq_service');
 const { whatsappService } = require('./whatsapp_service');
 const { getSubstitutedText, sleep, getRandomDelay } = require('./utils');
 
-dotenv.config(
-    {
-        path: path.join(__dirname, '.env')
-    }
-    );
+dotenv.config();
 
 // Configurações
 const PORT = process.env.PORT || 8080;
