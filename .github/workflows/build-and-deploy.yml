@@ -5,7 +5,7 @@ on:
     branches:
       - dev
     paths:
-      - 'CODE/whatsapp_manager/**'
+      - 'code/whatsapp_manager/**'
 
 jobs:
   build-and-deploy:
@@ -60,7 +60,7 @@ jobs:
 
       - name: 💪 Build Docker Image
         run: |
-          docker build -t $IMAGE_FULL CODE/whatsapp_manager \
+          docker build -t $IMAGE_FULL code/whatsapp_manager \
             --build-arg SUPABASE_DATABASE_URL=$SUPABASE_DATABASE_URL \
             --build-arg SUPABASE_DATABASE_KEY=$SUPABASE_DATABASE_KEY \
             --build-arg SUPABASE_STORAGE_URL=$SUPABASE_STORAGE_URL \
