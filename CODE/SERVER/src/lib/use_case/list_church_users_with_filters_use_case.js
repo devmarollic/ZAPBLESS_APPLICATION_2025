@@ -1,7 +1,7 @@
 // -- IMPORTS
 
 import { profileService } from '../service/profile_service';
-import { z } from 'zod';
+import { z, ZodError } from 'zod';
 
 // -- TYPES
 
@@ -24,16 +24,21 @@ class ListChurchUsersWithFiltersUseCase
             }
             );
 
-        let validatedInput = inputSchema.parse( input );
+        let { data, error, success } = inputSchema.safeParse( input );
+
+        if ( !success )
+        {
+            throw new ZodError( error.message );
+        }
 
         let result = await profileService.getProfileArrayByChurchIdWithFilters(
-            validatedInput.churchId,
+            data.churchId,
             {
-                searchTerm: validatedInput.searchTerm,
-                statusFilter: validatedInput.statusFilter,
-                roleFilter: validatedInput.roleFilter,
-                page: validatedInput.page,
-                limit: validatedInput.limit
+                searchTerm: data.searchTerm,
+                statusFilter: data.statusFilter,
+                roleFilter: data.roleFilter,
+                page: data.page,
+                limit: data.limit
             }
             );
 
