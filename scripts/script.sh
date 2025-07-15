@@ -24,7 +24,7 @@ compute_image_suffix() {
 
   mapfile -t tags < <(
     curl -sSL -H "Authorization: Bearer $GITHUB_TOKEN" \
-      "https://ghcr.io/v2/${OWNER}/${APP_NAME}/tags/list" |
+      "https://ghcr.io/v2/Marollic/zapbless_application_2025/tags/list" |
     jq -r '.tags[]?' | grep "^.*-${APP_NAME}-[0-9]\+$" || true
   )
 
