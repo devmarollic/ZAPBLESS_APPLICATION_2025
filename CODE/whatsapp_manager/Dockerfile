@@ -22,4 +22,4 @@ RUN mkdir -p public/qr data/sessions
 EXPOSE 8080
 
 # Comando para iniciar a aplicação
-CMD ["node", "server.js"] 
+CMD ["node", "server.js"]
