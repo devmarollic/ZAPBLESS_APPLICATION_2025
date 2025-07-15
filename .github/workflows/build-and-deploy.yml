@@ -18,7 +18,7 @@ jobs:
       APP_NAME: whatsapp-manager
       APP_TYPE: backend
       APP_VERSION: v1
-      APP_MAIN: whatsapp_manager
+      APP_MAIN: zapbless
       MIN_REPLICAS: 1
       MAX_REPLICAS: 1
       STABLE_MINUTES: 0
@@ -53,14 +53,15 @@ jobs:
 
       - name: 🕒 Set Dynamic Tags
         run: |
-          export BUILD_DATE=$(date -u +"%Y%m%dT%H%M%SZ")
-          export IMAGE_TAG="${BUILD_DATE}-${GITHUB_RUN_ID}-${GITHUB_SHA::7}-${APP_NAME}-${IMAGE_SUFFIX}"
+          BUILD_DATE=$(date -u +"%Y%m%dT%H%M%SZ")
+          IMAGE_TAG="${BUILD_DATE}-${GITHUB_RUN_ID}-${GITHUB_SHA::7}-${APP_NAME}-${IMAGE_SUFFIX}"
+          IMAGE_REPO="ghcr.io/marollic/zapbless_application_2025"
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-          echo "IMAGE_FULL=ghcr.io/${{ github.repository }}:$IMAGE_TAG" >> $GITHUB_ENV
+          echo "IMAGE_FULL=$IMAGE_REPO:$IMAGE_TAG" >> $GITHUB_ENV
 
       - name: 💪 Build Docker Image
         run: |
-          docker build -t $IMAGE_FULL code/whatsapp_manager \
+          docker build -t $IMAGE_FULL CODE/whatsapp_manager \
             --build-arg SUPABASE_DATABASE_URL=$SUPABASE_DATABASE_URL \
             --build-arg SUPABASE_DATABASE_KEY=$SUPABASE_DATABASE_KEY \
             --build-arg SUPABASE_STORAGE_URL=$SUPABASE_STORAGE_URL \
@@ -85,4 +86,4 @@ jobs:
           source scripts/script.sh
           trigger_deployment "$APP_MAIN" "$APP_NAME" "$IMAGE_FULL" "$APP_VERSION" "$APP_TYPE" "$MIN_REPLICAS" "$MAX_REPLICAS" "$STABLE_MINUTES"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
