@@ -569,3 +569,42 @@ public
         status : STRING
         messageId : MESSAGE.id | constrained
         churchId : CHURCH.id | constrained
+
+    MESSAGE_OUTBOX
+
+        id : UUID | key, unique
+        churchId : CHURCH.id | constrained
+        title : STRING
+        content : STRING
+        recipientType : STRING
+        ministryId : MINISTRY.id | constrained
+        recipientCount : FLOAT64
+        status : STRING
+        sentCount : FLOAT64
+        deliveredCount : FLOAT64
+        readCount : FLOAT64
+        failedCount : FLOAT64
+        scheduledAt : TIMESTAMP
+        isRecurring : BOOL
+        recurrenceType : STRING
+        recurrenceInterval : FLOAT64
+        recurrenceDayOfWeek : LIST[]
+        recurrenceDayOfMonth : LIST[]
+        recurrenceTime : TIME
+        recurrenceEndDate : DATE
+        creationTimestamp : TIMESTAMP | generated
+        updateTimestamp : TIMESTAMP | generated, updated
+
+    MESSAGE_OUTBOX_RECIPIENT
+
+        id : UUID | key, unique
+        messageOutboxId : MESSAGE_OUTBOX.id | constrained
+        contactId : CONTACT.id | constrained
+        number : STRING
+        status : STRING = "pending"
+        sentAt : TIMESTAMP
+        deliveredAt : TIMESTAMP
+        readAt : TIMESTAMP
+        failedAt : TIMESTAMP
+        errorMessage : STRING
+        
