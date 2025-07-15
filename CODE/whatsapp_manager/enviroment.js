@@ -1,6 +1,6 @@
-const dotenv = require('dotenv');
+// const dotenv = require('dotenv');
 
-dotenv.config();
+// dotenv.config();
 
 const PORT = process.env.PORT || 8080;
 const SESSION_ID = process.env.SESSION_ID || `session-123`;
