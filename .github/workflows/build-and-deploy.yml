@@ -18,7 +18,7 @@ jobs:
       APP_NAME: whatsapp-manager
       APP_TYPE: backend
       APP_VERSION: v1
-      APP_MAIN: whatsapp_manager
+      APP_MAIN: zapbless
       MIN_REPLICAS: 1
       MAX_REPLICAS: 1
       STABLE_MINUTES: 0
