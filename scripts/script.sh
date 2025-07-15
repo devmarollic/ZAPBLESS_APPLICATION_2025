@@ -66,7 +66,7 @@ trigger_deployment() {
     -H "Accept: application/vnd.github+json" \
     -H "Authorization: Bearer $GITHUB_TOKEN" \
     -d "{
-      \"ref\": \"main\",
+      \"ref\": \"dev\",
       \"inputs\": {
         \"APP_MAIN\": \"$APP_MAIN\",
         \"APP_NAME\": \"$APP_NAME\",
