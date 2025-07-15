@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,12 +16,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import PresetMessages from '@/components/messaging/PresetMessages';
 import MessageRecurrenceForm from '@/components/messaging/MessageRecurrenceForm';
+import { HttpClient } from '@/lib/http_client';
+import { useQuery } from '@tanstack/react-query';
+import { MinistryService } from '@/services/ministryService';
+import { ContactService } from '@/services/contactService';
 
 const messageFormSchema = z.object({
     title: z.string().min(3, 'O título deve ter pelo menos 3 caracteres'),
     message: z.string().min(10, 'A mensagem deve ter pelo menos 10 caracteres'),
     target: z.string().min(1, 'Selecione o destino da mensagem'),
-    specificTarget: z.string().optional(),
+    specificTarget: z.array(z.string()).optional(),
+    ministryTarget: z.string().optional(),
     isScheduled: z.boolean().default(false),
     scheduledDate: z.string().optional(),
     scheduledTime: z.string().optional(),
@@ -67,13 +72,21 @@ const EnviarMensagem = () => {
     const { toast } = useToast();
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
-    const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
     const [targetType, setTargetType] = useState<string>('all');
     const [showPreview, setShowPreview] = useState(false);
     const [previewData, setPreviewData] = useState<{ title: string, message: string, recipients: number }>({
         title: '',
         message: '',
         recipients: 0
+    });
+    const [searchContactText, setSearchContactText] = useState('');
+    const { data: ministries, isLoading: isLoadingMinistries } = useQuery({
+        queryKey: ['ministries'],
+        queryFn: () => MinistryService.getMinistriesByChurch()
+    });
+    const { data: contacts, isLoading: isLoadingContacts } = useQuery({
+        queryKey: ['contacts'],
+        queryFn: () => ContactService.getContactsByChurch()
     });
 
     const form = useForm<MessageFormValues>({
@@ -99,35 +112,28 @@ const EnviarMensagem = () => {
     const isRecurring = form.watch('isRecurring');
     const recurrenceType = form.watch('recurrenceType');
 
-    const handleSelectPresetMessage = (content: string) => {
+    const handleSelectPresetMessage = (title: string, content: string) => {
+        form.setValue('title', title);
         form.setValue('message', content);
     };
 
     const handleTargetChange = (value: string) => {
         setTargetType(value);
         form.setValue('target', value);
-        form.setValue('specificTarget', undefined);
-        setSelectedRecipients([]);
-    };
-
-    const handleSpecificTargetChange = (value: string) => {
-        form.setValue('specificTarget', value);
-
-        if (targetType === 'ministry') {
-            // If a ministry is selected, auto-select all members of that ministry
-            // In a real app, this would be based on members in the ministry
-            setSelectedRecipients(mockMembers.slice(0, 3).map(m => m.id));
+        if (value === 'specific') {
+            form.setValue('specificTarget', []);
+            form.setValue('ministryTarget', undefined);
+        } else if (value === 'ministry') {
+            form.setValue('ministryTarget', '');
+            form.setValue('specificTarget', undefined);
+        } else {
+            form.setValue('specificTarget', undefined);
+            form.setValue('ministryTarget', undefined);
         }
     };
 
-    const toggleMemberSelection = (memberId: string) => {
-        setSelectedRecipients(current => {
-            if (current.includes(memberId)) {
-                return current.filter(id => id !== memberId);
-            } else {
-                return [...current, memberId];
-            }
-        });
+    const handleMinistryTargetChange = (value: string) => {
+        form.setValue('ministryTarget', value);
     };
 
     const handlePreview = () => {
@@ -139,11 +145,11 @@ const EnviarMensagem = () => {
 
         if (targetType === 'all') {
             recipientCount = mockMembers.length;
-        } else if (targetType === 'ministry' && formValues.specificTarget) {
+        } else if (targetType === 'ministry' && formValues.ministryTarget) {
             // In a real app, this would count members in the ministry
             recipientCount = 3;
         } else if (targetType === 'specific') {
-            recipientCount = selectedRecipients.length;
+            recipientCount = formValues.specificTarget?.length || 0;
         }
 
         setPreviewData({
@@ -159,34 +165,19 @@ const EnviarMensagem = () => {
         try {
             setIsLoading(true);
 
-            // Prepare data for API
-            const messageData = {
-                ...data,
-                recipients: targetType === 'specific' ? selectedRecipients : undefined,
+            let payload = {
+                title: data.title,
+                content: data.message,
+                recipientType: targetType,
+                ministryId: targetType === 'ministry' ? data.ministryTarget || '' : '',
+                memberIdArray: targetType === 'specific' ? data.specificTarget || [] : []
             };
 
-            // This would be a real API call in production
-            // await HttpClient.post('/messages/send', messageData);
-
-            // Simulate API delay
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            let actionText = 'enviada';
-            let timeText = '';
-
-            if (data.isRecurring) {
-                actionText = 'configurada como recorrente';
-                const typeText = data.recurrenceType === 'daily' ? 'diariamente' :
-                               data.recurrenceType === 'weekly' ? 'semanalmente' : 'mensalmente';
-                timeText = `será enviada ${typeText} às ${data.recurrenceTime}`;
-            } else if (data.isScheduled) {
-                actionText = 'agendada';
-                timeText = `para ${new Date(data.scheduledDate + 'T' + data.scheduledTime).toLocaleString('pt-BR')}`;
-            }
+            let response = await HttpClient.getDefault().post('/whatsapp/message', payload);
 
             toast({
-                title: `Mensagem ${actionText}`,
-                description: `Mensagem ${actionText} com sucesso para ${previewData.recipients} destinatários. ${timeText}`,
+                title: `Mensagem enviada`,
+                description: `Mensagem enviada com sucesso para ${previewData.recipients} destinatários.`,
             });
 
             navigate('/dashboard/mensagens/status');
@@ -201,6 +192,12 @@ const EnviarMensagem = () => {
             setIsLoading(false);
         }
     };
+
+    let filteredContacts = contacts?.filter(
+        member =>
+            member.name.toLowerCase().includes(searchContactText.toLowerCase()) ||
+            member.number.toLowerCase().includes(searchContactText.toLowerCase())
+    ) || [];
 
     return (
         <div className="md:container mx-auto py-6">
@@ -290,12 +287,12 @@ const EnviarMensagem = () => {
                                     {targetType === "ministry" && (
                                         <FormField
                                             control={form.control}
-                                            name="specificTarget"
+                                            name="ministryTarget"
                                             render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>Selecione o Ministério</FormLabel>
                                                     <Select
-                                                        onValueChange={handleSpecificTargetChange}
+                                                        onValueChange={handleMinistryTargetChange}
                                                         value={field.value}
                                                     >
                                                         <FormControl>
@@ -304,7 +301,7 @@ const EnviarMensagem = () => {
                                                             </SelectTrigger>
                                                         </FormControl>
                                                         <SelectContent>
-                                                            {mockMinistries.map(ministry => (
+                                                            {ministries?.map(ministry => (
                                                                 <SelectItem key={ministry.id} value={ministry.id}>
                                                                     {ministry.name}
                                                                 </SelectItem>
@@ -408,7 +405,7 @@ const EnviarMensagem = () => {
                                         </Button>
                                         <Button
                                             type="submit"
-                                            disabled={isLoading || !showPreview || (targetType === "specific" && selectedRecipients.length === 0)}
+                                            // disabled={isLoading || !showPreview || (targetType === "specific" && form.getValues('specificTarget')?.length === 0)}
                                         >
                                             {isLoading ? (
                                                 <>Processando...</>
@@ -448,6 +445,13 @@ const EnviarMensagem = () => {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
+                                <div className="mb-4">
+                                    <Input
+                                        placeholder="Buscar por nome ou número..."
+                                        value={searchContactText}
+                                        onChange={e => setSearchContactText(e.target.value)}
+                                    />
+                                </div>
                                 <div className="max-h-[300px] overflow-y-auto">
                                     <Table>
                                         <TableHeader>
@@ -458,27 +462,60 @@ const EnviarMensagem = () => {
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {mockMembers.map(member => (
-                                                <TableRow key={member.id} className="cursor-pointer hover:bg-muted/50" onClick={() => toggleMemberSelection(member.id)}>
-                                                    <TableCell>
-                                                        <div className="flex items-center justify-center">
-                                                            <input
-                                                                type="checkbox"
-                                                                className="h-4 w-4"
-                                                                checked={selectedRecipients.includes(member.id)}
-                                                                onChange={() => { }}
-                                                            />
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell>{member.name}</TableCell>
-                                                    <TableCell>{member.phone}</TableCell>
-                                                </TableRow>
-                                            ))}
+                                            <Controller
+                                                control={form.control}
+                                                name="specificTarget"
+                                                render={({ field }) => (
+                                                    <>
+                                                        {filteredContacts.map(member => {
+                                                            let checked = Array.isArray(field.value) ? field.value.includes(member.id) : false;
+                                                            return (
+                                                                <TableRow key={member.id} className="cursor-pointer hover:bg-muted/50" onClick={() => {
+                                                                    let updated;
+                                                                    if (checked) {
+                                                                        updated = field.value.filter((id: string) => id !== member.id);
+                                                                    } else {
+                                                                        updated = [...(field.value || []), member.id];
+                                                                    }
+                                                                    field.onChange(updated);
+                                                                }}>
+                                                                    <TableCell>
+                                                                        <div className="flex items-center justify-center">
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                className="h-4 w-4"
+                                                                                checked={checked}
+                                                                                onChange={e => {
+                                                                                    let updated;
+                                                                                    if (e.target.checked) {
+                                                                                        updated = [...(field.value || []), member.id];
+                                                                                    } else {
+                                                                                        updated = field.value.filter((id: string) => id !== member.id);
+                                                                                    }
+                                                                                    field.onChange(updated);
+                                                                                }}
+                                                                            />
+                                                                        </div>
+                                                                    </TableCell>
+                                                                    <TableCell>{member.name}</TableCell>
+                                                                    <TableCell>{member.number}</TableCell>
+                                                                </TableRow>
+                                                            );
+                                                        })}
+                                                    </>
+                                                )}
+                                            />
                                         </TableBody>
                                     </Table>
                                 </div>
                                 <div className="mt-4 text-sm text-muted-foreground">
-                                    {selectedRecipients.length} membro(s) selecionado(s)
+                                    <Controller
+                                        control={form.control}
+                                        name="specificTarget"
+                                        render={({ field }) => (
+                                            <>{Array.isArray(field.value) ? field.value.length : 0} membro(s) selecionado(s)</>
+                                        )}
+                                    />
                                 </div>
                             </CardContent>
                         </Card>
@@ -494,7 +531,7 @@ const EnviarMensagem = () => {
                                 <CardTitle className="flex items-center">
                                     <MessageSquare className="mr-2 h-5 w-5" />
                                     Prévia da Mensagem
-                            </CardTitle>
+                                </CardTitle>
                                 <CardDescription>
                                     Confira como sua mensagem será enviada
                                 </CardDescription>
@@ -510,19 +547,19 @@ const EnviarMensagem = () => {
                                         <Check className="mr-2 h-4 w-4 text-green-500" />
                                         <span>Será enviada para <strong>{previewData.recipients}</strong> destinatário(s)</span>
                                     </div>
-                                    
+
                                     {isRecurring && form.getValues('recurrenceTime') && (
                                         <div className="flex items-center text-sm">
                                             <Repeat className="mr-2 h-4 w-4 text-purple-500" />
                                             <span>
                                                 Recorrência: <strong>
                                                     {form.getValues('recurrenceType') === 'daily' ? 'Diariamente' :
-                                                     form.getValues('recurrenceType') === 'weekly' ? 'Semanalmente' : 'Mensalmente'}
+                                                        form.getValues('recurrenceType') === 'weekly' ? 'Semanalmente' : 'Mensalmente'}
                                                 </strong> às <strong>{form.getValues('recurrenceTime')}</strong>
                                             </span>
                                         </div>
                                     )}
-                                    
+
                                     {isScheduled && form.getValues('scheduledDate') && form.getValues('scheduledTime') && (
                                         <div className="flex items-center text-sm">
                                             <Clock className="mr-2 h-4 w-4 text-blue-500" />

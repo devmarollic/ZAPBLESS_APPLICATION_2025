@@ -28,7 +28,7 @@ class WhatsappSessionMapper {
     ) {
         return (
             {
-                id: whatsapp?.id ?? getRandomTuid(),
+                id: whatsapp?.id,
                 churchId: whatsapp?.churchId ?? process.env.CHURCH_ID,
                 name: whatsapp?.name ?? process.env.CHURCH_NAME,
                 connection: whatsapp?.status ?? 'disconnected',

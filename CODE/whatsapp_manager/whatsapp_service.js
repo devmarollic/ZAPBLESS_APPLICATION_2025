@@ -20,7 +20,7 @@ class WhatsappService
 
         if ( error !== null )
         {
-            return null;
+            console.error( error );
         }
 
         return data;
@@ -40,7 +40,7 @@ class WhatsappService
 
         if ( error !== null )
         {
-            return null;
+            console.error( error );
         }
 
         return data;
@@ -61,7 +61,7 @@ class WhatsappService
 
         if ( error !== null )
         {
-            return null;
+            console.error( error );
         }
 
         return data;
@@ -82,7 +82,7 @@ class WhatsappService
 
         if ( error !== null )
         {
-            return null;
+            console.error( error );
         }
 
         return data;

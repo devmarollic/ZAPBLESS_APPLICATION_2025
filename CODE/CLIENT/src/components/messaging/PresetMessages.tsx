@@ -126,7 +126,7 @@ Interessado(a)? Entre em contato: [CONTATO]`,
 ];
 
 interface PresetMessagesProps {
-    onSelectMessage: (content: string) => void;
+    onSelectMessage: (title: string, content: string) => void;
 }
 
 const PresetMessages = ({ onSelectMessage }: PresetMessagesProps) => {
@@ -185,7 +185,7 @@ const PresetMessages = ({ onSelectMessage }: PresetMessagesProps) => {
                             <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => onSelectMessage(message.content)}
+                                onClick={() => onSelectMessage(message.title, message.content)}
                                 className="w-full"
                             >
                                 Usar esta mensagem

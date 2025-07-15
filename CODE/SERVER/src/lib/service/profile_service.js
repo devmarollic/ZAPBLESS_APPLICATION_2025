@@ -113,6 +113,38 @@ class ProfileService
 
     // ~~
 
+    async getProfileArrayByMinistryId(
+        ministryId
+        )
+    {
+        let { data, error } = await databaseService.getClient()
+            .from( 'MINISTRY_MEMBER' )
+            .select(
+                `profile:PROFILE (
+                    id,
+                    legalName,
+                    firstName,
+                    lastName,
+                    email,
+                    phonePrefix,
+                    phoneNumber,
+                    statusId,
+                    creationTimestamp
+                )`
+            )
+            .eq( 'ministryId', ministryId );
+
+        if ( error !== null )
+        {
+            logError( error );
+        }
+
+        // Extrai apenas o array de perfis
+        return ( data || [] ).map( member => member.profile );
+    }
+
+    // ~~
+
     async getChurchIdByProfileId(
         profileId
         )
@@ -126,8 +158,6 @@ class ProfileService
         if ( error !== null )
         {
             logError( error );
-
-            return null;
         }
 
         return data.churchId;
@@ -148,8 +178,6 @@ class ProfileService
         if ( error !== null )
         {
             logError( error );
-
-            return null;
         }
 
         return data.churchId;

@@ -22,8 +22,6 @@ class MessageTemplateService
         if ( error !== null )
         {
             logError( error );
-
-            return null;
         }
 
         return data;
