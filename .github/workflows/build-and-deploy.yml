@@ -86,4 +86,4 @@ jobs:
           source scripts/script.sh
           trigger_deployment "$APP_MAIN" "$APP_NAME" "$IMAGE_FULL" "$APP_VERSION" "$APP_TYPE" "$MIN_REPLICAS" "$MAX_REPLICAS" "$STABLE_MINUTES"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}

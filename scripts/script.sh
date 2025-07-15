@@ -11,7 +11,6 @@ GHCR="ghcr.io"
 OWNER="MAROLLIC"                                    
 REPO="zapbless-devops"                    
 GITHUB_TOKEN="${GITHUB_TOKEN:-}"                    # Must be passed via env or workflow secret
-PERSONAL_ACCESS_TOKEN="${PERSONAL_ACCESS_TOKEN:-}"  # Must be passed via env or workflow secret
 
 if [[ -z "$GITHUB_TOKEN" ]]; then
   echo "❌ GITHUB_TOKEN is required but not set."
@@ -66,7 +65,7 @@ trigger_deployment() {
 
   curl -X POST "$GITHUB_API/repos/$OWNER/$REPO/actions/workflows/deploy-main.yml/dispatches" \
     -H "Accept: application/vnd.github+json" \
-    -H "Authorization: Bearer $PERSONAL_ACCESS_TOKEN" \
+    -H "Authorization: Bearer $GITHUB_TOKEN" \
     -d "{
       \"ref\": \"main\",
       \"inputs\": {
