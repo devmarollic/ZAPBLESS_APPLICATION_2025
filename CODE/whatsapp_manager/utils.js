@@ -122,13 +122,13 @@ export class CappedMap
 // -- VARIABLES
 
 export let
-    languageTag = 'en',
+    languageTag = 'pt-BR',
     continentCode = '',
     countryCode = '',
-    languageCode = 'en',
-    defaultLanguageCode = 'en',
-    substitutionPrefix = '{',
-    substitutionSuffix = '}',
+    languageCode = 'pt-BR',
+    defaultLanguageCode = 'pt-BR',
+    substitutionPrefix = '{{',
+    substitutionSuffix = '}}',
     textBySlugMap = new Map(),
     processedLineTagArray = [],
     processedDualTagArray = [],
@@ -272,6 +272,18 @@ export function getLocationDistance(
         = 2 * Math.atan2( getSquareRoot( halfChordLengthSquare ), getSquareRoot( 1 - halfChordLengthSquare ) );
 
     return angularDistance * 6371000;
+}
+
+// ~~
+
+export function getRandomDelay(
+    minimum,
+    maximum
+    )
+{
+    return Math.floor(
+        Math.random() * (maximum - minimum + 1)
+        ) + minimum;
 }
 
 // ~~
@@ -3482,20 +3494,44 @@ export function matchesTranslationSpecifier(
 
 // ~~
 
+export function escapeForRegex(
+    text
+    )
+{   
+    return text.replace( /[-/\\^$*+?.()|[\]{}]/g, '\\$&' );
+}
+
+// ~~
+
 export function getSubstitutedText(
     text,
-    valueByNameMap
+    valueByNameMap,
+    { ignoreMissing = true, defaultValue = '' } = {}
     )
 {
-    if ( valueByNameMap !== undefined )
-    {
-        for ( let [ name, value ] of Object.entries( valueByNameMap ) )
-        {
-            text = text.replaceAll( substitutionPrefix + name + substitutionSuffix, value );
-        }
-    }
+    if ( typeof text !== 'string' || !valueByNameMap ) return text;
 
-    return text;
+    let pattern = new RegExp(
+        escapeForRegex( substitutionPrefix ) + '([^{}]+)' + escapeForRegex( substitutionSuffix ),
+        'g'
+        );
+
+    return text.replace(
+        pattern,
+        ( _, key ) =>
+        {
+            let name = key.trim();
+
+            if ( name in valueByNameMap )
+            {
+                return String( valueByNameMap[ name ] );
+            }
+            
+        return ignoreMissing
+            ? substitutionPrefix + name + substitutionSuffix
+            : defaultValue;
+        }
+        );
 }
 
 // ~~
@@ -4045,4 +4081,15 @@ export function toggleClass(
     }
 
     return element;
+}
+
+// ~~
+
+export function sleep(
+    millisecondCount
+    )
+{
+    return new Promise(
+        resolve => setTimeout( resolve, millisecondCount )
+        );
 }

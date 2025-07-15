@@ -9,6 +9,26 @@ class MessageTemplateService
 {
     // -- INQUIRIES
 
+    async getMessageTemplateById(
+        id
+        )
+    {
+        let { data, error } = await databaseService.getClient()
+            .from( 'MESSAGE_TEMPLATE' )
+            .select()
+            .eq( 'id', id )
+            .single();
+
+        if ( error !== null )
+        {
+            logError( error );
+
+            return null;
+        }
+
+        return data;
+    }
+
     async getMessageTemplateArrayByChurchId(
         churchId
         )

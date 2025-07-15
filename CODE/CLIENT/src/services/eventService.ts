@@ -23,7 +23,7 @@ export interface ReminderData {
 }
 
 export interface CreateEventRequest {
-    churchId: string;
+    ministryId: string;
     title: string;
     statusId: string;
     typeId: string;
