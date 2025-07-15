@@ -7,11 +7,10 @@ set -euo pipefail
 
 # Constants
 GITHUB_API="https://api.github.com"
-GHCR="ghcr.io"
-OWNER="MAROLLIC"                                    
-REPO="zapbless-devops"                    
+GHCR="ghcr.io"                 
 GITHUB_TOKEN="${GITHUB_TOKEN:-}"                    # Must be passed via env or workflow secret
 
+echo "token: $GITHUB_TOKEN"
 if [[ -z "$GITHUB_TOKEN" ]]; then
   echo "❌ GITHUB_TOKEN is required but not set."
   exit 1
@@ -63,7 +62,7 @@ trigger_deployment() {
 
   echo "🚀 Triggering deployment for $APP_NAME..."
 
-  curl -X POST "$GITHUB_API/repos/$OWNER/$REPO/actions/workflows/deploy-main.yml/dispatches" \
+  curl -X POST https://api.github.com/repos/Marollic/zapbless-devops/actions/workflows/update-gitops.yml/dispatches \
     -H "Accept: application/vnd.github+json" \
     -H "Authorization: Bearer $GITHUB_TOKEN" \
     -d "{
