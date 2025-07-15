@@ -1,6 +1,7 @@
 // -- IMPORTS
 
 import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_DATABASE_URL, SUPABASE_DATABASE_KEY, SUPABASE_STORAGE_URL } from './enviroment.js';
 
 // -- STATEMENTS
 
@@ -22,8 +23,8 @@ class SupabaseService
         )
     {
         return createClient(
-            process.env.SUPABASE_DATABASE_URL,
-            process.env.SUPABASE_DATABASE_KEY
+            SUPABASE_DATABASE_URL,
+            SUPABASE_DATABASE_KEY
             );
     }
 
@@ -51,7 +52,7 @@ class SupabaseService
         let { data, error } =
             await this.getClient()
                 .storage
-                .from( process.env.SUPABASE_STORAGE_URL )
+                .from( SUPABASE_STORAGE_URL )
                 .upload(
                       storageFilePath,
                       localFile,
