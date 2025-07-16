@@ -44,12 +44,7 @@ const Eventos = () => {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    {isLoading ? (
-                        <div className="flex items-center justify-center py-12">
-                            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                            <span className="ml-2 text-muted-foreground">Carregando eventos...</span>
-                        </div>
-                    ) : error ? (
+                    {error ? (
                         <div className="text-center py-12">
                             <p className="text-destructive">Erro ao carregar eventos. Tente novamente.</p>
                             <p className="text-sm text-muted-foreground mt-2">{error.message}</p>
