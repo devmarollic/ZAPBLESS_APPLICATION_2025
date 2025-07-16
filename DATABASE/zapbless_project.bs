@@ -50,6 +50,7 @@ public
         name : STRING
         searchName : STRING
         provinceName : STRING
+        provinceCode : STRING
         countryName : COUNTRY.fullName
         communityName : STRING
         position : GEOMETRY

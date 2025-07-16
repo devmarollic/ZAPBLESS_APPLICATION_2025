@@ -20,7 +20,8 @@ import
         subscriptionRoutes,
         eventTypesRoutes,
         templateRoutes,
-        scheduleRoutes
+        scheduleRoutes,
+        cityRoutes
     } from './lib/routes';
 import { initIO } from './socket';
 import { authMiddleware } from './middleware/auth_middleware';
@@ -81,12 +82,14 @@ fastify.register( subscriptionRoutes, { prefix: '/subscriptions' } );
 fastify.register( eventTypesRoutes, { prefix: '/event-type' } );
 fastify.register( templateRoutes, { prefix: '/message-template' } );
 fastify.register( scheduleRoutes, { prefix: '/schedule' } );
+fastify.register( cityRoutes, { prefix: '/city' } );
 
 fastify.addHook(
     'preHandler',
     ( request, reply, done ) =>
     {
         supabaseService.getClient( request, reply );
+        
         done();
     }
     );

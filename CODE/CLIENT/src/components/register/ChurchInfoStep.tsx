@@ -380,7 +380,7 @@ const ChurchInfoStep = ({ churchInfo, setChurchInfo }: ChurchInfoStepProps) => {
                 </div>
             </div>
 
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
                 <Label>Imagem da Igreja</Label>
 
                 {churchInfo.imagePreview ? (
@@ -426,7 +426,7 @@ const ChurchInfoStep = ({ churchInfo, setChurchInfo }: ChurchInfoStepProps) => {
                         </label>
                     </div>
                 )}
-            </div>
+            </div> */}
         </div>
     );
 };

@@ -18,7 +18,7 @@ const { contactService } = require('./contact_service');
 const { RabbitMQService } = require('./rabbitmq_service');
 const { whatsappService } = require('./whatsapp_service');
 const { getSubstitutedText, sleep, getRandomDelay } = require('./utils');
-const { SESSION_DIR, SESSION_ID, DEBUG, RABBITMQ_URL, RABBITMQ_OUTBOUND_QUEUE, RABBITMQ_INBOUND_QUEUE, RABBITMQ_DISCONNECTED_SESSIONS_QUEUE, CHURCH_ID, PORT } = require('./enviroment.js');
+const { SESSION_DIR, SESSION_ID, DEBUG, RABBITMQ_URL, RABBITMQ_OUTBOUND_QUEUE, RABBITMQ_INBOUND_QUEUE, RABBITMQ_DISCONNECTED_SESSIONS_QUEUE, CHURCH_ID, PORT } = require('./enviroment');
 
 // Configurações
 

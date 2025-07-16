@@ -12,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { HttpClient } from '@/lib/http_client';
 import { useQuery } from '@tanstack/react-query';
-import cityAndStates from '../../public/city_and_states.json';
 
 const personalDataSchema = z.object({
     firstName: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
@@ -36,6 +35,36 @@ const churchDataSchema = z.object({
     churchCountryCode: z.string().min(2, 'Selecione um país'),
     churchNeighborhood: z.string().min(2, 'Bairro deve ter pelo menos 2 caracteres')
 });
+
+const stateArray = [
+    { code: 'AC', name: 'Acre' },
+    { code: 'AL', name: 'Alagoas' },
+    { code: 'AP', name: 'Amapá' },
+    { code: 'AM', name: 'Amazonas' },
+    { code: 'BA', name: 'Bahia' },
+    { code: 'CE', name: 'Ceará' },
+    { code: 'DF', name: 'Distrito Federal' },
+    { code: 'ES', name: 'Espírito Santo' },
+    { code: 'GO', name: 'Goiás' },
+    { code: 'MA', name: 'Maranhão' },
+    { code: 'MT', name: 'Mato Grosso' },
+    { code: 'MS', name: 'Mato Grosso do Sul' },
+    { code: 'MG', name: 'Minas Gerais' },
+    { code: 'PA', name: 'Pará' },
+    { code: 'PB', name: 'Paraíba' },
+    { code: 'PR', name: 'Paraná' },
+    { code: 'PE', name: 'Pernambuco' },
+    { code: 'PI', name: 'Piauí' },
+    { code: 'RJ', name: 'Rio de Janeiro' },
+    { code: 'RN', name: 'Rio Grande do Norte' },
+    { code: 'RS', name: 'Rio Grande do Sul' },
+    { code: 'RO', name: 'Rondônia' },
+    { code: 'RR', name: 'Roraima' },
+    { code: 'SC', name: 'Santa Catarina' },
+    { code: 'SP', name: 'São Paulo' },
+    { code: 'SE', name: 'Sergipe' },
+    { code: 'TO', name: 'Tocantins' }
+];
 
 type PersonalDataFormValues = z.infer<typeof personalDataSchema>;
 type ChurchDataFormValues = z.infer<typeof churchDataSchema>;
@@ -68,6 +97,11 @@ type ProfileAndChurchData = {
     }
 }
 
+type City = {
+    code: string;
+    name: string;
+}
+
 const MeusDados = () => {
     const { toast } = useToast();
     const [churchImage, setChurchImage] = useState<string | null>(null);
@@ -81,11 +115,6 @@ const MeusDados = () => {
             setChurchImage(churchAndProfileData.church.imagePath);
         }
     }, [churchAndProfileData]);
-
-    const cityArrayByStateCode = cityAndStates?.stateArray?.reduce((acc, item) => {
-        acc[item.code] = item.cityArray;
-        return acc;
-    }, {} as Record<string, string[]>);
 
     const personalForm = useForm<PersonalDataFormValues>({
         resolver: zodResolver(personalDataSchema),
@@ -112,6 +141,12 @@ const MeusDados = () => {
             churchCountryCode: churchAndProfileData?.church.countryCode || 'BR',
             churchNeighborhood: churchAndProfileData?.church.neighborhood || ''
         },
+    });
+
+    const { data: cityArray, isLoading: isLoadingCityArray, refetch: refetchCityArray, isRefetching: isRefetchingCityArray } = useQuery({
+        queryKey: ['cityArray', churchForm.watch('churchStateCode')],
+        queryFn: () => HttpClient.getDefault().get<City[]>('/city/' + churchForm.watch('churchStateCode') + '/list'),
+        enabled: !!churchForm.watch('churchStateCode')
     });
 
     useEffect(() => {
@@ -158,6 +193,7 @@ const MeusDados = () => {
             });
         }
     };
+
 
     const onSubmitChurch = async (data: ChurchDataFormValues) => {
         try {
@@ -423,7 +459,7 @@ const MeusDados = () => {
                                     )}
                                 />
 
-                                <div>
+                                {/* <div>
                                     <FormLabel>Imagem da Igreja</FormLabel>
                                     <div className="mt-2 flex items-center gap-4">
                                         {churchImage && (
@@ -447,7 +483,7 @@ const MeusDados = () => {
                                             </label>
                                         </div>
                                     </div>
-                                </div>
+                                </div> */}
 
                                 <FormField
                                     control={churchForm.control}
@@ -506,30 +542,35 @@ const MeusDados = () => {
                                         )}
                                     />
 
-                                    <FormField
-                                        control={churchForm.control}
-                                        name="churchCityCode"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Cidade</FormLabel>
-                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                    <FormControl>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Selecione" />
-                                                        </SelectTrigger>
-                                                    </FormControl>
-                                                    <SelectContent>
-                                                        {(cityArrayByStateCode[churchForm.watch('churchStateCode')] || []).map(
-                                                            (cityName) => (
-                                                                <SelectItem key={cityName} value={cityName}>{cityName}</SelectItem>
-                                                            )
-                                                        )}
-                                                    </SelectContent>
-                                                </Select>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
+
+                                    {!isLoadingCityArray && (
+                                        <FormField
+                                            control={churchForm.control}
+                                            name="churchCityCode"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Cidade</FormLabel>
+                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                        <FormControl>
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Selecione" />
+                                                            </SelectTrigger>
+                                                        </FormControl>
+                                                        <SelectContent>
+                                                            {
+                                                                cityArray?.map(
+                                                                    (city) => (
+                                                                        <SelectItem key={city.code} value={city.code}>{city.name}</SelectItem>
+                                                                    )
+                                                                )
+                                                            }
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    )}
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -546,7 +587,7 @@ const MeusDados = () => {
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        {cityAndStates.stateArray.map((item) => (
+                                                        {stateArray.map((item) => (
                                                             <SelectItem key={item.code} value={item.code}>
                                                                 {item.name}
                                                             </SelectItem>
@@ -572,8 +613,6 @@ const MeusDados = () => {
                                                     </FormControl>
                                                     <SelectContent>
                                                         <SelectItem value="BR">Brasil</SelectItem>
-                                                        <SelectItem value="US">Estados Unidos</SelectItem>
-                                                        <SelectItem value="PT">Portugal</SelectItem>
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
