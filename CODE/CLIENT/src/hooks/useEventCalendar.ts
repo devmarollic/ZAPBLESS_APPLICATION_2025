@@ -126,149 +126,35 @@ export const useEventCalendar = () => {
 
     // ~~
 
-    // Usar uma data fixa baseada no mês atual para evitar conflitos
-    const currentMonth = new Date();
-    const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-    const monthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
-
     const { data: rawEvents = [], isLoading, error, refetch } = useQuery({
-        queryKey: [EVENTS_QUERY_KEY, monthStart, monthEnd],
+        queryKey: [EVENTS_QUERY_KEY, fullCalendarDateRange?.from, fullCalendarDateRange?.to],
         queryFn: async () => {
+            if (!fullCalendarDateRange) return [];
+
+            const from = format(fullCalendarDateRange.from, 'yyyy-MM-dd');
+            const to = format(fullCalendarDateRange.to, 'yyyy-MM-dd');
+
             const response = await EventService.getEvents(
                 'is-coming',
-                format(monthStart, 'yyyy-MM-dd'),
-                format(monthEnd, 'yyyy-MM-dd')
+                from,
+                to
             );
 
             return response || [];
         },
+        enabled: !!fullCalendarDateRange,
         staleTime: 0,
-        gcTime: 10 * 60 * 1000,
+        gcTime: 10 * 60 * 1000
     });
 
     // ~~
-
-    // Substituir a função generateVirtualEventsInRange por expandEvents
-    function expandEvents(list, rangeStart, rangeEnd) {
-        const events = [];
-      
-        list.forEach(e => {
-          const first = dayjs(e.startAtTimestamp);
-          const dur   = dayjs(e.endAtTimestamp).diff(first);
-          const cfg   = e.recurrence ?? {};
-          const intv  = cfg.interval ?? 1;
-          const endRec= cfg.endAtTimestamp ? dayjs(cfg.endAtTimestamp) : rangeEnd;
-          const dowOk = cfg.dayOfWeekArray?.length ? cfg.dayOfWeekArray : null;
-          const domOk = cfg.dayOfMonthArray?.length ? cfg.dayOfMonthArray : null;
-      
-          let cursor = first.clone();
-      
-          // --- inclui a 1ª ocorrência se cair no intervalo e for válida ---------------------
-          let isValidFirst = true;
-          if (e.recurrenceTypeId === 'weekly' && dowOk) {
-            isValidFirst = dowOk.includes(cursor.day());
-          }
-          if (e.recurrenceTypeId === 'monthly' && domOk) {
-            isValidFirst = domOk.includes(cursor.date());
-          }
-          if (cursor.isBetween(rangeStart, rangeEnd, null, '[]') && isValidFirst) {
-            events.push({
-              ...e,
-              startAtTimestamp: cursor.format('YYYY-MM-DDTHH:mm:ss'),
-              endAtTimestamp  : cursor.add(dur, 'ms').format('YYYY-MM-DDTHH:mm:ss'),
-              isVirtual       : false
-            });
-          }
-      
-          // --- sem recorrência: acabou aqui ------------------------------------
-          if (!e.recurrenceTypeId || e.recurrenceTypeId === 'none') return;
-      
-          // --- gera próximas ocorrências --------------------------------------
-          if (e.recurrenceTypeId === 'weekly' && dowOk) {
-            // Encontra o primeiro dia da semana do range
-            let weekStart = rangeStart.startOf('week');
-            let maxEnd = dayjs.min(endRec, rangeEnd);
-
-            while (weekStart.isBefore(maxEnd) || weekStart.isSame(maxEnd, 'day')) {
-                for (const d of dowOk) {
-                    let occurrence = weekStart.day(d).hour(first.hour()).minute(first.minute()).second(first.second());
-                    if (
-                        occurrence.isBetween(rangeStart, rangeEnd, null, '[]') &&
-                        occurrence.isSameOrAfter(first) &&
-                        occurrence.isSameOrBefore(maxEnd)
-                    ) {
-                        events.push({
-                            ...e,
-                            startAtTimestamp: occurrence.format('YYYY-MM-DDTHH:mm:ss'),
-                            endAtTimestamp: occurrence.add(dur, 'ms').format('YYYY-MM-DDTHH:mm:ss'),
-                            isVirtual: true
-                        });
-                    }
-                }
-                weekStart = weekStart.add(intv, 'week');
-            }
-            return;
-          }
-      
-          const maxEnd = dayjs.min(endRec, rangeEnd);
-          while (true) {
-            switch (e.recurrenceTypeId) {
-              case 'daily':
-                cursor = cursor.add(intv, 'day');
-                break;
-      
-              case 'weekly':
-                cursor = cursor.add(intv, 'week');
-                if (dowOk) {
-                  // projeta pro(s) dia(s) da semana autorizados
-                  dowOk.sort();
-                  for (const d of dowOk) {
-                    const cand = cursor.day(d);
-                    if (cand.isAfter(cursor.subtract(1, 'week'))) { cursor = cand; break; }
-                  }
-                }
-                break;
-      
-              case 'monthly':
-                cursor = cursor.add(intv, 'month');
-                if (domOk) cursor = cursor.date(domOk[0]); // pega o 1º dia permitido
-                break;
-      
-              case 'yearly':
-                cursor = cursor.add(intv, 'year');
-                break;
-      
-              default:
-                return;
-            }
-      
-            if (cursor.isAfter(maxEnd)) break;
-            if (!cursor.isBetween(rangeStart, rangeEnd, null, '[]')) continue;
-      
-            events.push({
-              ...e,
-              startAtTimestamp: cursor.format('YYYY-MM-DDTHH:mm:ss'),
-              endAtTimestamp  : cursor.add(dur, 'ms').format('YYYY-MM-DDTHH:mm:ss'),
-              isVirtual       : true
-            });
-          }
-        });
-      
-        return events;
-      }
-      
 
     const processedEvents = useCallback(() => {
         if (!rawEvents || rawEvents.length === 0 || !fullCalendarDateRange) {
             return [];
         }
-        // Utiliza expandEvents para gerar todos os eventos (únicos e recorrentes) no range
-        let expanded = expandEvents(
-            rawEvents,
-            dayjs(fullCalendarDateRange.from),
-            dayjs(fullCalendarDateRange.to)
-        );
-        return expanded.map(convertOccurrenceToEvent);
+
+        return rawEvents.map(convertApiEventToEvent);
     }, [rawEvents, fullCalendarDateRange, convertApiEventToEvent, convertOccurrenceToEvent]);
 
     // ~~
@@ -278,8 +164,8 @@ export const useEventCalendar = () => {
         selectedCategories,
         undefined,
         undefined,
-        monthStart.getMonth(),
-        monthStart.getFullYear()
+        fullCalendarDateRange?.from.getMonth(),
+        fullCalendarDateRange?.from.getFullYear()
     );
 
     // ~~
