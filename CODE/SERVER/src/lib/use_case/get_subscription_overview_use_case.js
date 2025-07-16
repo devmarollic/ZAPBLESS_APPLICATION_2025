@@ -4,6 +4,7 @@ import { subscriptionService } from '../service/subscription_service';
 import { planService } from '../service/plan_service';
 import { ValidationError } from '../errors/validation_error';
 import { subscriptionStatus, subscriptionType } from '../model/subscription';
+import { getCeilInteger } from 'senselogic-gist';
 
 // -- TYPES
 
@@ -189,7 +190,7 @@ class GetSubscriptionOverviewUseCase {
                         page,
                         limit,
                         total: historyData.count,
-                        pageCount: Math.ceil(historyData.count / limit)
+                        pageCount: getCeilInteger( historyData.count / limit )
                     }
             }
             );

@@ -17,6 +17,34 @@ export class CreditCardPaymentStrategy extends PaymentStrategy
         this.pagarmeService = pagarmeService;
     }
 
+    // -- INQUIRIES
+
+    getPlanIdByPlanIdAndPeriodId(
+        planId,
+        periodId
+        )
+    {
+        const planMap =
+            {
+                monthly:
+                    {
+                        basic: 'plan_kV4ZX8eAUVUdEMLG',
+                        growth: 'plan_3n10o2rspQC8lk47',
+                        community: 'plan_M1pGYy9IWCleYWbV'
+                    },
+                annual:
+                    {
+                        basic: 'plan_wplRlJqI9tGb2PxB',
+                        growth: 'plan_B78kn72uVuYMdOyr',
+                        community: 'plan_R5MaZrzhohRZpdbn'
+                    }
+            };
+    
+        const resolved = planMap?.[ periodId ]?.[ planId ];
+    
+        return resolved;
+    }
+
     // -- OPERATIONS
 
     validatePaymentData(
@@ -67,7 +95,7 @@ export class CreditCardPaymentStrategy extends PaymentStrategy
     {
         let priceInCents = getRoundInteger(
             subscriptionData.periodId === 'monthly' 
-                ? Number( subscriptionData.plan.monthlyPrice ) * 100 
+                ? Number( subscriptionData.plan.monthlyPrice ) * 100
                 : Number( subscriptionData.plan.annualPrice ) * 100
             );
 
@@ -126,7 +154,7 @@ export class CreditCardPaymentStrategy extends PaymentStrategy
                         cvv: paymentData.cvv
                     },
                 installments: 1,
-                plan_id: 'plan_mx2W48xrU3hm4PB3',
+                plan_id: this.getPlanIdByPlanIdAndPeriodId( subscriptionData.plan.id, subscriptionData.periodId ),
                 code: subscriptionData.id,
                 payment_method: 'credit_card'
             }
@@ -155,10 +183,8 @@ export class CreditCardPaymentStrategy extends PaymentStrategy
             }
             );
 
-
         console.log( JSON.stringify( payload, null, 2 ) );
         console.log( this.pagarmeService.getHeaders() );
-
 
         if ( !response.ok )
         {

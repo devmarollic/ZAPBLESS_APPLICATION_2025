@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fatura de Assinatura</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333333; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+
+  <!-- Header -->
+  <div style="background-color: #6366f1; padding: 30px 40px; text-align: center;">
+    <h1 style="color: #ffffff; font-size: 32px; font-weight: bold; margin: 0; letter-spacing: -0.5px;">
+      <span style="color: #8b5cf6;">Zap</span><span style="color: #3b82f6;">Bless</span>
+    </h1>
+    <p style="color: #e0e7ff; font-size: 16px; margin: 8px 0 0 0;">Fatura de Assinatura</p>
+  </div>
+
+  <!-- Content -->
+  <div style="padding: 40px;">
+
+    <!-- Greeting -->
+    <h2 style="font-size: 24px; font-weight: 600; color: #1f2937; margin: 0 0 16px 0;">Olá, {{ customerName }}!</h2>
+    <p style="font-size: 16px; color: #6b7280; margin: 0 0 32px 0;">Sua fatura de assinatura está disponível. Confira os detalhes abaixo:</p>
+
+    <!-- Invoice Card -->
+    <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 32px; margin: 0 0 32px 0;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
+        <div>
+          <h3 style="font-size: 20px; font-weight: 600; color: #1f2937; margin: 0 0 4px 0;">Fatura #{{ invoiceNumber }}</h3>
+          <p style="font-size: 14px; color: #6b7280; margin: 0;">Emitida em {{ invoiceDate }}</p>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 28px; font-weight: bold; color: #059669; margin: 0 0 4px 0;">{{ amountFormatted }}</div>
+          <div style="font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Vencimento: {{ dueDate }}</div>
+        </div>
+      </div>
+
+      <!-- Plan Details -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; font-weight: 600; color: #374151; margin: 0 0 12px 0;">Detalhes da Assinatura</h4>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div>
+            <p style="font-size: 14px; color: #6b7280; margin: 0 0 4px 0;">Plano</p>
+            <p style="font-size: 16px; font-weight: 500; color: #1f2937; margin: 0;">{{ planName }}</p>
+          </div>
+          <div>
+            <p style="font-size: 14px; color: #6b7280; margin: 0 0 4px 0;">Período</p>
+            <p style="font-size: 16px; font-weight: 500; color: #1f2937; margin: 0;">{{ billingPeriod }}</p>
+          </div>
+          <div>
+            <p style="font-size: 14px; color: #6b7280; margin: 0 0 4px 0;">Método de Pagamento</p>
+            <p style="font-size: 16px; font-weight: 500; color: #1f2937; margin: 0;">{{ paymentMethod }}</p>
+          </div>
+          <div>
+            <p style="font-size: 14px; color: #6b7280; margin: 0 0 4px 0;">Próxima Cobrança</p>
+            <p style="font-size: 16px; font-weight: 500; color: #1f2937; margin: 0;">{{ nextBillingDate }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Customer Info -->
+      <div style="padding-top: 16px; border-top: 1px solid #e5e7eb;">
+        <h4 style="font-size: 16px; font-weight: 600; color: #374151; margin: 0 0 12px 0;">Informações do Cliente</h4>
+        <p style="font-size: 14px; color: #6b7280; margin: 0 0 4px 0;">Nome: <span style="color: #1f2937; font-weight: 500;">{{ customerName }}</span></p>
+        <p style="font-size: 14px; color: #6b7280; margin: 0;">Email: <span style="color: #1f2937; font-weight: 500;">{{ customerEmail }}</span></p>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div style="text-align: center; margin: 0 0 32px 0;">
+      {{#if invoiceUrl }}
+      <a href="{{ invoiceUrl }}" style="display: inline-block; background-color: #6366f1; color: #ffffff; text-decoration: none; padding: 12px 32px; border-radius: 8px; font-size: 16px; font-weight: 600; margin: 0 8px 16px 8px;">Ver Fatura Completa</a>
+      {{/if}}
+      <a href="mailto:suporte@zapbless.com.br" style="display: inline-block; background-color: transparent; color: #6366f1; text-decoration: none; padding: 12px 32px; border-radius: 8px; font-size: 16px; font-weight: 600; border: 2px solid #6366f1; margin: 0 8px 16px 8px;">Entrar em Contato</a>
+    </div>
+
+    <!-- Important Notice -->
+    <div style="background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 16px; margin: 0 0 32px 0;">
+      <p style="font-size: 14px; color: #92400e; margin: 0; font-weight: 500;">
+        <strong>Importante:</strong> Esta fatura será processada automaticamente na data de vencimento. Certifique-se de que seu método de pagamento está atualizado para evitar interrupções no serviço.
+      </p>
+    </div>
+
+    <!-- Support Info -->
+    <div style="text-align: center; padding: 24px 0; border-top: 1px solid #e5e7eb;">
+      <p style="font-size: 14px; color: #6b7280; margin: 0 0 8px 0;">Precisa de ajuda? Entre em contato conosco:</p>
+      <p style="font-size: 14px; margin: 0;">
+        <a href="mailto:suporte@zapbless.com" style="color: #6366f1; text-decoration: none;">suporte@zapbless.com</a> |
+        <a href="tel:+5511999999999" style="color: #6366f1; text-decoration: none;">(11) 99999-9999</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="background-color: #f9fafb; padding: 24px 40px; text-align: center; border-top: 1px solid #e5e7eb;">
+    <p style="font-size: 12px; color: #6b7280; margin: 0 0 8px 0;">© {{ currentYear }} ZapBless. Todos os direitos reservados.</p>
+    <p style="font-size: 12px; color: #9ca3af; margin: 0;">Este é um email automático, por favor não responda diretamente.</p>
+  </div>
+
+</body>
+</html>

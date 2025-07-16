@@ -574,30 +574,34 @@ const MeusDados = () => {
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <FormField
-                                        control={churchForm.control}
-                                        name="churchStateCode"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Estado</FormLabel>
-                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                    <FormControl>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Selecione" />
-                                                        </SelectTrigger>
-                                                    </FormControl>
-                                                    <SelectContent>
-                                                        {stateArray.map((item) => (
-                                                            <SelectItem key={item.code} value={item.code}>
-                                                                {item.name}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
+                                    {
+                                        !isLoadingCityArray && (
+                                            <FormField
+                                                control={churchForm.control}
+                                                name="churchStateCode"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Estado</FormLabel>
+                                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                            <FormControl>
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder="Selecione" />
+                                                                </SelectTrigger>
+                                                            </FormControl>
+                                                            <SelectContent>
+                                                                {stateArray.map((item) => (
+                                                                    <SelectItem key={item.code} value={item.code}>
+                                                                        {item.name}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        )
+                                    }
 
                                     <FormField
                                         control={churchForm.control}

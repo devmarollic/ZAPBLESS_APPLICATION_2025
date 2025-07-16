@@ -179,15 +179,15 @@ const MeuPlano = () => {
                         <div className="space-y-4">
                             <div className="flex justify-between items-center">
                                 <span className="text-sm font-medium text-gray-600">Plano:</span>
-                                <span className="text-lg font-bold">{subscriptionOverview?.currentPlan.planName}</span>
+                                <span className="text-lg font-bold">{subscriptionOverview?.currentPlan?.planName}</span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-sm font-medium text-gray-600">Status:</span>
-                                {getStatusBadge(subscriptionOverview?.currentPlan.statusLabel)}
+                                {getStatusBadge(subscriptionOverview?.currentPlan?.statusLabel)}
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-sm font-medium text-gray-600">Próxima cobrança:</span>
-                                <span className="text-sm">{new Date(subscriptionOverview?.currentPlan.expiresAt).toLocaleDateString('pt-BR')}</span>
+                                <span className="text-sm">{new Date(subscriptionOverview?.currentPlan?.expiresAt).toLocaleDateString('pt-BR')}</span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-sm font-medium text-gray-600">Valor mensal:</span>
@@ -202,7 +202,7 @@ const MeuPlano = () => {
                         <div>
                             <h4 className="font-medium text-gray-900 mb-3">Recursos incluídos:</h4>
                             <ul className="space-y-2">
-                                {subscriptionOverview?.currentPlan.featureArray.map((feature, index) => (
+                                {subscriptionOverview?.currentPlan?.featureArray.map((feature, index) => (
                                     <li key={index} className="flex items-center text-sm">
                                         <Check className="mr-2 h-4 w-4 text-green-500" />
                                         {feature}

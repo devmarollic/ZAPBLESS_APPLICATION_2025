@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Pagamento Falhou - ZapBless</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.6;
+      color: #333333;
+      margin: 0;
+      padding: 0;
+      background-color: #ffffff;
+    }
+
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .header {
+      background-color: #FEF2F2;
+      border: 2px solid #F87171;
+      padding: 40px 20px;
+      text-align: center;
+      border-radius: 8px 8px 0 0;
+    }
+
+    .header h1 {
+      color: #1F2937;
+      margin: 0 0 10px 0;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .header h1 span:first-child { color: #3B82F6; }
+    .header h1 span:last-child { color: #8B5CF6; }
+
+    .header p {
+      color: #DC2626;
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .content {
+      padding: 40px 30px;
+    }
+
+    .alert-box, .urgency-box {
+      background-color: #FEF2F2;
+      border: 2px solid #F87171;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .alert-box h2 {
+      color: #DC2626;
+      margin: 0 0 10px 0;
+      font-size: 24px;
+    }
+
+    .alert-box p {
+      color: #B91C1C;
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .greeting {
+      font-size: 18px;
+      margin-bottom: 30px;
+    }
+
+    .section {
+      background-color: #FEF2F2;
+      border: 1px solid #FECACA;
+      border-radius: 8px;
+      padding: 25px;
+      margin-bottom: 30px;
+    }
+
+    .section h3 {
+      color: #991B1B;
+      margin: 0 0 20px 0;
+      font-size: 18px;
+    }
+
+    .section div {
+      margin-bottom: 15px;
+    }
+
+    .label {
+      color: #7F1D1D;
+      display: inline-block;
+      width: 140px;
+    }
+
+    .status {
+      background-color: #FEE2E2;
+      color: #DC2626;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .solutions {
+      background-color: #FFFBEB;
+      border: 1px solid #FCD34D;
+      border-radius: 8px;
+      padding: 25px;
+      margin-bottom: 30px;
+    }
+
+    .solutions h3 {
+      color: #92400E;
+      margin: 0 0 15px 0;
+      font-size: 18px;
+    }
+
+    .solutions ul {
+      margin: 0;
+      padding-left: 20px;
+      color: #92400E;
+    }
+
+    .solutions li {
+      margin-bottom: 8px;
+    }
+
+    .urgency-box p {
+      margin: 0;
+      color: #B91C1C;
+      font-size: 16px;
+      text-align: center;
+    }
+
+    .next-attempt {
+      margin: 10px 0 0 0;
+      color: #7F1D1D;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .cta {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .cta a {
+      display: inline-block;
+      text-decoration: none;
+      font-weight: 600;
+      border-radius: 8px;
+    }
+
+    .cta .retry {
+      background-color: #DC2626;
+      color: #ffffff;
+      padding: 15px 30px;
+      font-size: 16px;
+      margin-bottom: 15px;
+    }
+
+    .cta .support {
+      background-color: #6B7280;
+      color: #ffffff;
+      padding: 12px 25px;
+      font-size: 14px;
+      font-weight: 500;
+      border-radius: 6px;
+    }
+
+    .footer {
+      background-color: #F1F5F9;
+      padding: 30px;
+      text-align: center;
+      border-radius: 0 0 8px 8px;
+      border-top: 1px solid #E2E8F0;
+    }
+
+    .footer p {
+      margin: 0 0 15px 0;
+      font-size: 14px;
+      color: #64748B;
+    }
+
+    .footer .warning {
+      background-color: #FEF2F2;
+      border: 1px solid #FECACA;
+      border-radius: 6px;
+      padding: 15px;
+      margin: 15px 0;
+    }
+
+    .footer .warning p {
+      margin: 0;
+      font-size: 13px;
+      color: #B91C1C;
+      font-weight: 600;
+    }
+
+    .footer .disclaimer {
+      font-size: 12px;
+      color: #94A3B8;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <h1><span>Zap</span><span>Bless</span></h1>
+      <p>⚠️ Problema no Pagamento</p>
+    </div>
+
+    <div class="content">
+      <div class="alert-box">
+        <div style="font-size: 48px; margin-bottom: 10px;">⚠️</div>
+        <h2>Não Foi Possível Processar o Pagamento</h2>
+        <p>Sua assinatura pode ser suspensa em breve se o pagamento não for realizado.</p>
+      </div>
+
+      <p class="greeting">Olá <strong>{{.bs}}</strong>,</p>
+
+      <p>Infelizmente, não conseguimos processar o pagamento da sua assinatura do plano <strong>{{planName}}</strong>. Para continuar aproveitando todos os recursos do ZapBless, é necessário regularizar o pagamento.</p>
+
+      <div class="section">
+        <h3>Detalhes da Tentativa de Pagamento</h3>
+        <div><span class="label">Plano:</span><strong>{{.bs}}</strong></div>
+        <div><span class="label">Valor:</span><strong>{{.bs}}</strong></div>
+        {{.bs}}
+        <div><span class="label">Status:</span><span class="status">Falhou</span></div>
+      </div>
+
+      <div class="solutions">
+        <h3>🔧 Como Resolver</h3>
+        <ul>
+          <li>Verifique se há saldo suficiente em sua conta</li>
+          <li>Confirme se os dados do cartão estão corretos</li>
+          <li>Entre em contato com seu banco se necessário</li>
+          <li>Atualize sua forma de pagamento no painel administrativo</li>
+        </ul>
+      </div>
+
+      <div class="urgency-box">
+        <p><strong>⏰ Ação Necessária:</strong> Regularize o pagamento em até 7 dias para evitar a suspensão da sua conta.</p>
+        {{.bs}}
+      </div>
+
+      <div class="cta">
+        <a href="{{.bs}}" class="retry">Atualizar Forma de Pagamento</a><br />
+        <a href="https://zapbless.com.br/suporte" class="support">Falar com o Suporte</a>
+      </div>
+
+      <p>Se você acredita que este é um erro ou tem alguma dúvida, nossa equipe de suporte está pronta para ajudar. Responda este email ou entre em contato conosco através dos canais abaixo.</p>
+      <p style="margin-bottom: 0;">Agradecemos sua compreensão e esperamos resolver isso rapidamente! 🙏</p>
+    </div>
+
+    <div class="footer">
+      <p><strong>ZapBless</strong> - Conectando sua igreja através da tecnologia</p>
+      <p>📧 suporte@zapbless.com.br | 📱 WhatsApp: (11) 99999-9999</p>
+      <div class="warning"><p>🚨 IMPORTANTE: Seu acesso pode ser suspenso se o pagamento não for regularizado.</p></div>
+      <p class="disclaimer">Para gerenciar sua assinatura, acesse seu painel administrativo.<br />Este é um email automático, não responda a esta mensagem.</p>
+    </div>
+  </div>
+</body>
+</html>

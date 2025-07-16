@@ -11,10 +11,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { applyCnpjMask, applyCpfMask, applyZipCodeMask, removeMask } from '@/utils/documentMasks';
+import { HttpClient } from '@/lib/http_client';
+import { useQuery } from '@tanstack/react-query';
 
 interface ChurchInfoStepProps {
     churchInfo: ChurchInfo;
     setChurchInfo: React.Dispatch<React.SetStateAction<ChurchInfo>>;
+}
+
+interface City {
+    code: string;
+    name: string;
 }
 
 const ChurchInfoStep = ({ churchInfo, setChurchInfo }: ChurchInfoStepProps) => {
@@ -163,47 +170,14 @@ const ChurchInfoStep = ({ churchInfo, setChurchInfo }: ChurchInfoStepProps) => {
     ];
 
     const paises = [
-        { code: 'BR', name: 'Brasil' },
-        { code: 'US', name: 'Estados Unidos' },
-        { code: 'CA', name: 'Canadá' },
-        { code: 'MX', name: 'México' },
-        { code: 'AR', name: 'Argentina' },
-        { code: 'CL', name: 'Chile' },
-        { code: 'CO', name: 'Colômbia' },
-        { code: 'PE', name: 'Peru' },
-        { code: 'UY', name: 'Uruguai' },
-        { code: 'PY', name: 'Paraguai' }
+        { code: 'BR', name: 'Brasil' }
     ];
 
-    const cidadesPorEstado: { [key: string]: string[] } = {
-        'SP': ['São Paulo', 'Campinas', 'Santos', 'Ribeirão Preto', 'Sorocaba', 'Osasco', 'Guarulhos'],
-        'RJ': ['Rio de Janeiro', 'Niterói', 'Duque de Caxias', 'Nova Iguaçu', 'Petrópolis', 'Campos dos Goytacazes'],
-        'MG': ['Belo Horizonte', 'Uberlândia', 'Contagem', 'Juiz de Fora', 'Betim', 'Montes Claros'],
-        'PR': ['Curitiba', 'Londrina', 'Maringá', 'Ponta Grossa', 'Cascavel', 'São José dos Pinhais'],
-        'RS': ['Porto Alegre', 'Caxias do Sul', 'Pelotas', 'Canoas', 'Santa Maria', 'Gravataí'],
-        'SC': ['Florianópolis', 'Joinville', 'Blumenau', 'São José', 'Criciúma', 'Chapecó'],
-        'BA': ['Salvador', 'Feira de Santana', 'Vitória da Conquista', 'Camaçari', 'Itabuna', 'Juazeiro'],
-        'GO': ['Goiânia', 'Aparecida de Goiânia', 'Anápolis', 'Rio Verde', 'Luziânia', 'Águas Lindas de Goiás'],
-        'PE': ['Recife', 'Jaboatão dos Guararapes', 'Olinda', 'Caruaru', 'Petrolina', 'Paulista'],
-        'CE': ['Fortaleza', 'Caucaia', 'Juazeiro do Norte', 'Maracanaú', 'Sobral', 'Crato'],
-        'PA': ['Belém', 'Ananindeua', 'Santarém', 'Marabá', 'Parauapebas', 'Castanhal'],
-        'MA': ['São Luís', 'Imperatriz', 'São José de Ribamar', 'Timon', 'Caxias', 'Codó'],
-        'MT': ['Cuiabá', 'Várzea Grande', 'Rondonópolis', 'Sinop', 'Tangará da Serra', 'Cáceres'],
-        'MS': ['Campo Grande', 'Dourados', 'Três Lagoas', 'Corumbá', 'Ponta Porã', 'Aquidauana'],
-        'AL': ['Maceió', 'Arapiraca', 'Palmeira dos Índios', 'Rio Largo', 'Penedo', 'União dos Palmares'],
-        'SE': ['Aracaju', 'Nossa Senhora do Socorro', 'Lagarto', 'Itabaiana', 'Estância', 'Tobias Barreto'],
-        'RN': ['Natal', 'Mossoró', 'Parnamirim', 'São Gonçalo do Amarante', 'Macaíba', 'Ceará-Mirim'],
-        'PB': ['João Pessoa', 'Campina Grande', 'Santa Rita', 'Patos', 'Bayeux', 'Sousa'],
-        'PI': ['Teresina', 'Parnaíba', 'Picos', 'Piripiri', 'Floriano', 'Campo Maior'],
-        'AC': ['Rio Branco', 'Cruzeiro do Sul', 'Sena Madureira', 'Tarauacá', 'Feijó', 'Brasileia'],
-        'AM': ['Manaus', 'Parintins', 'Itacoatiara', 'Manacapuru', 'Coari', 'Tefé'],
-        'AP': ['Macapá', 'Santana', 'Laranjal do Jari', 'Oiapoque', 'Mazagão', 'Porto Grande'],
-        'RO': ['Porto Velho', 'Ji-Paraná', 'Ariquemes', 'Vilhena', 'Cacoal', 'Rolim de Moura'],
-        'RR': ['Boa Vista', 'Rorainópolis', 'Caracaraí', 'Alto Alegre', 'Mucajaí', 'Iracema'],
-        'TO': ['Palmas', 'Araguaína', 'Gurupi', 'Porto Nacional', 'Paraíso do Tocantins', 'Colinas do Tocantins'],
-        'DF': ['Brasília', 'Gama', 'Taguatinga', 'Ceilândia', 'Sobradinho', 'Planaltina'],
-        'ES': ['Vitória', 'Serra', 'Vila Velha', 'Cariacica', 'Cachoeiro de Itapemirim', 'Linhares']
-    };
+    const { data: cityArray, isLoading: isLoadingCityArray, refetch: refetchCityArray, isRefetching: isRefetchingCityArray } = useQuery({
+        queryKey: ['cityArray', churchInfo.stateCode],
+        queryFn: () => HttpClient.getDefault().get<City[]>('/city/' + churchInfo.stateCode + '/list'),
+        enabled: !!churchInfo.stateCode
+    });
 
     return (
         <div className="space-y-6">
@@ -316,9 +290,9 @@ const ChurchInfoStep = ({ churchInfo, setChurchInfo }: ChurchInfoStepProps) => {
                             <SelectValue placeholder="Selecione a cidade" />
                         </SelectTrigger>
                         <SelectContent>
-                            {churchInfo.stateCode && cidadesPorEstado[churchInfo.stateCode]?.map((cidade) => (
-                                <SelectItem key={cidade} value={cidade}>
-                                    {cidade}
+                            {churchInfo.stateCode && cityArray?.map((city) => (
+                                <SelectItem key={city.code} value={city.code}>
+                                    {city.name}
                                 </SelectItem>
                             ))}
                         </SelectContent>

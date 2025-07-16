@@ -80,7 +80,7 @@ const EventoNovo = () => {
     ]);
     const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
     const [enableMultipleCreation, setEnableMultipleCreation] = useState(false);
-    const [reminderOffset, setReminderOffset] = useState('0d');
+    const [reminderOffset, setReminderOffset] = useState('-1d');
     const reminderGroups = [
         { id: 'leader', label: 'Líderes', icon: Crown },
         { id: 'vice-leader', label: 'Vice-líderes', icon: UserCog },
@@ -503,8 +503,8 @@ const EventoNovo = () => {
                                         onValueChange={setReminderOffset}
                                     >
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Offset">
-                                                Hora de envio
+                                            <SelectValue placeholder="Offset" defaultValue="-1d">
+                                                Notificar 1 dia antes
                                             </SelectValue>
                                         </SelectTrigger>
                                         <SelectContent>

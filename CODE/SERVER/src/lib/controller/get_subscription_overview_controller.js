@@ -25,7 +25,7 @@ export class GetSubscriptionOverviewController extends Controller
 
         let { page = 1, limit = 10 } = request.query;
         let churchId = profileLogged.user_metadata.church_id;
-        
+
         let subscriptionOverview = await getSubscriptionOverviewUseCase.execute(
             { 
                 churchId,

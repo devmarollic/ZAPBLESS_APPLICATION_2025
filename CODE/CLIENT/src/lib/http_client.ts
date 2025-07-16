@@ -317,6 +317,13 @@ export class HttpClient {
 
             if (response.ok) {
                 const data = await response.json();
+
+                if ( data.user === null || data.session === null )
+                {
+                    AuthenticationService.logOff();
+                    return null;
+                }
+
                 AuthenticationService.updateTokens(data?.session?.access_token, data?.session?.refresh_token);
 
                 HttpClient.refreshSubscribers.forEach(callback => callback(data.access_token));

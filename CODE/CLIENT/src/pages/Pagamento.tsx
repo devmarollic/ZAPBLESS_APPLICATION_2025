@@ -412,27 +412,27 @@ const Pagamento = () => {
                                             Cartão de Crédito
                                         </Label>
                                     </div>
-                                    <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
+                                    {/* <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
                                         <RadioGroupItem value="debit_card" id="debit_card" />
                                         <CreditCard className="h-5 w-5 text-gray-600" />
                                         <Label htmlFor="debit_card" className="flex-1 cursor-pointer">
                                             Cartão de Débito
                                         </Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
+                                    </div> */}
+                                    {/* <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
                                         <RadioGroupItem value="pix" id="pix" />
                                         <QrCode className="h-5 w-5 text-gray-600" />
                                         <Label htmlFor="pix" className="flex-1 cursor-pointer">
                                             PIX
                                         </Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
+                                    </div> */}
+                                    {/* <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
                                         <RadioGroupItem value="boleto" id="boleto" />
                                         <FileText className="h-5 w-5 text-gray-600" />
                                         <Label htmlFor="boleto" className="flex-1 cursor-pointer">
                                             Boleto Bancário
                                         </Label>
-                                    </div>
+                                    </div> */}
                                 </RadioGroup>
                             </div>
 
