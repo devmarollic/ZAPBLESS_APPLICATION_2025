@@ -79,7 +79,7 @@ export const useEventCalendar = () => {
             ministry: apiEvent.ministry?.name ? {
                 id: apiEvent.ministryId || '',
                 name: apiEvent.ministry.name,
-                color: getEventTypeColor(apiEvent.typeId)
+                color: apiEvent.ministry?.color ?? getEventTypeColor(apiEvent.typeId)
             } : undefined,
             eventStatus: {
                 id: apiEvent.statusId,

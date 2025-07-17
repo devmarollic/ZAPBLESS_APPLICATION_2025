@@ -77,6 +77,7 @@ export interface EventResponse {
     };
     ministry?: {
         name?: string;
+        color?: string;
     } | null;
     eventStatus: {
         name: string;
