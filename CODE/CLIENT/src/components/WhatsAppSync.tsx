@@ -2,15 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { HttpClient } from '@/lib/http_client';
 import { MessageSquare, RefreshCw, QrCode as QrCodeIcon, Phone, KeyRound } from 'lucide-react';
 import { useWhatsApp } from '@/context/WhatsAppContext';
 import QrCode from '@/components/QrCode';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import { WhatsAppContainerService } from '@/lib/whatsapp_container_service';
+import { useWhatsAppStatus } from '@/hooks/use-whatsapp-status';
 
 const WhatsAppSync = () => {
-    const { whatsapps, isLoading, syncing, setSyncing, qrCode, setQrCode, whatsapp, setIsLoading, setWhatsapp } = useWhatsApp();
+    const { whatsapps, syncing, setSyncing, qrCode, setQrCode, whatsapp, setWhatsapp } = useWhatsApp();
     const { toast } = useToast();
     const [timer, setTimer] = useState<number>(30);
     const [qrStatus, setQrStatus] = useState<'valid' | 'invalid' | 'connecting' | 'expired'>('valid');
@@ -19,6 +20,16 @@ const WhatsAppSync = () => {
     const [isRequestingCode, setIsRequestingCode] = useState(false);
     const [syncCode, setSyncCode] = useState('');
     const [codeError, setCodeError] = useState('');
+    
+    // Hook para gerenciar status do WhatsApp
+    const {
+        status: whatsappStatus,
+        isLoading: isStatusLoading,
+        error: statusError,
+        startContainer,
+        disconnect,
+        isContainerActive
+    } = useWhatsAppStatus(3000); // Polling a cada 3 segundos
 
     const handleSyncWhatsApp = async () => {
         try {
@@ -26,34 +37,27 @@ const WhatsAppSync = () => {
             setTimer(30); // Reset timer when generating a new QR code
             setQrStatus('valid');
 
-            await HttpClient.getWhatsapp().post('/start', {});
-            await new Promise(resolve => setTimeout(resolve, 3000));
-            let response = await HttpClient.getWhatsapp().get<{ qrCode: string, status: string }>('/status');
-
-            setWhatsapp(
-                (prev) => ({
-                    ...prev,
-                    connectionStatus: response.status
-                })
-            );
-
-            setQrCode(response.qrCode);
-            setIsLoading(false);
-            setSyncing(false);
-
-            toast({
-                title: 'QR Code gerado',
-                description: 'Escaneie o QR code com seu WhatsApp para sincronizar.'
-            });
+            // Iniciar container usando o hook
+            const success = await startContainer();
+            
+            if (success) {
+                toast({
+                    title: 'Container iniciado',
+                    description: 'Container WhatsApp iniciado com sucesso.'
+                });
+            } else {
+                throw new Error('Falha ao iniciar container');
+            }
         } catch (error) {
             toast({
                 title: 'Erro ao sincronizar',
-                description: 'Não foi possível gerar o QR code para WhatsApp.',
+                description: 'Não foi possível iniciar o container WhatsApp.',
                 variant: 'destructive'
             });
             console.error(error);
-            setSyncing(false);
             setQrStatus('invalid');
+        } finally {
+            setSyncing(false);
         }
     };
 
@@ -62,15 +66,26 @@ const WhatsAppSync = () => {
         setCodeError('');
         setSyncCode('');
         try {
-            await HttpClient.getWhatsapp().post('/start', { phoneNumber });
+            // Iniciar container se não estiver ativo
+            if (!WhatsAppContainerService.isContainerActive()) {
+                await WhatsAppContainerService.startContainer();
+                await new Promise(resolve => setTimeout(resolve, 3000));
+            }
+            
+            // Iniciar sessão com número de telefone
+            await WhatsAppContainerService.startSession(phoneNumber);
             await new Promise(resolve => setTimeout(resolve, 3000));
-            let response = await HttpClient.getWhatsapp().get<{ pairingCode: string, status: string }>('/status');
+            
+            // Obter status e código de pareamento
+            const response = await WhatsAppContainerService.getStatus();
+            
             setWhatsapp(
                 (prev) => ({
                     ...prev,
                     connectionStatus: response.status
                 })
             );
+            
             let receivedCode = response.pairingCode;
             if (typeof receivedCode !== 'string') {
                 receivedCode = String(receivedCode ?? '');
@@ -116,6 +131,22 @@ const WhatsAppSync = () => {
             handleSyncWhatsApp();
         }
     }, [timer, whatsapp?.connectionStatus]);
+
+    // Atualizar status do WhatsApp quando o status do container mudar
+    useEffect(() => {
+        if (whatsappStatus) {
+            setWhatsapp(
+                (prev) => ({
+                    ...prev,
+                    connectionStatus: whatsappStatus.status
+                })
+            );
+
+            if (whatsappStatus.qrCode) {
+                setQrCode(whatsappStatus.qrCode);
+            }
+        }
+    }, [whatsappStatus, setWhatsapp, setQrCode]);
 
     // Set QR status based on WhatsApp connection status
     useEffect(() => {
@@ -164,7 +195,7 @@ const WhatsAppSync = () => {
                             <div className="flex flex-col">
                                 <div>
                                     <span className="font-medium">Status: </span>
-                                    {isLoading && (
+                                    {isStatusLoading && (
                                         <span className="text-muted-foreground">Carregando...</span>
                                     )}
                                     {whatsapp === null && (<p className="text-muted-foreground">Nenhum dispositivo WhatsApp conectado.</p>)}
@@ -190,7 +221,7 @@ const WhatsAppSync = () => {
 
                             <Button
                                 onClick={handleSyncWhatsApp}
-                                disabled={syncing || isLoading}
+                                disabled={syncing || isStatusLoading}
                                 className="w-full"
                             >
                                 {syncing ? (

@@ -1,3 +1,5 @@
+import { WhatsAppContainerService } from '@/lib/whatsapp_container_service';
+
 const QrCode = ({ whatsapp, qrCode, qrStatus, timer }: { whatsapp: any, qrCode: string, qrStatus: string, timer: number }) => {
     const getQrCodeOverlayText = () => {
         switch (qrStatus) {
@@ -30,7 +32,7 @@ const QrCode = ({ whatsapp, qrCode, qrStatus, timer }: { whatsapp: any, qrCode: 
             {qrCode && (
                 <div className="border p-4 rounded-md bg-white relative">
                     <img
-                        src={ 'http://localhost:1234' + qrCode}
+                        src={ WhatsAppContainerService.getContainerUrl() + qrCode}
                         alt="QR Code para sincronização do WhatsApp"
                         className="w-48 h-48"
                     />
