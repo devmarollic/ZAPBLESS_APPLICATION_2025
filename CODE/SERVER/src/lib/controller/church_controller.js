@@ -8,6 +8,7 @@ import { createProfileUseCase } from '../use_case/create_profile_use_case';
 import { createSubscriptionUseCase } from '../use_case/create_subscription_use_case';
 import { Controller } from './controller';
 import { ConflictError } from '../errors/conflict_error';
+import { dockerService } from '../service/docker_service';
 
 // -- TYPES
 
@@ -62,9 +63,13 @@ export class ChurchController extends Controller
             }
             );
 
+        // Iniciar container Docker para a nova igreja
+        let dockerResult = await dockerService.startWhatsAppContainer( church.id );
+
         return (
             {
-                subscriptionId: subscription.id
+                subscriptionId: subscription.id,
+                dockerContainer: dockerResult
             }
             );
     }

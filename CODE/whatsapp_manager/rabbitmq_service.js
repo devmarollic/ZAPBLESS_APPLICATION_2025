@@ -19,9 +19,9 @@ class RabbitMQService extends events.EventEmitter {
      */
     constructor(config = {}) {
         super();
-        this.url = config.url || 'amqp://localhost';
-        this.outboundQueue = config.outboundQueue || 'zapbless.outbound';
-        this.inboundQueue = config.inboundQueue || 'zapbless.inbound';
+        this.url = config.url;
+        this.outboundQueue = config.outboundQueue;
+        this.inboundQueue = config.inboundQueue;
         this.disconnectedSessionsQueue
         this.churchId = config.churchId;
         

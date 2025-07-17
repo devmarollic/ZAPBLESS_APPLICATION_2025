@@ -13,3 +13,4 @@ export * from './event_type_routes';
 export * from './template_routes';
 export * from './schedule_routes';
 export * from './city_routes';
+export * from './docker_routes';
