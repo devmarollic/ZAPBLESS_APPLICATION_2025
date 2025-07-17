@@ -5,6 +5,8 @@ import { supabaseService } from './supabase_service';
 import { UnauthenticatedError } from '../errors/unauthenticated_error';
 import { enviroment } from '../../enviroment';
 import { AppError } from '../errors/app_error';
+import { ConflictError } from '../errors/conflict_error';
+import { churchService } from './church_service';
 
 // -- TYPES
 
@@ -40,6 +42,12 @@ class AuthentificationService
 
         if ( error !== null )
         {
+            if ( error.code === 'user_already_exists' )
+            {
+                await churchService.removeChurchById( data.church_id );
+                throw new ConflictError( 'Usuário já existe' );
+            }
+
             logError( error );
         }
 
