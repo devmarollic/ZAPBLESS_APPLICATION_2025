@@ -75,6 +75,23 @@ class ChurchService
 
         return data;
     }
+
+    // ~~
+
+    async removeChurchById(
+        churchId
+        )
+    {
+        let { error } = await databaseService.getClient()
+            .from( 'CHURCH' )
+            .delete()
+            .eq( 'id', churchId );
+
+        if ( error !== null )
+        {
+            logError( error );
+        }
+    }
 }
 
 // -- VARIABLES
