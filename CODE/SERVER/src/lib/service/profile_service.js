@@ -1,7 +1,7 @@
 // -- IMPORTS
 
 import { getCeilInteger, logError } from 'senselogic-gist';
-import { databaseService } from './database_service';
+import { supabaseService } from './supabase_service';
 
 // -- FUNCTIONS
 
@@ -16,11 +16,29 @@ class ProfileService
 
     // -- INQUIRIES
 
+    async getProfileByEmail(
+        email
+        )
+    {
+        let { data, error } = await supabaseService.getClient()
+            .from( 'PROFILE' )
+            .select( 'id' )
+            .eq( 'email', email )
+            .single();
+
+        if ( error !== null )
+        {
+            logError( error );
+        }
+
+        return data;
+    }
+
     async getProfileArrayByChurchId(
         churchId
         )
     {
-        let { data, error } = await databaseService.getClient()
+        let { data, error } = await supabaseService.getClient()
             .from( 'PROFILE' )
             .select(
                 `
@@ -53,7 +71,7 @@ class ProfileService
         filters
         )
     {
-        let query = databaseService.getClient()
+        let query = supabaseService.getClient()
             .from( 'PROFILE' )
             .select(
                 `
@@ -117,7 +135,7 @@ class ProfileService
         ministryId
         )
     {
-        let { data, error } = await databaseService.getClient()
+        let { data, error } = await supabaseService.getClient()
             .from( 'MINISTRY_MEMBER' )
             .select(
                 `profile:PROFILE (
@@ -149,7 +167,7 @@ class ProfileService
         profileId
         )
     {
-        let { data, error } = await databaseService.getClient()
+        let { data, error } = await supabaseService.getClient()
             .from( 'PROFILE' )
             .select( 'churchId' )
             .eq( 'id', profileId )
@@ -169,7 +187,7 @@ class ProfileService
         email
         )
     {
-        let { data, error } = await databaseService.getClient()
+        let { data, error } = await supabaseService.getClient()
             .from( 'PROFILE' )
             .select( 'churchId' )
             .eq( 'email', email )
@@ -189,7 +207,7 @@ class ProfileService
         profile
         )
     {
-        let { data, error } = await databaseService.getClient()
+        let { data, error } = await supabaseService.getClient()
             .from( 'PROFILE' )
             .insert( profile )
             .select();
@@ -209,7 +227,7 @@ class ProfileService
         email
         )
     {
-        let { data, error } = await databaseService.getClient()
+        let { data, error } = await supabaseService.getClient()
             .from( 'PROFILE' )
             .update( profile )
             .eq( 'email', email )
@@ -230,7 +248,7 @@ class ProfileService
         id
         )
     {
-        let { data, error } = await databaseService.getClient()
+        let { data, error } = await supabaseService.getClient()
             .from( 'PROFILE' )
             .select()
             .eq( 'id', id )
@@ -251,7 +269,7 @@ class ProfileService
         id
         )
     {
-        let { data, error } = await databaseService.getClient()
+        let { data, error } = await supabaseService.getClient()
             .from( 'PROFILE' )
             .update( profile )
             .eq( 'id', id )
@@ -272,7 +290,7 @@ class ProfileService
         id
         )
     {
-        let { data, error } = await databaseService.getClient()
+        let { data, error } = await supabaseService.getClient()
             .from( 'PROFILE' )
             .select( `
                 id,
@@ -301,7 +319,7 @@ class ProfileService
         profileId
         )
     {
-        let { data, error } = await databaseService.getClient()
+        let { data, error } = await supabaseService.getClient()
             .from( 'PROFILE' )
             .select( `
                 id,
@@ -341,7 +359,7 @@ class ProfileService
         id
         )
     {
-        let { data, error } = await databaseService.getClient()
+        let { data, error } = await supabaseService.getClient()
             .from( 'PROFILE' )
             .delete()
             .eq( 'id', id );
