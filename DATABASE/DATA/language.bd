@@ -9,3 +9,7 @@ LANGUAGE
         en
             ~ 2
             ~ English
+
+        en-US
+            ~ 3
+            ~ English (American)
