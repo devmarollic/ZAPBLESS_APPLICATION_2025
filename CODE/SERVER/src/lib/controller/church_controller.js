@@ -2,10 +2,12 @@
 
 import { documentType } from '../model/profile';
 import { subscriptionPeriod, subscriptionType, subscriptionStatus } from '../model/subscription';
+import { profileService } from '../service/profile_service';
 import { createChurchUseCase } from '../use_case/create_church_use_case';
 import { createProfileUseCase } from '../use_case/create_profile_use_case';
 import { createSubscriptionUseCase } from '../use_case/create_subscription_use_case';
 import { Controller } from './controller';
+import { ConflictError } from '../errors/conflict_error';
 
 // -- TYPES
 
@@ -19,6 +21,13 @@ export class ChurchController extends Controller
         )
     {
         let { body } = request;
+
+        let profileAlreadyExists = await profileService.getProfileByEmail( body.adminInfo.email );
+
+        if ( profileAlreadyExists )
+        {
+            throw new ConflictError( 'Usuário já existe' );
+        }
 
         let church = await createChurchUseCase.execute( body.churchInfo );
 
