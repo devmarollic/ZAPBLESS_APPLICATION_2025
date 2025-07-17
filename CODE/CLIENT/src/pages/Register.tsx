@@ -315,7 +315,7 @@ const Register = () => {
             console.error('Erro ao cadastrar igreja:', error);
             toast({
                 title: 'Erro no cadastro',
-                description: 'Não foi possível completar o cadastro. Tente novamente.',
+                description: error?.message || 'Não foi possível completar o cadastro. Tente novamente.',
                 variant: 'destructive'
             });
         } finally {
