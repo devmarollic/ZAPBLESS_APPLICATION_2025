@@ -1,0 +1,284 @@
+# Endpoints Docker - ZapBless
+
+Este documento descreve os endpoints disponíveis para gerenciar containers Docker das igrejas.
+
+## Pré-requisitos
+
+1. Docker instalado e rodando
+2. Imagem `zapbless-whatsapp-manager:latest` construída
+3. Servidor ZapBless rodando
+
+## Construir a Imagem Docker
+
+### Windows
+```bash
+CODE\build_whatsapp_image.bat
+```
+
+### Linux/Mac
+```bash
+./CODE/build_whatsapp_image.sh
+```
+
+## Endpoints Disponíveis
+
+### 1. Sincronizar WhatsApp (Recomendado)
+**POST** `/docker/sync`
+
+Inicia um container Docker para a igreja do usuário logado e retorna a URL para conexão.
+
+**Headers:**
+```
+Authorization: Bearer YOUR_JWT_TOKEN
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "Container iniciado com sucesso",
+    "containerUrl": "http://localhost:3456",
+    "port": 3456,
+    "containerName": "zapbless-whatsapp-church_123",
+    "churchId": "church_123"
+}
+```
+
+### 2. Iniciar Container Docker
+**POST** `/docker/container/start`
+
+Inicia um container Docker para uma igreja específica.
+
+**Body:**
+```json
+{
+    "churchId": "church_123"
+}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "Container iniciado com sucesso",
+    "containerName": "zapbless-whatsapp-church_123",
+    "port": 3456,
+    "containerId": "abc123def456"
+}
+```
+
+### 2. Parar Container Docker
+**POST** `/docker/container/:churchId/stop`
+
+Para e remove o container Docker de uma igreja.
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "Container parado e removido com sucesso"
+}
+```
+
+### 3. Reiniciar Container Docker
+**POST** `/docker/container/:churchId/restart`
+
+Reinicia o container Docker de uma igreja.
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "Container iniciado com sucesso",
+    "containerName": "zapbless-whatsapp-church_123",
+    "port": 3456,
+    "containerId": "abc123def456"
+}
+```
+
+### 4. Obter Logs do Container
+**GET** `/docker/container/:churchId/logs?lines=50`
+
+Obtém os logs do container Docker de uma igreja.
+
+**Query Parameters:**
+- `lines` (opcional): Número de linhas de log (padrão: 50, máximo: 1000)
+
+**Response:**
+```json
+{
+    "success": true,
+    "logs": "2025-01-30 10:30:15 INFO: Container started\n2025-01-30 10:30:16 INFO: WhatsApp session initialized"
+}
+```
+
+### 5. Obter Status do Container
+**GET** `/docker/container/:churchId/status`
+
+Obtém o status atual do container Docker de uma igreja.
+
+**Response:**
+```json
+{
+    "success": true,
+    "churchId": "church_123",
+    "containerName": "zapbless-whatsapp-church_123",
+    "isRunning": true,
+    "status": "Up 2 hours",
+    "port": 3456
+}
+```
+
+### 6. Listar Todos os Containers
+**GET** `/docker/containers/list`
+
+Lista todos os containers Docker ativos.
+
+**Response:**
+```json
+{
+    "success": true,
+    "containers": [
+        {
+            "churchId": "church_123",
+            "containerName": "zapbless-whatsapp-church_123",
+            "isRunning": true,
+            "status": "Up 2 hours",
+            "port": 3456
+        },
+        {
+            "churchId": "church_456",
+            "containerName": "zapbless-whatsapp-church_456",
+            "isRunning": false,
+            "status": "Exited (0) 1 hour ago",
+            "port": 3789
+        }
+    ]
+}
+```
+
+## 🔄 Fluxo de Sincronização WhatsApp
+
+### 1. Frontend chama `/docker/sync`
+```javascript
+const response = await fetch('/docker/sync', {
+    method: 'POST',
+    headers: {
+        'Authorization': 'Bearer YOUR_JWT_TOKEN'
+    }
+});
+
+const result = await response.json();
+// result.containerUrl contém a URL do container
+```
+
+### 2. Frontend se conecta ao container
+```javascript
+// Obter status do WhatsApp
+const status = await fetch(`${result.containerUrl}/status`);
+
+// Iniciar sessão
+await fetch(`${result.containerUrl}/start`, {
+    method: 'POST'
+});
+
+// Obter QR Code
+const qrResponse = await fetch(`${result.containerUrl}/status`);
+const qrCode = qrResponse.qrCode;
+```
+
+### 3. Frontend exibe QR Code
+```javascript
+// URL completa do QR Code
+const qrCodeUrl = `${result.containerUrl}${qrCode}`;
+```
+
+### 4. Usuário escaneia QR Code
+O WhatsApp do usuário se conecta automaticamente ao container.
+
+### 5. Frontend monitora status
+```javascript
+// Polling automático para verificar status
+setInterval(async () => {
+    const status = await fetch(`${result.containerUrl}/status`);
+    // Atualizar UI baseado no status
+}, 3000);
+```
+
+## Integração Automática
+
+Quando uma nova igreja é criada através do endpoint `/church/add`, o sistema automaticamente:
+
+1. Cria a igreja no banco de dados
+2. Cria o perfil do administrador
+3. Cria a assinatura
+4. **Inicia automaticamente o container Docker para a igreja**
+
+A resposta incluirá informações sobre o container Docker:
+
+```json
+{
+    "subscriptionId": "sub_123",
+    "dockerContainer": {
+        "success": true,
+        "message": "Container iniciado com sucesso",
+        "containerName": "zapbless-whatsapp-church_123",
+        "port": 3456,
+        "containerId": "abc123def456"
+    }
+}
+```
+
+## Portas
+
+Cada igreja recebe uma porta única calculada com base no `churchId`. As portas começam em 3001 e são distribuídas de forma determinística para evitar conflitos.
+
+## Nomenclatura dos Containers
+
+Os containers seguem o padrão: `zapbless-whatsapp-{churchId}`
+
+Exemplo: `zapbless-whatsapp-church_123`
+
+## Variáveis de Ambiente
+
+Cada container recebe as seguintes variáveis de ambiente:
+
+- `CHURCH_ID`: ID da igreja
+- `NODE_ENV`: production
+
+## Tratamento de Erros
+
+Todos os endpoints retornam respostas padronizadas:
+
+**Sucesso:**
+```json
+{
+    "success": true,
+    "message": "Operação realizada com sucesso",
+    // ... dados adicionais
+}
+```
+
+**Erro:**
+```json
+{
+    "success": false,
+    "message": "Descrição do erro",
+    "error": "Detalhes técnicos do erro"
+}
+```
+
+## Monitoramento
+
+Para monitorar os containers, você pode usar:
+
+```bash
+# Listar todos os containers ZapBless
+docker ps --filter "name=zapbless-whatsapp"
+
+# Ver logs de um container específico
+docker logs zapbless-whatsapp-church_123
+
+# Ver estatísticas de uso
+docker stats zapbless-whatsapp-church_123
+``` 
