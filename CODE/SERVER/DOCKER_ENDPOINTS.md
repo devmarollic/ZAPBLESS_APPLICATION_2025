@@ -157,6 +157,26 @@ Lista todos os containers Docker ativos.
 }
 ```
 
+### 7. Verificar Status do Pairing Code
+**GET** `/docker/pairing/{churchId}/status`
+
+Verifica o status do pairing code e conexão WhatsApp para uma igreja específica.
+
+**Parâmetros:**
+- `churchId` (path): ID da igreja
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "Status do WhatsApp obtido com sucesso",
+    "status": "connecting",
+    "pairingCode": "123-456-789",
+    "qrCode": "/qr/qr-church_123.png",
+    "containerUrl": "http://192.168.15.7:3456"
+}
+```
+
 ## 🔄 Fluxo de Sincronização WhatsApp
 
 ### 1. Frontend chama `/docker/sync`
@@ -198,6 +218,81 @@ O WhatsApp do usuário se conecta automaticamente ao container.
 
 ### 5. Frontend monitora status
 ```javascript
+
+## 🔐 Fluxo de Pairing Code
+
+### 1. Frontend chama `/docker/sync`
+```javascript
+const response = await fetch('/docker/sync', {
+    method: 'POST',
+    headers: {
+        'Authorization': 'Bearer YOUR_JWT_TOKEN'
+    }
+});
+
+const result = await response.json();
+// result.containerUrl contém a URL do container
+```
+
+### 2. Frontend inicia sessão com número de telefone
+```javascript
+// Iniciar sessão com número de telefone
+const startResponse = await fetch(`${result.containerUrl}/start`, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+        phoneNumber: '5511999999999' // Número com código do país
+    })
+});
+
+const startResult = await startResponse.json();
+// startResult.pairingCode contém o código de pareamento
+```
+
+### 3. Frontend exibe código de pareamento
+```javascript
+if (startResult.pairingCode) {
+    console.log('Código de pareamento:', startResult.pairingCode);
+    // Exibir código para o usuário digitar no WhatsApp
+}
+```
+
+### 4. Usuário digita código no WhatsApp
+O usuário abre o WhatsApp no celular e vai em:
+- Configurações → Dispositivos vinculados → Vincular dispositivo → Código de pareamento
+- Digita o código exibido no frontend
+
+### 5. Frontend monitora status da conexão
+```javascript
+// Verificar status periodicamente
+const checkStatus = async () => {
+    const statusResponse = await fetch(`${result.containerUrl}/status`);
+    const status = statusResponse.json();
+    
+    if (status.status === 'open') {
+        console.log('WhatsApp conectado com sucesso!');
+        // Parar polling
+    } else if (status.status === 'connecting') {
+        // Continuar monitorando
+        setTimeout(checkStatus, 5000);
+    }
+};
+
+checkStatus();
+```
+
+### 6. Verificar status via API do servidor
+```javascript
+// Verificar status via endpoint do servidor
+const pairingStatus = await fetch(`/docker/pairing/${churchId}/status`);
+const status = await pairingStatus.json();
+
+console.log('Status:', status.status);
+console.log('Pairing Code:', status.pairingCode);
+console.log('QR Code:', status.qrCode);
+```
 // Polling automático para verificar status
 setInterval(async () => {
     const status = await fetch(`${result.containerUrl}/status`);

@@ -7,13 +7,12 @@ import { SupabaseRepository } from './supabase_repository.js';
 import { useMultiFileAuthStateSupabase } from './use_multi_file_auth_state_supabase.js';
 import { release } from 'os';
 import axios from 'axios';
+import { EventEmitter } from 'events';
 import Boom from '@hapi/boom';
 import { AuthStateProvider } from './auth_state_provider.js';
 import { ProviderFiles } from './provider_file_service.js';
 import P from 'pino';
 import qrcodeTerminal from 'qrcode-terminal';
-import { ChannelService } from './channel_service.js';
-import { WAMonitoringService } from './event_controller.js';
 
 export const status = {
     0: 'ERROR',
@@ -191,11 +190,17 @@ export const delayCancellable = (ms) => {
 }
 
 
-export class WhatsAppManager extends ChannelService {
+class WhatsAppManager {
     constructor(supabaseRepository, providerFiles) {
-        super();
-        
-        this.supabaseRepository = supabaseRepository;
+        this.eventEmitter = new EventEmitter();
+        this.supabaseRepository = supabaseRepository
+        this.instance = {};
+        this.instance.name = 'WhatsApp';
+        this.instance.id = '1';
+        this.instance.integration = 'WhatsApp';
+        this.instance.number = '5512981606045';
+        this.instance.token = '1234567890';
+        this.instance.businessId = '1234567890';
         this.instance.qrcode = { count: 0 };
 
         this.localSettings = {
@@ -452,107 +457,55 @@ export class WhatsAppManager extends ChannelService {
                     qrcode,
                 ),
             );
+
+            //   await this.prismaRepository.instance.update({
+            //     where: { id: this.instanceId },
+            //     data: { connectionStatus: 'connecting' },
+            //   });
         }
 
         if (connection) {
             this.stateConnection = {
                 state: connection,
-                statusReason: lastDisconnect?.error?.output?.statusCode ?? 200,
+                statusReason: lastDisconnect?.erro?.output?.statusCode ?? 200,
             };
         }
 
         if (connection === 'close') {
             const statusCode = lastDisconnect?.error?.output?.statusCode;
-            const disconnectReason = lastDisconnect?.error?.output?.payload?.reason;
-            
-            // Códigos que não devem tentar reconectar
-            const codesToNotReconnect = [
-                DisconnectReason.loggedOut, 
-                DisconnectReason.forbidden, 
-                401, // Unauthorized - indica problema de autenticação
-                402, // Payment Required
-                406, // Not Acceptable
-                403  // Forbidden
-            ];
-            
-            // Razões específicas que não devem reconectar
-            const reasonsToNotReconnect = [
-                '401', // Unauthorized
-                '403', // Forbidden
-                'logged_out',
-                'forbidden'
-            ];
-
-            const shouldReconnect = !codesToNotReconnect.includes(statusCode) && 
-                                  !reasonsToNotReconnect.includes(disconnectReason);
+            const codesToNotReconnect = [DisconnectReason.loggedOut, DisconnectReason.forbidden, 402, 406];
+            const shouldReconnect = !codesToNotReconnect.includes(statusCode);
 
             if (shouldReconnect) {
-                console.log(Events.CONNECTION_UPDATE, {
-                    instance: this.instance.name,
-                    state: 'reconnecting',
-                    statusReason: statusCode,
-                    disconnectReason: disconnectReason,
-                    message: 'Tentando reconectar...'
-                });
-
-                // Implementa backoff exponencial para reconexão
-                const reconnectAttempt = this.reconnectAttempt || 0;
-                const maxReconnectAttempts = 5;
-                const baseDelay = 2000;
-                
-                if (reconnectAttempt < maxReconnectAttempts) {
-                    this.reconnectAttempt = reconnectAttempt + 1;
-                    const delayMs = Math.min(baseDelay * Math.pow(2, reconnectAttempt), 30000);
-                    
-                    console.log(`Tentativa de reconexão ${reconnectAttempt}/${maxReconnectAttempts} em ${delayMs}ms`);
-                    
-                    setTimeout(async () => {
-                        try {
-                            await this.connectToWhatsapp(this.phoneNumber);
-                        } catch (error) {
-                            console.error('Erro na tentativa de reconexão:', error);
-                        }
-                    }, delayMs);
-                } else {
-                    console.log(Events.STATUS_INSTANCE, {
-                        instance: this.instance.name,
-                        status: 'reconnect_failed',
-                        disconnectionAt: new Date(),
-                        disconnectionReasonCode: statusCode,
-                        disconnectReason: disconnectReason,
-                        reconnectAttempts: reconnectAttempt,
-                        message: 'Máximo de tentativas de reconexão atingido'
-                    });
-                    
-                    this.eventEmitter.emit('reconnect.failed', this.instance.name);
-                }
+                await this.connectToWhatsapp(this.phoneNumber);
             } else {
                 console.log(Events.STATUS_INSTANCE, {
                     instance: this.instance.name,
                     status: 'closed',
                     disconnectionAt: new Date(),
                     disconnectionReasonCode: statusCode,
-                    disconnectReason: disconnectReason,
                     disconnectionObject: JSON.stringify(lastDisconnect),
-                    message: 'Conexão fechada - não tentará reconectar'
                 });
+
+                // await this.prismaRepository.instance.update({
+                //     where: { id: this.instanceId },
+                //     data: {
+                //         connectionStatus: 'close',
+                //         disconnectionAt: new Date(),
+                //         disconnectionReasonCode: statusCode,
+                //         disconnectionObject: JSON.stringify(lastDisconnect),
+                //     },
+                // });
 
                 this.eventEmitter.emit('logout.instance', this.instance.name, 'inner');
                 this.client?.ws?.close();
                 this.client.end(new Error('Close connection'));
 
-                console.log(Events.CONNECTION_UPDATE, { 
-                    instance: this.instance.name, 
-                    ...this.stateConnection,
-                    message: 'Conexão encerrada permanentemente'
-                });
+                console.log(Events.CONNECTION_UPDATE, { instance: this.instance.name, ...this.stateConnection });
             }
         }
 
         if (connection === 'open') {
-            // Reset reconnect attempt counter on successful connection
-            this.reconnectAttempt = 0;
-            
             this.instance.wuid = this.client.user.id.replace(/:\d+/, '');
             try {
                 const profilePic = await this.profilePicture(this.instance.wuid);
@@ -562,18 +515,28 @@ export class WhatsAppManager extends ChannelService {
             }
             const formattedWuid = this.instance.wuid.split('@')[0].padEnd(30, ' ');
             const formattedName = this.instance.name;
-            console.log(
+            this.logger.info(
                 `
               ┌──────────────────────────────┐
               │    CONNECTED TO WHATSAPP     │
               └──────────────────────────────┘`.replace(/^ +/gm, '  '),
             );
-            console.log(
+            this.logger.info(
                 `
               wuid: ${formattedWuid}
               name: ${formattedName}
             `,
             );
+
+            // await this.prismaRepository.instance.update({
+            //     where: { id: this.instanceId },
+            //     data: {
+            //         ownerJid: this.instance.wuid,
+            //         profileName: (await this.getProfileName()),
+            //         profilePicUrl: this.instance.profilePictureUrl,
+            //         connectionStatus: 'open',
+            //     },
+            // });
 
             console.log(Events.CONNECTION_UPDATE, {
                 instance: this.instance.name,
@@ -581,16 +544,11 @@ export class WhatsAppManager extends ChannelService {
                 profileName: await this.getProfileName(),
                 profilePictureUrl: this.instance.profilePictureUrl,
                 ...this.stateConnection,
-                message: 'Conexão estabelecida com sucesso'
             });
         }
 
         if (connection === 'connecting') {
-            console.log(Events.CONNECTION_UPDATE, { 
-                instance: this.instance.name, 
-                ...this.stateConnection,
-                message: 'Conectando ao WhatsApp...'
-            });
+            console.log(Events.CONNECTION_UPDATE, { instance: this.instance.name, ...this.stateConnection });
         }
     }
 
@@ -885,3 +843,12 @@ export class WhatsAppManager extends ChannelService {
         };
     }
 }
+
+let providerFiles = new ProviderFiles();
+let supabaseRepository = new SupabaseRepository();
+let whatsappManager = new WhatsAppManager(
+    supabaseRepository,
+    providerFiles
+);
+
+await whatsappManager.connectToWhatsapp('5512981606045');

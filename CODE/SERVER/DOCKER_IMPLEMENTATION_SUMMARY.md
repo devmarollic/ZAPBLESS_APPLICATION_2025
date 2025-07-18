@@ -28,6 +28,7 @@ Criar um sistema para gerenciar containers Docker automaticamente quando uma igr
 - `GET /docker/container/:churchId/logs` - Obter logs
 - `GET /docker/container/:churchId/status` - Verificar status
 - `GET /docker/containers/list` - Listar todos os containers
+- `GET /docker/pairing/:churchId/status` - **Verificar status do pairing code**
 
 ### 4. Integração Automática
 - **Modificação do ChurchController**: Quando uma igreja é criada, automaticamente inicia o container Docker
@@ -48,10 +49,15 @@ Criar um sistema para gerenciar containers Docker automaticamente quando uma igr
 - **useWhatsAppStatus Hook**: Hook React para gerenciar status do WhatsApp com polling automático
 - **Componente WhatsAppSync Atualizado**: Usa o novo sistema de containers dinâmicos
 - **QrCode Component Atualizado**: Usa URL dinâmica do container
+- **Pairing Code Integration**: Interface para conexão por número de telefone
+- **Timer de Expiração**: Controle de tempo para códigos de pareamento
+- **Regeneração Automática**: Regenera códigos expirados automaticamente
 
 ### 8. Documentação
 - **DOCKER_ENDPOINTS.md**: Documentação completa dos endpoints
 - **Exemplos de Uso**: Arquivo com exemplos práticos de uso
+- **Exemplo de Pairing Code**: Arquivo com exemplo específico de pairing code
+- **Testes de Pairing Code**: Testes unitários para funcionalidade de pairing code
 - **Resumo da Implementação**: Este arquivo
 
 ## 🔧 Como Funciona
@@ -181,5 +187,8 @@ npm run test:watch
 - [x] Documentação completa
 - [x] Scripts de construção criados
 - [x] Exemplos de uso fornecidos
+- [x] **Pairing Code implementado**
+- [x] **Interface de pairing code no frontend**
+- [x] **Testes de pairing code criados**
 
 **Status**: ✅ **CONCLUÍDO** - Pronto para uso em produção 

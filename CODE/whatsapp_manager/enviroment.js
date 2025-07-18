@@ -10,6 +10,7 @@ if ( isDevelopment )
 export const PORT = process.env.PORT;
 export const SESSION_ID = process.env.SESSION_ID;
 export const SESSION_DIR = process.env.SESSION_DIR;
+export const SESSION_BASE_DIR = process.env.SESSION_BASE_DIR;
 export const DEBUG = process.env.DEBUG;
 export const RABBITMQ_URL = process.env.RABBITMQ_URL;
 export const RABBITMQ_OUTBOUND_QUEUE = process.env.RABBITMQ_OUTBOUND_QUEUE;

@@ -65,7 +65,7 @@ function createSubscriptionPlan(plan, isMonthly = true) {
 
     const baseUrl = 'https://api.pagar.me/core/v5';
     
-    return fetch(baseUrl + '/subscriptions', options)
+    return fetch(baseUrl + '/plans', options)
         .then(res => res.json())
         .then((data) => {
             console.log(`Plano ${plan.name} ${planSuffix} criado:`, data);

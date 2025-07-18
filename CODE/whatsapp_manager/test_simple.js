@@ -1,3 +1,4 @@
+// -- IMPORTS
 
 import pkg, { DisconnectReason } from '@whiskeysockets/baileys';
 const { makeWASocket, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, isJidBroadcast, isJidGroup, proto, isJidNewsletter, BufferJSON } = pkg;
@@ -7,13 +8,14 @@ import { SupabaseRepository } from './supabase_repository.js';
 import { useMultiFileAuthStateSupabase } from './use_multi_file_auth_state_supabase.js';
 import { release } from 'os';
 import axios from 'axios';
+import { EventEmitter } from 'events';
 import Boom from '@hapi/boom';
 import { AuthStateProvider } from './auth_state_provider.js';
 import { ProviderFiles } from './provider_file_service.js';
 import P from 'pino';
 import qrcodeTerminal from 'qrcode-terminal';
-import { ChannelService } from './channel_service.js';
-import { WAMonitoringService } from './event_controller.js';
+
+// -- CONSTANTS
 
 export const status = {
     0: 'ERROR',
@@ -23,6 +25,8 @@ export const status = {
     4: 'READ',
     5: 'PLAYED',
 };
+
+// -- FUNCTIONS
 
 function formatMXOrARNumber(jid) {
     const countryCode = jid.substring(0, 2);
@@ -190,12 +194,19 @@ export const delayCancellable = (ms) => {
     return { delay, cancel }
 }
 
+// -- TYPES
 
-export class WhatsAppManager extends ChannelService {
+class WhatsAppManager {
     constructor(supabaseRepository, providerFiles) {
-        super();
-        
-        this.supabaseRepository = supabaseRepository;
+        this.eventEmitter = new EventEmitter();
+        this.supabaseRepository = supabaseRepository
+        this.instance = {};
+        this.instance.name = 'WhatsApp';
+        this.instance.id = '1';
+        this.instance.integration = 'WhatsApp';
+        this.instance.number = '5512981606045';
+        this.instance.token = '1234567890';
+        this.instance.businessId = '1234567890';
         this.instance.qrcode = { count: 0 };
 
         this.localSettings = {
@@ -378,18 +389,12 @@ export class WhatsAppManager extends ChannelService {
 
     async connectToWhatsapp(number) {
         try {
-            // this.loadChatwoot();
-            // this.loadSettings();
-            // this.loadWebhook();
-            // this.loadProxy();
-
             return await this.createClient(number);
         } catch (error) {
             console.error(error);
             throw new Error(error?.toString());
         }
     }
-
 
     async connectionUpdate({ qr, connection, lastDisconnect }) {
         if (qr) {
@@ -457,102 +462,35 @@ export class WhatsAppManager extends ChannelService {
         if (connection) {
             this.stateConnection = {
                 state: connection,
-                statusReason: lastDisconnect?.error?.output?.statusCode ?? 200,
+                statusReason: lastDisconnect?.erro?.output?.statusCode ?? 200,
             };
         }
 
         if (connection === 'close') {
             const statusCode = lastDisconnect?.error?.output?.statusCode;
-            const disconnectReason = lastDisconnect?.error?.output?.payload?.reason;
-            
-            // Códigos que não devem tentar reconectar
-            const codesToNotReconnect = [
-                DisconnectReason.loggedOut, 
-                DisconnectReason.forbidden, 
-                401, // Unauthorized - indica problema de autenticação
-                402, // Payment Required
-                406, // Not Acceptable
-                403  // Forbidden
-            ];
-            
-            // Razões específicas que não devem reconectar
-            const reasonsToNotReconnect = [
-                '401', // Unauthorized
-                '403', // Forbidden
-                'logged_out',
-                'forbidden'
-            ];
-
-            const shouldReconnect = !codesToNotReconnect.includes(statusCode) && 
-                                  !reasonsToNotReconnect.includes(disconnectReason);
+            const codesToNotReconnect = [DisconnectReason.loggedOut, DisconnectReason.forbidden, 402, 406];
+            const shouldReconnect = !codesToNotReconnect.includes(statusCode);
 
             if (shouldReconnect) {
-                console.log(Events.CONNECTION_UPDATE, {
-                    instance: this.instance.name,
-                    state: 'reconnecting',
-                    statusReason: statusCode,
-                    disconnectReason: disconnectReason,
-                    message: 'Tentando reconectar...'
-                });
-
-                // Implementa backoff exponencial para reconexão
-                const reconnectAttempt = this.reconnectAttempt || 0;
-                const maxReconnectAttempts = 5;
-                const baseDelay = 2000;
-                
-                if (reconnectAttempt < maxReconnectAttempts) {
-                    this.reconnectAttempt = reconnectAttempt + 1;
-                    const delayMs = Math.min(baseDelay * Math.pow(2, reconnectAttempt), 30000);
-                    
-                    console.log(`Tentativa de reconexão ${reconnectAttempt}/${maxReconnectAttempts} em ${delayMs}ms`);
-                    
-                    setTimeout(async () => {
-                        try {
-                            await this.connectToWhatsapp(this.phoneNumber);
-                        } catch (error) {
-                            console.error('Erro na tentativa de reconexão:', error);
-                        }
-                    }, delayMs);
-                } else {
-                    console.log(Events.STATUS_INSTANCE, {
-                        instance: this.instance.name,
-                        status: 'reconnect_failed',
-                        disconnectionAt: new Date(),
-                        disconnectionReasonCode: statusCode,
-                        disconnectReason: disconnectReason,
-                        reconnectAttempts: reconnectAttempt,
-                        message: 'Máximo de tentativas de reconexão atingido'
-                    });
-                    
-                    this.eventEmitter.emit('reconnect.failed', this.instance.name);
-                }
+                await this.connectToWhatsapp(this.phoneNumber);
             } else {
                 console.log(Events.STATUS_INSTANCE, {
                     instance: this.instance.name,
                     status: 'closed',
                     disconnectionAt: new Date(),
                     disconnectionReasonCode: statusCode,
-                    disconnectReason: disconnectReason,
                     disconnectionObject: JSON.stringify(lastDisconnect),
-                    message: 'Conexão fechada - não tentará reconectar'
                 });
 
                 this.eventEmitter.emit('logout.instance', this.instance.name, 'inner');
                 this.client?.ws?.close();
                 this.client.end(new Error('Close connection'));
 
-                console.log(Events.CONNECTION_UPDATE, { 
-                    instance: this.instance.name, 
-                    ...this.stateConnection,
-                    message: 'Conexão encerrada permanentemente'
-                });
+                console.log(Events.CONNECTION_UPDATE, { instance: this.instance.name, ...this.stateConnection });
             }
         }
 
         if (connection === 'open') {
-            // Reset reconnect attempt counter on successful connection
-            this.reconnectAttempt = 0;
-            
             this.instance.wuid = this.client.user.id.replace(/:\d+/, '');
             try {
                 const profilePic = await this.profilePicture(this.instance.wuid);
@@ -581,16 +519,11 @@ export class WhatsAppManager extends ChannelService {
                 profileName: await this.getProfileName(),
                 profilePictureUrl: this.instance.profilePictureUrl,
                 ...this.stateConnection,
-                message: 'Conexão estabelecida com sucesso'
             });
         }
 
         if (connection === 'connecting') {
-            console.log(Events.CONNECTION_UPDATE, { 
-                instance: this.instance.name, 
-                ...this.stateConnection,
-                message: 'Conectando ao WhatsApp...'
-            });
+            console.log(Events.CONNECTION_UPDATE, { instance: this.instance.name, ...this.stateConnection });
         }
     }
 
@@ -625,18 +558,12 @@ export class WhatsAppManager extends ChannelService {
 
     async defineAuthState() {
         const db = { SAVE_DATA: { INSTANCE: false } };
-        // const cache = { REDIS: { ENABLED: true, SAVE_INSTANCES: true } };
 
         const provider = { ENABLED: true };
 
         if (provider?.ENABLED) {
             return await this.authStateProvider.authStateProvider(this.instance.id);
         }
-
-        // if (cache?.REDIS.ENABLED && cache?.REDIS.SAVE_INSTANCES) {
-        //   this.logger.info('Redis enabled');
-        //   return await useMultiFileAuthStateRedisDb(this.instance.id, this.cache);
-        // }
 
         if (db.SAVE_DATA.INSTANCE) {
             return await useMultiFileAuthStateSupabase(this.instance.id, this.cache);
@@ -672,55 +599,12 @@ export class WhatsAppManager extends ChannelService {
     }
 
     historySyncNotification(msg) {
-        const instance = { instanceName: this.instance.name };
-
-        if (
-            this.localChatwoot?.enabled &&
-            this.localChatwoot.importMessages &&
-            this.isSyncNotificationFromUsedSyncType(msg) // TODO: Implement this
-        ) {
-            if (msg.chunkOrder === 1) {
-                this.chatwootService.startImportHistoryMessages(instance);
-            }
-
-            if (msg.progress === 100) {
-                setTimeout(() => {
-                    this.chatwootService.importHistoryMessages(instance);
-                }, 10000);
-            }
-        }
-
         return true;
     }
 
     eventHandler() {
         this.client.ev.process(async (events) => {
             if (!this.endSession) {
-                const database = { SAVE_DATA: { INSTANCE: true } };
-                const settings = {
-                    groupsIgnore: false,
-                    syncFullHistory: false,
-                    alwaysOnline: false,
-                    rejectCall: false,
-                    msgCall: '',
-                };
-
-                if (events.call) {
-                    const call = events.call[0];
-
-                    if (settings?.rejectCall && call.status == 'offer') {
-                        this.client.rejectCall(call.id, call.from);
-                    }
-
-                    if (settings?.msgCall?.trim().length > 0 && call.status == 'offer') {
-                        const msg = await this.client.sendMessage(call.from, { text: settings.msgCall });
-
-                        this.client.ev.emit('messages.upsert', { messages: [msg], type: 'notify' });
-                    }
-
-                    console.log(Events.CALL, call);
-                }
-
                 if (events['connection.update']) {
                     this.connectionUpdate(events['connection.update']);
                 }
@@ -728,152 +612,8 @@ export class WhatsAppManager extends ChannelService {
                 if (events['creds.update']) {
                     this.instance.authState.saveCreds();
                 }
-
-                if (events['messaging-history.set']) {
-                    const payload = events['messaging-history.set'];
-                    this.messageHandle['messaging-history.set'](payload);
-                }
-
-                if (events['messages.upsert']) {
-                    const payload = events['messages.upsert'];
-                    this.messageHandle['messages.upsert'](payload, settings);
-                }
-
-                if (events['messages.update']) {
-                    const payload = events['messages.update'];
-                    this.messageHandle['messages.update'](payload, settings);
-                }
-
-                if (events['message-receipt.update']) {
-                    const payload = events['message-receipt.update'];
-                    const remotesJidMap = {};
-
-                    for (const event of payload) {
-                        if (typeof event.key.remoteJid === 'string' && typeof event.receipt.readTimestamp === 'number') {
-                            remotesJidMap[event.key.remoteJid] = event.receipt.readTimestamp;
-                        }
-                    }
-
-                    await Promise.all(
-                        Object.keys(remotesJidMap).map(async (remoteJid) =>
-                            this.updateMessagesReadedByTimestamp(remoteJid, remotesJidMap[remoteJid]),
-                        ),
-                    );
-                }
-
-                if (events['presence.update']) {
-                    const payload = events['presence.update'];
-
-                    if (settings?.groupsIgnore && payload.id.includes('@g.us')) {
-                        return;
-                    }
-
-                    console.log(Events.PRESENCE_UPDATE, payload);
-                }
-
-                if (!settings?.groupsIgnore) {
-                    if (events['groups.upsert']) {
-                        const payload = events['groups.upsert'];
-                        this.groupHandler['groups.upsert'](payload);
-                    }
-
-                    if (events['groups.update']) {
-                        const payload = events['groups.update'];
-                        this.groupHandler['groups.update'](payload);
-                    }
-
-                    if (events['group-participants.update']) {
-                        const payload = events['group-participants.update'];
-                        this.groupHandler['group-participants.update'](payload);
-                    }
-                }
-
-                if (events['chats.upsert']) {
-                    const payload = events['chats.upsert'];
-                    this.chatHandle['chats.upsert'](payload);
-                }
-
-                if (events['chats.update']) {
-                    const payload = events['chats.update'];
-                    this.chatHandle['chats.update'](payload);
-                }
-
-                if (events['chats.delete']) {
-                    const payload = events['chats.delete'];
-                    this.chatHandle['chats.delete'](payload);
-                }
-
-                if (events['contacts.upsert']) {
-                    const payload = events['contacts.upsert'];
-                    this.contactHandle['contacts.upsert'](payload);
-                }
-
-                if (events['contacts.update']) {
-                    const payload = events['contacts.update'];
-                    this.contactHandle['contacts.update'](payload);
-                }
-
-                if (events[Events.LABELS_ASSOCIATION]) {
-                    const payload = events[Events.LABELS_ASSOCIATION];
-                    this.labelHandle[Events.LABELS_ASSOCIATION](payload, database);
-                    return;
-                }
-
-                if (events[Events.LABELS_EDIT]) {
-                    const payload = events[Events.LABELS_EDIT];
-                    this.labelHandle[Events.LABELS_EDIT](payload);
-                    return;
-                }
             }
         });
-    }
-
-    async updateMessagesReadedByTimestamp(remoteJid, timestamp) {
-        if (timestamp === undefined || timestamp === null) return 0;
-
-        const result = await this.supabaseRepository.update('MESSAGE', {
-            where: {
-                AND: [
-                    { key: { path: ['remoteJid'], equals: remoteJid } },
-                    { key: { path: ['fromMe'], equals: false } },
-                    { messageTimestamp: { lte: timestamp } },
-                    { OR: [{ status: null }, { status: status[3] }] },
-                ],
-            }
-        },
-            { status: status[4] }
-        );
-
-        if (result) {
-            if (result.count > 0) {
-                this.updateChatUnreadMessages(remoteJid);
-            }
-
-            return result.count;
-        }
-
-        return 0;
-    }
-
-    async updateChatUnreadMessages(remoteJid) {
-        const [chat, unreadMessages] = await Promise.all([
-            this.supabaseRepository.query('CHAT', { remoteJid }),
-            this.supabaseRepository.count('MESSAGE', {
-                where: {
-                    AND: [
-                        { key: { path: ['remoteJid'], equals: remoteJid } },
-                        { key: { path: ['fromMe'], equals: false } },
-                        { status: { equals: status[3] } },
-                    ],
-                },
-            }),
-        ]);
-
-        if (chat && chat.unreadMessages !== unreadMessages) {
-            await this.supabaseRepository.update('CHAT', { where: { id: chat.id } }, { unreadMessages });
-        }
-
-        return unreadMessages;
     }
 
     get qrCode() {
@@ -885,3 +625,15 @@ export class WhatsAppManager extends ChannelService {
         };
     }
 }
+
+// -- STATEMENTS
+
+let providerFiles = new ProviderFiles();
+let supabaseRepository = new SupabaseRepository();
+let whatsappManager = new WhatsAppManager(
+    supabaseRepository,
+    providerFiles
+);
+
+console.log('Starting WhatsApp Manager test...');
+await whatsappManager.connectToWhatsapp('5512981606045'); 

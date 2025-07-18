@@ -1,7 +1,10 @@
 // -- IMPORTS
 
 import { ProviderFiles } from './provider_file_service.js';
-import { AuthenticationCreds, AuthenticationState, BufferJSON, initAuthCreds, proto, SignalDataTypeMap } from 'baileys';
+import pkg from '@whiskeysockets/baileys';
+const { AuthenticationCreds, AuthenticationState, proto, SignalDataTypeMap } = pkg;
+import { BufferJSON, initAuthCreds } from '@whiskeysockets/baileys';
+import { getJsonText, isNotEmpty, logError } from './utils.js';
 
 // -- TYPES
 
@@ -49,10 +52,48 @@ export class AuthStateProvider
 
                 if ( error )
                 {
-                    logError( error );
+                    // Não loga erro para arquivos que não existem (comum durante inicialização)
+                    if ( error.code !== 'ENOENT' )
+                    {
+                        logError( error );
+                    }
+                    return undefined;
                 }
 
-                return response;
+                if ( isNotEmpty( response?.data ) )
+                {
+                    try
+                    {
+                        // Tenta fazer parse direto primeiro
+                        let parsedData = JSON.parse( response.data, BufferJSON.reviver );
+                        
+                        // Se o resultado tem uma propriedade 'data', extrai o conteúdo interno
+                        if ( parsedData && typeof parsedData === 'object' && parsedData.data )
+                        {
+                            if ( typeof parsedData.data === 'string' )
+                            {
+                                return JSON.parse( parsedData.data, BufferJSON.reviver );
+                            }
+                            else
+                            {
+                                return parsedData.data;
+                            }
+                        }
+                        
+                        return parsedData;
+                    }
+                    catch ( parseError )
+                    {
+                        // Não loga erro de parsing para arquivos que podem estar corrompidos
+                        if ( key === 'creds' )
+                        {
+                            logError( `Error parsing credentials for key ${key}:`, parseError );
+                        }
+                        return undefined;
+                    }
+                }
+                
+                return undefined;
             };
 
         let removeData = async ( key ) =>
@@ -61,7 +102,11 @@ export class AuthStateProvider
 
                 if ( error )
                 {
-                    logError( error );
+                    // Não loga erro para arquivos que não existem
+                    if ( error.code !== 'ENOENT' )
+                    {
+                        logError( error );
+                    }
                 }
 
                 return;
@@ -110,7 +155,7 @@ export class AuthStateProvider
                                                 value
                                                     ? await writeData( value, key )
                                                     : await removeData( key )
-                                                );
+                                            );
                                         }
                                     }
 

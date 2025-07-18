@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { MessageSquare, RefreshCw, QrCode as QrCodeIcon, Phone, KeyRound } from 'lucide-react';
+import { MessageSquare, RefreshCw, QrCode as QrCodeIcon, Phone, KeyRound, AlertTriangle } from 'lucide-react';
 import { useWhatsApp } from '@/context/WhatsAppContext';
 import QrCode from '@/components/QrCode';
 import { PhoneInput } from '@/components/ui/phone-input';
@@ -20,6 +20,8 @@ const WhatsAppSync = () => {
     const [isRequestingCode, setIsRequestingCode] = useState(false);
     const [syncCode, setSyncCode] = useState('');
     const [codeError, setCodeError] = useState('');
+    const [pairingTimer, setPairingTimer] = useState<number>(0);
+    const [isPairingExpired, setIsPairingExpired] = useState<boolean>(false);
     
     // Hook para gerenciar status do WhatsApp
     const {
@@ -65,6 +67,9 @@ const WhatsAppSync = () => {
         setIsRequestingCode(true);
         setCodeError('');
         setSyncCode('');
+        setIsPairingExpired(false);
+        setPairingTimer(0);
+        
         try {
             // Iniciar container se não estiver ativo
             if (!WhatsAppContainerService.isContainerActive()) {
@@ -90,11 +95,17 @@ const WhatsAppSync = () => {
             if (typeof receivedCode !== 'string') {
                 receivedCode = String(receivedCode ?? '');
             }
-            setSyncCode(receivedCode);
-            toast({
-                title: 'Código gerado',
-                description: 'Digite este código no WhatsApp do celular para concluir a sincronização.'
-            });
+            
+            if (receivedCode && receivedCode.length > 0) {
+                setSyncCode(receivedCode);
+                setPairingTimer(120); // 2 minutos para o pairing code
+                toast({
+                    title: 'Código gerado',
+                    description: 'Digite este código no WhatsApp do celular para concluir a sincronização.'
+                });
+            } else {
+                throw new Error('Código de pareamento não foi gerado');
+            }
         } catch (error) {
             setCodeError('Não foi possível gerar o código. Verifique o número e tente novamente.');
             toast({
@@ -156,6 +167,25 @@ const WhatsAppSync = () => {
             setQrStatus('invalid');
         }
     }, [whatsapp?.connectionStatus]);
+
+    // Timer para pairing code
+    useEffect(() => {
+        if (pairingTimer > 0) {
+            const interval = setInterval(() => {
+                setPairingTimer((prevTimer) => {
+                    if (prevTimer <= 1) {
+                        setIsPairingExpired(true);
+                        setSyncCode('');
+                        clearInterval(interval);
+                        return 0;
+                    }
+                    return prevTimer - 1;
+                });
+            }, 1000);
+
+            return () => clearInterval(interval);
+        }
+    }, [pairingTimer]);
 
     return (
         <Card>
@@ -264,9 +294,16 @@ const WhatsAppSync = () => {
                                 </Button>
                                 {codeError && <p className="text-red-500 text-xs mt-1">{codeError}</p>}
                             </div>
-                            {typeof syncCode === 'string' && syncCode.length > 0 && (
+                            {typeof syncCode === 'string' && syncCode.length > 0 && !isPairingExpired && (
                                 <div className="flex flex-col items-center w-full">
-                                    <p className="text-sm text-muted-foreground mb-2">Digite este código no WhatsApp do celular:</p>
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <p className="text-sm text-muted-foreground">Digite este código no WhatsApp do celular:</p>
+                                        {pairingTimer > 0 && (
+                                            <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">
+                                                {Math.floor(pairingTimer / 60)}:{(pairingTimer % 60).toString().padStart(2, '0')}
+                                            </span>
+                                        )}
+                                    </div>
                                     <InputOTP value={syncCode.padEnd(8, ' ')} disabled maxLength={8} containerClassName="justify-center">
                                         <InputOTPGroup>
                                             {[...Array(8)].map((_, i) => (
@@ -274,6 +311,27 @@ const WhatsAppSync = () => {
                                             ))}
                                         </InputOTPGroup>
                                     </InputOTP>
+                                    <p className="text-xs text-muted-foreground mt-2 text-center">
+                                        Abra o WhatsApp no celular → Configurações → Dispositivos vinculados → Vincular dispositivo → Código de pareamento
+                                    </p>
+                                </div>
+                            )}
+                            
+                            {isPairingExpired && (
+                                <div className="flex flex-col items-center w-full">
+                                    <div className="text-center p-4 border border-orange-200 bg-orange-50 rounded-lg">
+                                        <AlertTriangle className="h-8 w-8 text-orange-500 mx-auto mb-2" />
+                                        <p className="text-sm text-orange-800 mb-2">Código de pareamento expirado</p>
+                                        <Button
+                                            onClick={handleRequestSyncCode}
+                                            disabled={isRequestingCode}
+                                            size="sm"
+                                            variant="outline"
+                                        >
+                                            <RefreshCw className="mr-2 h-4 w-4" />
+                                            Gerar novo código
+                                        </Button>
+                                    </div>
                                 </div>
                             )}
                         </div>

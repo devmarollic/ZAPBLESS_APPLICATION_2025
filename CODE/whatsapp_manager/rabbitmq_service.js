@@ -5,10 +5,13 @@
  * do tópico outbound para processamento de mensagens do WhatsApp.
  */
 
-const amqp = require('amqplib');
-const events = require('events');
+import events from 'events';
+import { createRequire } from 'module';
 
-class RabbitMQService extends events.EventEmitter {
+const require = createRequire(import.meta.url);
+const amqp = require('amqplib');
+
+export class RabbitMQService extends events.EventEmitter {
     /**
      * Inicializa o serviço RabbitMQ
      * @param {Object} config Configurações
@@ -254,6 +257,3 @@ class RabbitMQService extends events.EventEmitter {
         }
     }
 }
-
-// Exporta o serviço
-module.exports = { RabbitMQService }; 

@@ -4093,3 +4093,12 @@ export function sleep(
         resolve => setTimeout( resolve, millisecondCount )
         );
 }
+
+// ~~~
+
+export function isNotEmpty(
+    value
+    )
+{
+    return value !== '' && value !== null && value !== undefined;
+}

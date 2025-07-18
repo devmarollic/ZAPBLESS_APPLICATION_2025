@@ -97,11 +97,11 @@
         const data = await response.json();
         
         // Atualiza o elemento de status
-        statusEl.textContent = "Sessao: " + data.sessionId + " | Status: " + data.status;
+        statusEl.textContent = "Sessao: " + data.instance.id + " | Status: " + data.stateConnection.state;
         statusEl.className = 'status ' + data.status;
         
         // Exibe o QR code se disponível
-        if (data.qrCode && data.status === 'connecting') {
+        if (data.qrCode && data.stateConnection.state === 'connecting') {
           qrContainer.style.display = 'block';
           qrCode.src = data.qrCode + '?t=' + Date.now(); // Evita cache
         } else {

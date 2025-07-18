@@ -32,8 +32,16 @@
 
 ## 💬 Sessões WhatsApp
 
-- [ ] Usar tabela WHATSAPP
-- [ ] Criar serviço de inicialização da sessão (Docker)
+- [x] Usar tabela WHATSAPP
+- [x] Criar serviço de inicialização da sessão (Docker) - 2025-01-30
+- [x] Implementar conexão por número (pairing code) - 2025-01-30
+- [x] Corrigir erro "Connection Closed" no pairing code - 2025-01-30
+- [x] Implementar sistema de diagnóstico e solução de problemas - 2025-01-30
+- [x] Criar ferramentas de gerenciamento de sessões - 2025-01-30
+- [x] Melhorar tratamento de erros de conexão WebSocket - 2025-01-30
+- [x] Implementar reconexão automática com backoff exponencial - 2025-01-30
+- [x] Criar configuração de proxy opcional - 2025-01-30
+- [x] Adicionar scripts de configuração interativa - 2025-01-30
 - [ ] Criar webhook para atualizar status
 - [ ] Criar watchdog e publisher para tópico `zapbless.watchdog`
 - [ ] Implementar fallback via ZapBless se sessão cair

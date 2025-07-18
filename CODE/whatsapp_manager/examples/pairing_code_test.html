@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Pairing Code - WhatsApp Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #25D366;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        
+        .test-section h3 {
+            color: #333;
+            margin-top: 0;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        button {
+            background-color: #25D366;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background-color: #128C7E;
+        }
+        
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .result {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .pairing-code {
+            font-size: 24px;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 4px;
+            color: #007bff;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border: 2px dashed #007bff;
+            text-align: center;
+            margin: 15px 0;
+        }
+        
+        .timer {
+            font-size: 18px;
+            color: #dc3545;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px 0;
+        }
+        
+        .instructions {
+            background-color: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+            margin: 15px 0;
+        }
+        
+        .instructions strong {
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste Pairing Code</h1>
+        
+        <div class="test-section">
+            <h3>1. Configuração</h3>
+            <label for="base-url">URL Base do WhatsApp Manager:</label>
+            <input type="text" id="base-url" value="http://localhost:3001" placeholder="http://localhost:3001">
+            <button onclick="testConnection()">Testar Conexão</button>
+            <div id="connection-result" class="result" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>2. Gerar Pairing Code</h3>
+            <label for="phone-number">Número de Telefone (com código do país):</label>
+            <input type="text" id="phone-number" placeholder="5511999999999" maxlength="15">
+            <button onclick="generatePairingCode()">Gerar Código</button>
+            <button onclick="startSession()">Iniciar Sessão</button>
+            <div id="pairing-result" class="result" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>3. Código de Pareamento</h3>
+            <div id="pairing-code-display" style="display: none;">
+                <div class="pairing-code" id="pairing-code"></div>
+                <div class="timer" id="pairing-timer"></div>
+                <div class="instructions">
+                    <strong>Como usar:</strong><br>
+                    1. Abra o WhatsApp no celular<br>
+                    2. Vá em Configurações → Dispositivos vinculados<br>
+                    3. Toque em "Vincular dispositivo"<br>
+                    4. Escolha "Código de pareamento"<br>
+                    5. Digite o código acima
+                </div>
+                <button onclick="regenerateCode()">Gerar Novo Código</button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>4. Status da Conexão</h3>
+            <button onclick="checkStatus()">Verificar Status</button>
+            <button onclick="startStatusPolling()">Iniciar Monitoramento</button>
+            <button onclick="stopStatusPolling()">Parar Monitoramento</button>
+            <div id="status-result" class="result" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>5. Enviar Mensagem de Teste</h3>
+            <label for="test-number">Número de Destino:</label>
+            <input type="text" id="test-number" placeholder="5511888888888@s.whatsapp.net">
+            <label for="test-message">Mensagem:</label>
+            <input type="text" id="test-message" placeholder="Teste do WhatsApp Manager" value="Teste do WhatsApp Manager">
+            <button onclick="sendTestMessage()">Enviar Mensagem</button>
+            <div id="message-result" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        let statusPollingInterval = null;
+        let pairingTimer = null;
+        
+        // Testar conexão com o WhatsApp Manager
+        async function testConnection() {
+            const baseUrl = document.getElementById('base-url').value;
+            const resultDiv = document.getElementById('connection-result');
+            
+            try {
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result info';
+                resultDiv.textContent = 'Testando conexão...';
+                
+                const response = await fetch(`${baseUrl}/health`);
+                const data = await response.json();
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ Conectado! Status: ${data.status}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Erro de conexão: ${error.message}`;
+            }
+        }
+        
+        // Gerar código de pareamento
+        async function generatePairingCode() {
+            const baseUrl = document.getElementById('base-url').value;
+            const phoneNumber = document.getElementById('phone-number').value.trim();
+            const resultDiv = document.getElementById('pairing-result');
+            
+            if (!phoneNumber) {
+                alert('Digite um número de telefone');
+                return;
+            }
+            
+            try {
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result info';
+                resultDiv.textContent = 'Gerando código de pareamento...';
+                
+                const response = await fetch(`${baseUrl}/start`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phoneNumber })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = '✅ Código gerado com sucesso!';
+                    
+                    if (data.pairingCode) {
+                        displayPairingCode(data.pairingCode);
+                        startPairingTimer();
+                    }
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Erro: ${data.error || 'Desconhecido'}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Erro: ${error.message}`;
+            }
+        }
+        
+        // Iniciar sessão
+        async function startSession() {
+            const baseUrl = document.getElementById('base-url').value;
+            const phoneNumber = document.getElementById('phone-number').value.trim();
+            const resultDiv = document.getElementById('pairing-result');
+            
+            if (!phoneNumber) {
+                alert('Digite um número de telefone');
+                return;
+            }
+            
+            try {
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result info';
+                resultDiv.textContent = 'Iniciando sessão...';
+                
+                const response = await fetch(`${baseUrl}/start`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phoneNumber })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Sessão iniciada! Status: ${data.status}`;
+                    
+                    if (data.pairingCode) {
+                        displayPairingCode(data.pairingCode);
+                        startPairingTimer();
+                    }
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Erro: ${data.error || 'Desconhecido'}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Erro: ${error.message}`;
+            }
+        }
+        
+        // Exibir código de pareamento
+        function displayPairingCode(code) {
+            const displayDiv = document.getElementById('pairing-code-display');
+            const codeDiv = document.getElementById('pairing-code');
+            
+            codeDiv.textContent = code;
+            displayDiv.style.display = 'block';
+        }
+        
+        // Iniciar timer do pairing code
+        function startPairingTimer() {
+            clearPairingTimer();
+            let timeLeft = 120; // 2 minutos
+            
+            const timerDiv = document.getElementById('pairing-timer');
+            
+            pairingTimer = setInterval(() => {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timerDiv.textContent = `⏰ Tempo restante: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (timeLeft <= 0) {
+                    clearPairingTimer();
+                    timerDiv.textContent = '⏰ Tempo esgotado!';
+                    document.getElementById('pairing-code').textContent = 'CÓDIGO EXPIRADO';
+                }
+                
+                timeLeft--;
+            }, 1000);
+        }
+        
+        // Limpar timer
+        function clearPairingTimer() {
+            if (pairingTimer) {
+                clearInterval(pairingTimer);
+                pairingTimer = null;
+            }
+        }
+        
+        // Regenerar código
+        function regenerateCode() {
+            generatePairingCode();
+        }
+        
+        // Verificar status
+        async function checkStatus() {
+            const baseUrl = document.getElementById('base-url').value;
+            const resultDiv = document.getElementById('status-result');
+            
+            try {
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result info';
+                resultDiv.textContent = 'Verificando status...';
+                
+                const response = await fetch(`${baseUrl}/status`);
+                const data = await response.json();
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `📊 Status: ${data.status}\n📱 Sessão: ${data.sessionId || 'N/A'}\n🔐 Pairing Code: ${data.pairingCode || 'N/A'}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Erro: ${error.message}`;
+            }
+        }
+        
+        // Iniciar monitoramento de status
+        function startStatusPolling() {
+            if (statusPollingInterval) {
+                alert('Monitoramento já está ativo');
+                return;
+            }
+            
+            statusPollingInterval = setInterval(checkStatus, 5000);
+            document.getElementById('status-result').style.display = 'block';
+            document.getElementById('status-result').className = 'result info';
+            document.getElementById('status-result').textContent = '🔄 Monitoramento iniciado (verificando a cada 5 segundos)...';
+        }
+        
+        // Parar monitoramento de status
+        function stopStatusPolling() {
+            if (statusPollingInterval) {
+                clearInterval(statusPollingInterval);
+                statusPollingInterval = null;
+                document.getElementById('status-result').className = 'result info';
+                document.getElementById('status-result').textContent = '⏹️ Monitoramento parado';
+            }
+        }
+        
+        // Enviar mensagem de teste
+        async function sendTestMessage() {
+            const baseUrl = document.getElementById('base-url').value;
+            const to = document.getElementById('test-number').value.trim();
+            const message = document.getElementById('test-message').value.trim();
+            const resultDiv = document.getElementById('message-result');
+            
+            if (!to || !message) {
+                alert('Preencha o número de destino e a mensagem');
+                return;
+            }
+            
+            try {
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result info';
+                resultDiv.textContent = 'Enviando mensagem...';
+                
+                const response = await fetch(`${baseUrl}/send/text`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ to, text: message })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = '✅ Mensagem enviada com sucesso!';
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Erro: ${data.error || 'Desconhecido'}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Erro: ${error.message}`;
+            }
+        }
+        
+        // Limpar timer quando a página for fechada
+        window.addEventListener('beforeunload', clearPairingTimer);
+    </script>
+</body>
+</html> 

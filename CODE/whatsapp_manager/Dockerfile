@@ -24,6 +24,7 @@ ENV SUPABASE_DATABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
 ENV SUPABASE_STORAGE_URL=https://vmpwbxbfrrpzcaeuhtba.supabase.co/storage/v1/s3
 ENV SESSION_ID=session-Q3dmp5fTjBJcvr63HaBHkg
 ENV SESSION_DIR=./data
+ENV SESSION_BASE_DIR=./sessions
 ENV DEBUG=false
 ENV CHURCH_ID=Q3dmp5fTjBJcvr63HaBHkg
 ENV RABBITMQ_URL=amqp://zapbless:zapbless@rabbitmq-v1-services.argocd.svc.cluster.local:5672

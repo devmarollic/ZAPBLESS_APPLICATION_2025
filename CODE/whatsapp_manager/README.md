@@ -10,6 +10,7 @@ Este projeto fornece uma solução para executar instâncias isoladas do WhatsAp
 - **Reconexão automática**: Tentativas automáticas de reconexão em caso de desconexão
 - **API HTTP**: Endpoints RESTful para enviar mensagens e gerenciar a sessão
 - **Interface web**: Página web simples para visualizar o status da sessão e o QR code
+- **Pairing Code**: Conexão alternativa por código numérico (8 dígitos)
 - **Integração com RabbitMQ**: Consumo de mensagens da fila outbound para envio automático
 
 ## Requisitos
@@ -20,6 +21,8 @@ Este projeto fornece uma solução para executar instâncias isoladas do WhatsAp
 
 ## Instalação
 
+### Desenvolvimento Local
+
 1. Clone este repositório:
 
 ```bash
@@ -27,7 +30,38 @@ git clone https://github.com/seu-usuario/whatsapp-session-docker.git
 cd whatsapp-session-docker
 ```
 
-2. Configure as variáveis de ambiente no arquivo `docker-compose.yml`:
+2. Instale as dependências:
+
+```bash
+npm install
+```
+
+3. Configure o ambiente:
+
+```bash
+# Configuração interativa
+npm run setup
+
+# Ou configure manualmente
+cp env.example .env
+# Edite o arquivo .env com suas configurações
+```
+
+4. Execute o diagnóstico:
+
+```bash
+npm run diagnose
+```
+
+5. Inicie o servidor:
+
+```bash
+npm start
+```
+
+### Docker
+
+1. Configure as variáveis de ambiente no arquivo `docker-compose.yml`:
 
 ```yaml
 environment:
@@ -41,7 +75,7 @@ environment:
   - CHURCH_ID=sua-igreja-id
 ```
 
-3. Inicie o container:
+2. Inicie o container:
 
 ```bash
 docker-compose up -d
@@ -54,9 +88,18 @@ docker-compose up -d
 Acesse a interface web em `http://localhost:1234` para:
 
 - Visualizar o status da sessão
+- Escolher entre QR Code ou Pairing Code
 - Escanear o QR code para conectar
+- Gerar código de pareamento para conexão por número
 - Enviar mensagens de teste
 - Desconectar a sessão
+
+#### Modos de Conexão
+
+1. **QR Code**: Escaneie o código QR com o WhatsApp do celular
+2. **Pairing Code**: Digite um código de 8 dígitos no WhatsApp do celular
+
+Para mais detalhes sobre o Pairing Code, consulte [PAIRING_CODE_README.md](PAIRING_CODE_README.md).
 
 ### API HTTP
 
@@ -77,6 +120,43 @@ POST /start
 ```
 
 Inicia a sessão do WhatsApp e gera um QR code para conexão.
+
+#### Solicitar Pairing Code
+
+```
+POST /pairing-code
+Content-Type: application/json
+
+{
+  "phoneNumber": "5511999999999"
+}
+```
+
+Solicita um código de pareamento para um número específico. O código será gerado apenas quando a conexão estiver pronta.
+
+**Resposta:**
+```json
+{
+  "success": true,
+  "pairingCode": "12345678",
+  "message": "Pairing code gerado com sucesso"
+}
+```
+
+**Nota:** Esta é a forma recomendada de solicitar pairing code, pois aguarda a conexão estar pronta antes de tentar gerar o código.
+
+#### Iniciar Sessão com Pairing Code (Legado)
+
+```
+POST /start
+Content-Type: application/json
+
+{
+  "phoneNumber": "5511999999999"
+}
+```
+
+Inicia a sessão com um número específico e gera um código de pareamento (método legado, use `/pairing-code` para melhor controle).
 
 #### Enviar Mensagem de Texto
 
@@ -237,6 +317,65 @@ volumes:
   rabbitmq-data:
 ```
 
+## Scripts Disponíveis
+
+### Desenvolvimento
+- `npm start` - Inicia o servidor
+- `npm run dev` - Inicia o servidor em modo desenvolvimento
+- `npm run setup` - Configuração interativa do ambiente
+
+### Diagnóstico e Solução de Problemas
+- `npm run diagnose` - Diagnóstico completo da conexão
+- `npm run diagnose:test` - Teste específico de conectividade
+- `npm run session:list` - Lista todas as sessões
+- `npm run session:clear <nome>` - Remove uma sessão específica
+- `npm run session:clear-all` - Remove todas as sessões
+- `npm run session:info <nome>` - Mostra informações de uma sessão
+- `npm run session:backup <nome>` - Cria backup de uma sessão
+- `npm run session:restore <caminho>` - Restaura sessão do backup
+
+### Testes
+- `npm test` - Executa testes de pairing code
+- `npm run test:pairing` - Testa funcionalidade de pairing code
+- `npm run test:pairing-fix` - Testa correção do pairing code
+- `npm run test:pairing-fix:all` - Testa todos os cenários de pairing code
+- `npm run test:pairing-fix:error` - Testa cenário de erro
+- `npm run test:pairing-fix:reconnection` - Testa cenário de reconexão
+- `npm run test:connection` - Testa conectividade
+- `npm run test:status` - Testa status da sessão
+- `npm run test:monitor` - Monitora sessão em tempo real
+- `npm run test:send` - Testa envio de mensagens
+- `npm run test:full` - Executa todos os testes
+
+## 🔧 Solução de Problemas
+
+Para problemas de conexão e funcionamento, consulte o [Guia de Solução de Problemas](TROUBLESHOOTING.md).
+
+### Problemas Comuns
+
+1. **Erro de Conexão WebSocket**
+   ```bash
+   npm run diagnose
+   npm run session:clear-all
+   npm start
+   ```
+
+2. **Sessão Corrompida**
+   ```bash
+   npm run session:list
+   npm run session:clear <nome_da_sessao>
+   ```
+
+3. **Problemas de Rede**
+   ```bash
+   npm run diagnose:test
+   ```
+
+4. **Configuração de Ambiente**
+   ```bash
+   npm run setup
+   ```
+
 ## Desenvolvimento Local
 
 Para executar o projeto localmente sem Docker:
@@ -247,9 +386,13 @@ Para executar o projeto localmente sem Docker:
 npm install
 ```
 
-2. Configure as variáveis de ambiente:
+2. Configure o ambiente:
 
 ```bash
+# Configuração interativa
+npm run setup
+
+# Ou configure manualmente
 export PORT=1234
 export SESSION_ID=whatsapp-session-local
 export SESSION_DIR=./data/sessions
@@ -263,7 +406,7 @@ export CHURCH_ID=sua-igreja-id
 3. Execute o servidor:
 
 ```bash
-node server.js
+npm start
 ```
 
 ## Bibliotecas e Dependências

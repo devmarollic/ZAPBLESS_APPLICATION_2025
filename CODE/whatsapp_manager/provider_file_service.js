@@ -3,6 +3,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { getJsonObject, getJsonText, logError } from './utils.js';
+import { BufferJSON } from '@whiskeysockets/baileys';
 
 // -- TYPES
 
@@ -14,8 +15,8 @@ export class ProviderFiles
         module
         )
     {
-        this.logger = new Logger( 'ProviderFiles' );
-        this.baseDir = path.resolve( process.env.SESSION_BASE_DIR || '/sessions' );
+        this.logger = console.log;
+        this.baseDir = path.resolve( process.env.SESSION_BASE_DIR || './sessions' );
     }
 
     // -- INQUIRIES
@@ -42,18 +43,15 @@ export class ProviderFiles
             let filePath = this.getPath( instance, key );
             let raw = await fs.readFile( filePath, 'utf-8' );
 
-            return (
-                [
-                    {
-                        status: 200,
-                        data: getJsonObject(raw)
-                    }
-                ]
-                );
+            return [ { status: 200, data: raw } ];
         }
         catch ( error )
         {
-            logError( error );
+            // Não loga erro para arquivos que não existem (comum durante inicialização)
+            if ( error.code !== 'ENOENT' )
+            {
+                logError( error );
+            }
 
             return [ undefined, error ];
         }
@@ -95,7 +93,7 @@ export class ProviderFiles
         {
             const dir = this.getPath(instance);
             await fs.mkdir(dir, { recursive: true });
-            return [{ status: 201 }];
+            return [ { status: 201 } ];
         }
         catch ( error )
         {
@@ -121,7 +119,8 @@ export class ProviderFiles
             return (
                 [
                     {
-                        status: 200
+                        status: 200,
+                        data: data
                     }
                 ]
                 );
@@ -156,7 +155,11 @@ export class ProviderFiles
         }
         catch ( error )
         {
-            logError( error );
+            // Não loga erro para arquivos que não existem
+            if ( error.code !== 'ENOENT' )
+            {
+                logError( error );
+            }
 
             return [ undefined, error ];
         }

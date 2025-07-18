@@ -27,7 +27,7 @@ export class WhatsAppContainerService {
             if (response.success) {
                 this.containerUrl = response.containerUrl;
 
-                window.open( response.containerUrl, '_blank');
+                // window.open( response.containerUrl, '_blank');
 
                 return response;
             } else {
@@ -76,10 +76,18 @@ export class WhatsAppContainerService {
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
             }
 
-            return await response.json();
+            const result = await response.json();
+            
+            // Se há um pairing code, aguarda um pouco para garantir que foi processado
+            if (result.pairingCode) {
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+
+            return result;
         } catch (error) {
             console.error('Erro ao iniciar sessão WhatsApp:', error);
             throw error;
@@ -147,5 +155,21 @@ export class WhatsAppContainerService {
     // Verificar se container está ativo
     static isContainerActive(): boolean {
         return this.containerUrl !== null;
+    }
+
+    // Verificar status do pairing code
+    static async checkPairingStatus(churchId: string): Promise<any> {
+        try {
+            const response = await HttpClient.getDefault().get<any>(`/docker/pairing/${churchId}/status`);
+            
+            if (response.success) {
+                return response;
+            } else {
+                throw new Error(response.message || 'Erro ao verificar status do pairing code');
+            }
+        } catch (error) {
+            console.error('Erro ao verificar status do pairing code:', error);
+            throw error;
+        }
     }
 } 

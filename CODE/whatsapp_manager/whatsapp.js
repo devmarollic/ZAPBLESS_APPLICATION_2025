@@ -9,7 +9,7 @@
  * - Gerenciamento de sessão
  */
 
-const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
+const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, makeCacheableSignalKeyStore } = require('@whiskeysockets/baileys');
 const { Boom } = require('@hapi/boom');
 const pino = require('pino');
 const fs = require('fs');
@@ -17,9 +17,11 @@ const path = require('path');
 const qrcode = require('qrcode-terminal');
 const events = require('events');
 const NodeCache = require('node-cache');
-const { getRandomTuid, getTuidFromText } = require('./utils');
+const { getRandomTuid, getTuidFromText, sleep } = require('./utils');
 const { contactService } = require('./contact_service');
 const { whatsappService } = require('./whatsapp_service');
+const { getConnectionConfig, shouldReconnect, calculateReconnectDelay, validateNetworkConfig } = require('./connection_config');
+const { CHURCH_ID } = require('./enviroment');
 const churchId = process.env.CHURCH_ID;
 
 class WhatsappSessionMapper {
@@ -100,6 +102,14 @@ class WhatsAppManager extends events.EventEmitter {
         // Socket do WhatsApp
         this.sock = null;
 
+        // Controle de reconexão
+        this.reconnectAttempts = 0;
+        this.maxReconnectAttempts = 5;
+        this.isReconnecting = false;
+
+        // Controle de pairing code
+        this.pendingPhoneNumber = null;
+
         // Cria o diretório da sessão se não existir
         if (!fs.existsSync(this.sessionPath)) {
             fs.mkdirSync(this.sessionPath, { recursive: true });
@@ -108,10 +118,17 @@ class WhatsAppManager extends events.EventEmitter {
 
     /**
      * Conecta ao WhatsApp
+     * @param {string} phoneNumber Número de telefone para pairing code (opcional)
      * @returns {Promise<boolean>}
      */
-    async connect() {
+    async connect(phoneNumber = null) {
         try {
+            // Valida configurações de rede antes de conectar
+            const networkValidation = await validateNetworkConfig();
+            if (!networkValidation.success) {
+                this.logger.warn('Problemas de rede detectados:', networkValidation.issues);
+            }
+
             // Carrega o estado de autenticação
             const { state, saveCreds } = await useMultiFileAuthState(this.sessionPath);
 
@@ -119,55 +136,72 @@ class WhatsAppManager extends events.EventEmitter {
             const { version, isLatest } = await fetchLatestBaileysVersion();
             this.logger.info(`Usando WA v${version.join('.')}, é a mais recente: ${isLatest}`);
 
-            // Cria o socket do WhatsApp
+            // Obtém configurações de conexão
+            const connectionConfig = getConnectionConfig(this.logger);
+
+            // Cria o socket do WhatsApp com configurações melhoradas
             this.sock = makeWASocket({
                 version,
-                auth: state,
+                auth: {
+                    creds: state.creds,
+                    keys: makeCacheableSignalKeyStore(state.keys, this.logger),
+                },
                 printQRInTerminal: this.debug,
                 logger: this.logger,
-                browser: ['ZapBless', 'Chrome', '1.0.0'],
-                msgRetryCounterCache: this.msgRetryCounterCache
+                msgRetryCounterCache: this.msgRetryCounterCache,
+                // Configurações de conexão
+                connectTimeoutMs: connectionConfig.connectTimeoutMs,
+                qrTimeout: connectionConfig.qrTimeout,
+                keepAliveIntervalMs: connectionConfig.keepAliveIntervalMs,
+                retryRequestDelayMs: connectionConfig.retryRequestDelayMs,
+                // Configurações de user agent
+                browser: connectionConfig.browser,
+                // Configurações de proxy (se configurado)
+                ...(connectionConfig.agent && { agent: connectionConfig.agent }),
+                ...(connectionConfig.fetchAgent && { fetchAgent: connectionConfig.fetchAgent }),
             });
+
+            // Armazena o número de telefone para pairing code se fornecido
+            this.pendingPhoneNumber = phoneNumber;
 
             // Configura os manipuladores de eventos
             this.sock.ev.on('connection.update', async (update) => {
                 const { connection, lastDisconnect, qr } = update;
 
-                console.log( '===========================' );
-                console.log( this.sock.user );
-                console.log( '===========================' );
+                if (qr) {
+                    this.state.qr = qr;
+                    if (this.debug) {
+                        qrcode.generate(qr, { small: true });
+                    }
+                    this.emit('qr', qr);
 
-                if (connection === 'close') {
-                    let reason = new Boom(lastDisconnect.error).output.statusCode;
-
-                    if (reason === DisconnectReason.badSession) {
-                        this.logger.info('Bad Session File, Please Delete and Scan Again');
-                        this.emit('disconnect', { reason, lastDisconnect });
-                    }
-                    else if (reason === DisconnectReason.connectionClosed
-                        || reason === DisconnectReason.connectionLost
-                    ) {
-                        await this.connect();
-                    }
-                    else if (reason === DisconnectReason.connectionReplaced) {
-                        this.logger.info('Connection Replaced, Another New Session Opened, Please Close Current Session First');
-                        this.emit('disconnect', { reason, lastDisconnect })
-                    }
-                    else if (reason === DisconnectReason.loggedOut) {
-                        this.logger.info('Logged Out');
-                        this.emit('logout');
-                    }
-                    else if (reason === DisconnectReason.restartRequired) {
-                        this.logger.info('Restart Required, Restarting...');
-                        await this.connect();
-                    }
-                    else if (reason === DisconnectReason.timedOut) {
-                        this.logger.info('Connection TimedOut, Reconnecting...');
-                        await this.connect();
+                    if (phoneNumber && connection == "connecting" ) {
+                        this.state.pairingCode = await this.sock.requestPairingCode('5512981606045');
                     }
                     else {
-                        this.sock.end(`Unknown DisconnectReason: ${reason}|${lastDisconnect.error}`);
-                        this.emit('disconnect', { reason, lastDisconnect });
+                        this.pendingPhoneNumber = null;
+                    }
+                }
+
+                if (connection === 'close') {
+                    const statusCode = (lastDisconnect?.error)?.output?.statusCode;
+                    const codesToNotReconnect = [DisconnectReason.loggedOut, DisconnectReason.forbidden, 402, 406];
+                    const shouldReconnect = !codesToNotReconnect.includes(statusCode);
+                    if (shouldReconnect) {
+                        await this.connect(this.pendingPhoneNumber);
+                    } else {
+                        // await this.prismaRepository.instance.update({
+                        //     where: { id: this.instanceId },
+                        //     data: {
+                        //         connectionStatus: 'close',
+                        //         disconnectionAt: new Date(),
+                        //         disconnectionReasonCode: statusCode,
+                        //         disconnectionObject: JSON.stringify(lastDisconnect),
+                        //     },
+                        // });
+                        this.emit('logout.instance', CHURCH_ID, 'inner');
+                        this.sock?.ws?.close();
+                        this.sock.end(new Error('Close connection'));
                     }
                 }
 
@@ -178,25 +212,16 @@ class WhatsAppManager extends events.EventEmitter {
                     this.emit('connection', { status: connection });
                 }
 
-                // Processa o QR Code
-                if (qr) {
-                    this.state.qr = qr;
-                    if (this.debug) {
-                        qrcode.generate(qr, { small: true });
-                    }
-                    this.emit('qr', qr);
-                }
-
-                await whatsappService.upsertWhatsapp(
-                    WhatsappSessionMapper.toPersistence(
-                        {
-                            ...this.state,
-                            connection,
-                            qr,
-                            lastDisconnect: null
-                        }
-                    )
-                );
+                // await whatsappService.upsertWhatsapp(
+                //     WhatsappSessionMapper.toPersistence(
+                //         {
+                //             ...this.state,
+                //             connection,
+                //             qr,
+                //             lastDisconnect: null
+                //         }
+                //     )
+                // );
             });
 
             this.sock.ev.on('messaging-history.set', async (data) => {
@@ -218,8 +243,8 @@ class WhatsAppManager extends events.EventEmitter {
                         }
 
                         filteredContactArray.push({
-                            name: [ contact.name, contact.notify, contact.verifiedName ].filter( Boolean )?.[ 0 ],
-                            id: getTuidFromText( contact.id + churchId),
+                            name: [contact.name, contact.notify, contact.verifiedName].filter(Boolean)?.[0],
+                            id: getTuidFromText(contact.id + churchId),
                             number: phoneNumberWithPrefix,
                             churchId: process.env.CHURCH_ID,
                             imgUrl: profilePicture,
@@ -250,8 +275,8 @@ class WhatsAppManager extends events.EventEmitter {
 
                         contactService.upsertContact(
                             {
-                                name: [ contact.name, contact.notify, contact.verifiedName ].filter( Boolean )?.[ 0 ],
-                                id: getTuidFromText( contact.id + churchId),
+                                name: [contact.name, contact.notify, contact.verifiedName].filter(Boolean)?.[0],
+                                id: getTuidFromText(contact.id + churchId),
                                 number: phoneNumberWithPrefix,
                                 churchId: process.env.CHURCH_ID,
                                 imgUrl: profilePicture,
@@ -278,6 +303,112 @@ class WhatsAppManager extends events.EventEmitter {
         } catch (error) {
             this.logger.error('Erro ao conectar:', error);
             throw error;
+        }
+    }
+
+    /**
+     * Solicita pairing code com retry e backoff
+     * @param {string} phoneNumber - Número de telefone
+     * @returns {Promise<void>}
+     */
+    async requestPairingCodeWithRetry(phoneNumber) {
+        const maxRetries = 3;
+        let retryCount = 0;
+
+        while (retryCount < maxRetries) {
+            try {
+                // Verifica se a conexão está pronta
+                if (!this.sock || this.state.connection !== 'connecting') {
+                    this.logger.warn('Conexão não está pronta para pairing code, aguardando...');
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    retryCount++;
+                    continue;
+                }
+
+                this.logger.info(`Solicitando pairing code para ${phoneNumber} (tentativa ${retryCount + 1})`);
+                await sleep(1000);
+                const pairingCode = await this.sock.requestPairingCode(phoneNumber);
+
+                this.emit('pairingCode', pairingCode);
+                this.logger.info(`Pairing code gerado para ${phoneNumber}: ${pairingCode}`);
+                return pairingCode;
+
+            } catch (error) {
+                retryCount++;
+                this.logger.error(`Erro ao gerar pairing code (tentativa ${retryCount}):`, error.message);
+
+                if (retryCount >= maxRetries) {
+                    this.logger.error('Máximo de tentativas para pairing code atingido');
+                    this.emit('pairingCodeError', { error, phoneNumber });
+                    throw error;
+                }
+
+                // Aguarda antes da próxima tentativa com backoff exponencial
+                const delay = Math.min(2000 * Math.pow(2, retryCount - 1), 10000);
+                this.logger.info(`Aguardando ${delay}ms antes da próxima tentativa...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
+    }
+
+    /**
+     * Tenta reconectar com backoff exponencial
+     * @returns {Promise<void>}
+     */
+    async attemptReconnect() {
+        if (this.isReconnecting) {
+            this.logger.info('Reconexão já em andamento, ignorando...');
+            return;
+        }
+
+        if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+            this.logger.error(`Máximo de tentativas de reconexão atingido (${this.maxReconnectAttempts})`);
+            this.emit('reconnectFailed', { attempts: this.reconnectAttempts });
+            return;
+        }
+
+        this.isReconnecting = true;
+        this.reconnectAttempts++;
+
+        const delay = calculateReconnectDelay(this.reconnectAttempts);
+        this.logger.info(`Tentativa de reconexão ${this.reconnectAttempts}/${this.maxReconnectAttempts} em ${delay}ms`);
+
+        setTimeout(async () => {
+            try {
+                await this.connect();
+                this.logger.info('Reconexão bem-sucedida');
+                this.reconnectAttempts = 0;
+                this.emit('reconnected');
+            } catch (error) {
+                this.logger.error(`Erro na reconexão (tentativa ${this.reconnectAttempts}):`, error.message);
+                this.attemptReconnect();
+            } finally {
+                this.isReconnecting = false;
+            }
+        }, delay);
+    }
+
+    /**
+     * Solicita pairing code para um número específico
+     * @param {string} phoneNumber - Número de telefone
+     * @returns {Promise<string>} - Código de pareamento
+     */
+    async requestPairingCode(phoneNumber) {
+        if (!phoneNumber) {
+            throw new Error('Número de telefone é obrigatório');
+        }
+
+        // Formata o número
+        const formattedNumber = this._formatNumber(phoneNumber);
+
+        // Verifica se a conexão está pronta
+        if (this.state.connection === 'open') {
+            return await this.requestPairingCodeWithRetry(formattedNumber);
+        } else {
+            // Armazena para solicitar quando a conexão estiver pronta
+            this.pendingPhoneNumber = formattedNumber;
+            this.logger.info(`Número ${formattedNumber} armazenado para pairing code quando conexão estiver pronta`);
+            return null;
         }
     }
 
@@ -521,7 +652,7 @@ class WhatsAppManager extends events.EventEmitter {
 
     // ~~
 
-    
+
 }
 
 module.exports = WhatsAppManager; 

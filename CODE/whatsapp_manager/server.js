@@ -6,32 +6,65 @@
  * Implementação independente usando diretamente a biblioteca Baileys.
  */
 
-const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const fs = require('fs');
-const path = require('path');
-const qrcode = require('qrcode');
-const WhatsAppManager = require('./whatsapp');
-const { supabaseService } = require('./supabase_service');
-const { contactService } = require('./contact_service');
-const { RabbitMQService } = require('./rabbitmq_service');
-const { whatsappService } = require('./whatsapp_service');
-const { getSubstitutedText, sleep, getRandomDelay } = require('./utils');
-const { SESSION_DIR, SESSION_ID, DEBUG, RABBITMQ_URL, RABBITMQ_OUTBOUND_QUEUE, RABBITMQ_INBOUND_QUEUE, RABBITMQ_DISCONNECTED_SESSIONS_QUEUE, CHURCH_ID, PORT } = require('./enviroment');
+import express from 'express';
+import bodyParser from 'body-parser';
+import cors from 'cors';
+import fs from 'fs';
+import path from 'path';
+import qrcode from 'qrcode';
+// import WhatsAppManager from './whatsapp';
+import { supabaseService } from './supabase_service.js';
+import { contactService } from './contact_service.js';
+import { RabbitMQService } from './rabbitmq_service.js';
+import { whatsappService } from './whatsapp_service.js';
+import { getSubstitutedText, sleep, getRandomDelay } from './utils.js';
+import { SESSION_DIR, SESSION_ID, DEBUG, RABBITMQ_URL, RABBITMQ_OUTBOUND_QUEUE, RABBITMQ_INBOUND_QUEUE, RABBITMQ_DISCONNECTED_SESSIONS_QUEUE, CHURCH_ID, PORT } from './enviroment.js';
+import { ProviderFiles } from './provider_file_service.js';
+import { SupabaseRepository } from './supabase_repository.js';
+import { WhatsAppManager } from './baileys_startup_service.js';
+import { clearSession } from './clear_session.js';
+import { WAMonitoringService } from './wamonitor_service.js';
+import { EventManager } from './event_emitter.js';
+import EventEmitter from 'events';
 
 // Configurações
 
+let providerFiles = new ProviderFiles();
+let supabaseRepository = new SupabaseRepository();
+let eventEmitter = new EventEmitter();
+let waMonitor = new WAMonitoringService(
+    eventEmitter,
+    supabaseRepository,
+    providerFiles   
+);
+let eventManager = new EventManager(supabaseRepository, waMonitor);
 
 // Inicializa o gerenciador WhatsApp
-const whatsapp = new WhatsAppManager(
-    {
-        sessionDir: SESSION_DIR,
-        sessionId: SESSION_ID,
-        debug: DEBUG,
-        whatsappService: whatsappService.getWhatsapp()
-    }
+let whatsappManager = new WhatsAppManager(
+    supabaseRepository,
+    providerFiles
 );
+
+function initWA() {
+    waMonitor.loadInstance();
+}
+
+// Configura eventos do WhatsApp Manager
+whatsappManager.eventEmitter.on('reconnect.failed', (instanceName) => {
+    console.error(`Reconexão falhou para a instância: ${instanceName}`);
+    // Aqui você pode implementar notificações ou ações específicas
+    // como enviar alerta para administradores, etc.
+});
+
+whatsappManager.eventEmitter.on('logout.instance', (instanceName, reason) => {
+    console.log(`Instância ${instanceName} fechada. Motivo: ${reason}`);
+    // Aqui você pode implementar limpeza de recursos ou notificações
+});
+
+whatsappManager.eventEmitter.on('no.connection', (instanceName) => {
+    console.error(`Sem conexão para a instância: ${instanceName}`);
+    // Aqui você pode implementar ações quando não há conexão
+});
 
 // Inicializa o serviço RabbitMQ
 const rabbitmq = new RabbitMQService(
@@ -55,110 +88,6 @@ app.use(cors({
 }));
 app.use(bodyParser.json());
 app.use(express.static('public'));
-
-// Variáveis de estado
-let qrCodePath = null;
-let pairingCode = null;
-
-// Configura eventos do WhatsApp
-whatsapp.on('qr', async (qr) => {
-    try {
-        console.log('Novo QR code recebido');
-
-        // Cria o diretório para o QR code se não existir
-        const qrDir = path.join(__dirname, 'public', 'qr');
-        if (!fs.existsSync(qrDir)) {
-            fs.mkdirSync(qrDir, { recursive: true });
-        }
-
-        // Salva o QR code como imagem
-        qrCodePath = path.join(qrDir, `qr-${process.env.CHURCH_ID}.png`);
-        await qrcode.toFile(qrCodePath, qr);
-
-        console.log(`QR code salvo em ${qrCodePath}`);
-    } catch (error) {
-        console.error('Erro ao processar QR code:', error);
-    }
-});
-
-whatsapp.on('pairingCode', (code) => {
-    pairingCode = code;
-});
-
-whatsapp.on('connection', ({ status }) => {
-    console.log(`Status da conexão alterado para: ${status}`);
-
-    // Se conectado, remove o QR code
-    if (status === 'open' && qrCodePath) {
-        try {
-            if (fs.existsSync(qrCodePath)) {
-                fs.unlinkSync(qrCodePath);
-            }
-            qrCodePath = null;
-        } catch (error) {
-            console.error('Erro ao remover QR code:', error);
-        }
-    }
-});
-
-whatsapp.on('disconnect', async ({ reason, lastDisconnect }) => {
-    console.log('Disconectado:', reason, lastDisconnect);
-
-    try {
-        if (rabbitmq.connected) {
-            // await rabbitmq.publishDisconnectedSession(reason, lastDisconnect);
-            await rabbitmq.publishOutboundMessage(
-                {
-                    type: 'disconnect',
-                    reason: reason,
-                    lastDisconnect: lastDisconnect,
-                    churchId: CHURCH_ID
-                }
-            );
-        } else {
-            console.warn('RabbitMQ não está conectado. Não foi possível publicar a desconexão.');
-        }
-    } catch (error) {
-        console.error('Erro ao processar desconexão:', error);
-    }
-});
-
-whatsapp.on('message', async (message) => {
-    console.log('Nova mensagem recebida:', message.key.remoteJid);
-
-    try {
-        // Extrai informações relevantes da mensagem
-        const processedMessage = processIncomingMessage(message);
-
-        // Publica a mensagem na fila inbound
-        if (rabbitmq.connected) {
-            await rabbitmq.publishInboundMessage(processedMessage);
-        } else {
-            console.warn('RabbitMQ não está conectado. Não foi possível publicar a mensagem recebida.');
-        }
-    } catch (error) {
-        console.error('Erro ao processar mensagem recebida:', error);
-    }
-});
-
-whatsapp.on('contacts', (contacts) => {
-    if (Array.isArray(contacts) && contacts.length > 0) {
-        contactService.upsertContact(contacts);
-    }
-});
-
-// Middleware para verificar se o WhatsApp está conectado
-const checkConnection = (req, res, next) => {
-    const state = whatsapp.getConnectionState();
-    if (state.state === 'open') {
-        next();
-    } else {
-        res.status(403).json({
-            error: 'WhatsApp não está conectado',
-            state: state.state
-        });
-    }
-};
 
 // Função auxiliar para buscar template e substituir variáveis
 async function getProcessedTemplateText(
@@ -187,25 +116,33 @@ app.get('/', (req, res) => {
 });
 
 app.get('/health', (req, res) => {
-    let status = whatsapp.getConnectionState().state;
+    let status = whatsappManager.stateConnection.state;
+    let reconnectAttempts = whatsappManager.reconnectAttempt || 0;
+    let qrCodeInfo = whatsappManager.qrCode;
 
     res.json({
-        status: status
+        status: status,
+        reconnectAttempts: reconnectAttempts,
+        qrCode: {
+            hasCode: !!qrCodeInfo.code,
+            count: qrCodeInfo.count || 0,
+            pairingCode: qrCodeInfo.pairingCode
+        },
+        instance: {
+            name: whatsappManager.instance.name,
+            id: whatsappManager.instance.id,
+            wuid: whatsappManager.instance.wuid
+        },
+        timestamp: new Date().toISOString()
     });
 });
 
 // Rota para obter status da sessão
 app.get('/status', (req, res) => {
     try {
-        const state = whatsapp.getConnectionState();
+        const state = whatsappManager.qrCode;
 
-        res.json({
-            sessionId: SESSION_ID,
-            status: state.state,
-            qrCode: qrCodePath ? `/qr/${path.basename(qrCodePath)}` : null,
-            hasSession: state.hasSession,
-            pairingCode: pairingCode
-        });
+        res.json(state);
     } catch (error) {
         console.error('Erro ao obter status:', error);
         res.status(500).json({ error: 'Erro ao obter status' });
@@ -217,37 +154,10 @@ app.post('/start', async (req, res) => {
     try {
         console.log('Iniciando sessão do WhatsApp...');
 
-        // Verifica se já está conectado
-        const state = whatsapp.getConnectionState();
-        if (state.state === 'open') {
-            return res.json({
-                success: true,
-                status: 'connected',
-                message: 'WhatsApp já está conectado'
-            });
-        }
-
-        let { phoneNumber = null } = req.body;
-
-        if (phoneNumber !== null) {
-            phoneNumber = phoneNumber.replace(/\D/g, '');
-
-            if (!phoneNumber.startsWith('55')) {
-                phoneNumber = '55' + phoneNumber;
-            }
-        }
-
-        console.log('phoneNumber', phoneNumber);
-
         // Inicia a conexão
-        await whatsapp.connect(phoneNumber);
+        await whatsappManager.connectToWhatsapp(process.env.CHURCH_NUMBER);
 
-        res.json({
-            success: true,
-            status: whatsapp.getConnectionState().state,
-            qrCode: qrCodePath ? `/qr/${path.basename(qrCodePath)}` : null,
-            pairingCode
-        });
+        res.json(whatsappManager.qrCode);
     } catch (error) {
         console.error('Erro ao iniciar sessão:', error);
         res.status(500).json({ error: 'Erro ao iniciar sessão' });
@@ -255,7 +165,7 @@ app.post('/start', async (req, res) => {
 });
 
 // Rota para enviar mensagem de texto
-app.post('/send/text', checkConnection, async (req, res) => {
+app.post('/send/text', async (req, res) => {
     try {
         const { to, text, templateId, variables } = req.body;
 
@@ -284,7 +194,7 @@ app.post('/send/text', checkConnection, async (req, res) => {
 });
 
 // Rota para enviar mensagem de mídia
-app.post('/send/media', checkConnection, async (req, res) => {
+app.post('/send/media', async (req, res) => {
     try {
         const { to, mediaType, mediaUrl, caption, templateId, variables } = req.body;
 
@@ -317,7 +227,7 @@ app.post('/send/media', checkConnection, async (req, res) => {
 });
 
 // Rota para verificar número
-app.post('/check/number', checkConnection, async (req, res) => {
+app.post('/check/number', async (req, res) => {
     try {
         const { number } = req.body;
 
@@ -325,11 +235,45 @@ app.post('/check/number', checkConnection, async (req, res) => {
             return res.status(400).json({ error: 'Parâmetro "number" é obrigatório' });
         }
 
-        const result = await whatsapp.checkNumber(number);
+        const result = await whatsappManager.checkNumber(number);
         res.json(result);
     } catch (error) {
         console.error('Erro ao verificar número:', error);
         res.status(500).json({ error: 'Erro ao verificar número' });
+    }
+});
+
+// Rota para solicitar pairing code
+app.post('/pairing-code', async (req, res) => {
+    try {
+        const { phoneNumber } = req.body;
+
+        if (!phoneNumber) {
+            return res.status(400).json({ error: 'Parâmetro "phoneNumber" é obrigatório' });
+        }
+
+        console.log('Solicitando pairing code para:', phoneNumber);
+
+        // Formata o número
+        let formattedNumber = phoneNumber.replace(/\D/g, '');
+        if (!formattedNumber.startsWith('55')) {
+            formattedNumber = '55' + formattedNumber;
+        }
+
+        // Solicita o pairing code
+        const code = await whatsappManager.requestPairingCode(formattedNumber);
+
+        res.json({
+            success: true,
+            pairingCode: code,
+            message: code ? 'Pairing code gerado com sucesso' : 'Pairing code será gerado quando a conexão estiver pronta'
+        });
+    } catch (error) {
+        console.error('Erro ao solicitar pairing code:', error);
+        res.status(500).json({
+            error: 'Erro ao solicitar pairing code',
+            details: error.message
+        });
     }
 });
 
@@ -338,15 +282,11 @@ app.post('/disconnect', async (req, res) => {
     try {
         console.log('Desconectando sessão do WhatsApp...');
 
-        const result = await whatsapp.disconnect();
-
-        if (fs.existsSync(path.join(__dirname, SESSION_DIR))) {
-            fs.rmdirSync(path.join(__dirname, SESSION_DIR), { recursive: true });
-        }
+        await clearSession(CHURCH_ID);
 
         res.json({
-            success: result,
-            status: whatsapp.getConnectionState().state
+            success: true,
+            status: whatsappManager.stateConnection.state
         });
     } catch (error) {
         console.error('Erro ao desconectar:', error);
@@ -354,10 +294,35 @@ app.post('/disconnect', async (req, res) => {
     }
 });
 
-// Rota para obter informações do usuário
-app.get('/user/info', checkConnection, async (req, res) => {
+// Rota para forçar reconexão
+app.post('/reconnect', async (req, res) => {
     try {
-        const userInfo = await whatsapp.getUserInfo();
+        console.log('Forçando reconexão do WhatsApp...');
+
+        // Reset reconnection counter
+        whatsappManager.reconnectAttempt = 0;
+
+        // Attempt to reconnect
+        await whatsappManager.connectToWhatsapp(process.env.CHURCH_NUMBER);
+
+        res.json({
+            success: true,
+            message: 'Tentativa de reconexão iniciada',
+            status: whatsappManager.stateConnection.state
+        });
+    } catch (error) {
+        console.error('Erro ao forçar reconexão:', error);
+        res.status(500).json({
+            error: 'Erro ao forçar reconexão',
+            details: error.message
+        });
+    }
+});
+
+// Rota para obter informações do usuário
+app.get('/user/info', async (req, res) => {
+    try {
+        const userInfo = await whatsappManager.getUserInfo();
         res.json(userInfo);
     } catch (error) {
         console.error('Erro ao obter informações do usuário:', error);
@@ -366,7 +331,7 @@ app.get('/user/info', checkConnection, async (req, res) => {
 });
 
 // Rota para obter foto de perfil de um contato
-app.get('/profile/picture/:number', checkConnection, async (req, res) => {
+app.get('/profile/picture/:number', async (req, res) => {
     try {
         const { number } = req.params;
 
@@ -374,7 +339,7 @@ app.get('/profile/picture/:number', checkConnection, async (req, res) => {
             return res.status(400).json({ error: 'Número de telefone é obrigatório' });
         }
 
-        const result = await whatsapp.getProfilePicture(number);
+        const result = await whatsappManager.getProfilePicture(number);
         res.json(result);
     } catch (error) {
         console.error('Erro ao obter foto de perfil:', error);
@@ -383,7 +348,7 @@ app.get('/profile/picture/:number', checkConnection, async (req, res) => {
 });
 
 app.get('/health', (req, res) => {
-    let status = whatsapp.getConnectionState().state;
+    let status = whatsappManager.stateConnection.state;
 
     res.json({
         status: status
@@ -491,7 +456,7 @@ async function processOutboundMessage(message) {
         }
 
         // Verifica se o WhatsApp está conectado
-        const state = whatsapp.getConnectionState();
+        const state = whatsappManager.stateConnection.state;
         if (state.state !== 'open') {
             console.error('WhatsApp não está conectado. Não é possível enviar a mensagem.');
             throw new Error('WhatsApp não está conectado');
@@ -501,10 +466,10 @@ async function processOutboundMessage(message) {
 
         await sleep(getRandomDelay(500, 1500));
 
-        await whatsapp.presenceSubscribe(message.to);
-        await whatsapp.sendPresenceUpdate('composing', message.to);
+        await whatsappManager.presenceSubscribe(message.to);
+        await whatsappManager.sendPresenceUpdate('composing', message.to);
         await sleep(getRandomDelay(2000, 5000));
-        await whatsapp.sendPresenceUpdate('paused', message.to);
+        await whatsappManager.sendPresenceUpdate('paused', message.to);
 
         switch (message.type) {
             case 'text':
@@ -512,14 +477,14 @@ async function processOutboundMessage(message) {
                     throw new Error('Campos "to" e "text" são obrigatórios para mensagens de texto');
                 }
                 let processedText = getSubstitutedText(message.text, message.variables);
-                await whatsapp.sendText(message.to, processedText);
+                await whatsappManager.sendText(message.to, processedText);
                 break;
 
             case 'media':
                 if (!message.to || !message.mediaType || !message.mediaUrl) {
                     throw new Error('Campos "to", "mediaType" e "mediaUrl" são obrigatórios para mensagens de mídia');
                 }
-                await whatsapp.sendMedia(message.to, message.mediaType, message.mediaUrl, message.caption || '');
+                await whatsappManager.sendMedia(message.to, message.mediaType, message.mediaUrl, message.caption || '');
                 break;
 
             default:
@@ -559,23 +524,9 @@ app.listen(PORT, async () => {
     try {
         console.log('Conectando ao RabbitMQ...');
         await rabbitmq.connect();
+        initWA();
     } catch (error) {
         console.error('Erro ao conectar ao RabbitMQ:', error);
-    }
-
-    // Verifica se já existe uma sessão salva
-    const state = whatsapp.getConnectionState();
-    if (state.hasSession) {
-        console.log('Sessão existente encontrada, tentando reconectar...');
-
-        // Tenta iniciar a sessão automaticamente
-        try {
-            setTimeout(async () => {
-                await whatsapp.connect();
-            }, 2000);
-        } catch (error) {
-            console.error('Erro ao reconectar sessão automaticamente:', error);
-        }
     }
 });
 
@@ -679,11 +630,11 @@ const indexHtml = `
         const data = await response.json();
         
         // Atualiza o elemento de status
-        statusEl.textContent = "Sessao: " + data.sessionId + " | Status: " + data.status;
+        statusEl.textContent = "Sessao: " + data.instance.id + " | Status: " + data.stateConnection.state;
         statusEl.className = 'status ' + data.status;
         
         // Exibe o QR code se disponível
-        if (data.qrCode && data.status === 'connecting') {
+        if (data.qrCode && data.stateConnection.state === 'connecting') {
           qrContainer.style.display = 'block';
           qrCode.src = data.qrCode + '?t=' + Date.now(); // Evita cache
         } else {
@@ -792,7 +743,7 @@ const indexHtml = `
 `;
 
 // Cria o arquivo index.html
-const publicDir = path.join(__dirname, 'public');
+const publicDir = path.join('public');
 if (!fs.existsSync(publicDir)) {
     fs.mkdirSync(publicDir, { recursive: true });
 }
@@ -806,12 +757,15 @@ async function gracefulShutdown() {
     console.log('Encerrando servidor...');
 
     try {
+        // Previne novas tentativas de reconexão
+        whatsappManager.reconnectAttempt = 999; // Força parar reconexões
+
         // Fecha a conexão RabbitMQ
         await rabbitmq.close();
         console.log('Conexão RabbitMQ fechada');
 
         // Desconecta o WhatsApp
-        await whatsapp.disconnect();
+        await clearSession(CHURCH_ID);
         console.log('WhatsApp desconectado');
 
         process.exit(0);

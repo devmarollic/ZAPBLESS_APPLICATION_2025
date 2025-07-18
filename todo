@@ -9,8 +9,7 @@
 - [ ] integrar com o whatsapp
 - [ ] emitir mensagem de conexão perdida quando o whatsapp está desconectado ao enviar mensagem
 - [ ] revisar criação e exibição de eventos
-- [ ] fazer upload de imagem da igreja
-- [ ] página de editar evento
+- [ ] página de editar evento (opção de excluir)
 - [x] implementar envio de mensagens
 - [x] implementar envio de mensagens com template
 - [x] corrigir filtro por role
@@ -23,5 +22,23 @@
 - [ ] corrigir métrica de mensagens enviadas na home page
 - [ ] implementar gerenciar assinatura
 - [ ] implementar alterar plano
-- [ ] popular banco com localizações reais
-- [ ] atualizar stateName, cityName e countryName quando atualizar dados da igreja
+- [x] popular banco com localizações reais
+- [x] atualizar stateName, cityName e countryName quando atualizar dados da igreja
+- [x] atualizar cidades no registro
+- [ ] criar planos pagarme em produção
+- [ ] criar rota do webhook
+- [ ] configurar webhook
+- [ ] mudar inputs de máscara
+- [ ] validar campos como cpf/cnpj e passaporte
+- [ ] caso o usuário exista, mas a igreja não, deve mandar para uma tela onde cria a igreja
+- [ ] inconsistência entre cobrança anual e mensal na tela de cadastro
+- [ ] cidade vem como vazio na primeira renderização meus dados
+- [ ] melhorar layout tela de eventos (mobile)
+- [ ] bloquear envio de mensagens e criação de notificação se não tiver whatsapp conectado
+- [ ] mostrar eventos na aba semana
+- [ ] corrigir layout responsividade criar evento ( Data, Hora de Início, Hora de Término )
+- [ ] melhorar seleção de data de aniversário cadastro
+- [ ] corrigir exibição de evento anual
+- [ ] corrigir calendário quando volto as datas
+
+/zapbless/whatsapp-manager/api/church_id

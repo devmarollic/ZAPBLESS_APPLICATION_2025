@@ -7,6 +7,7 @@ import { GetDockerContainerLogsController } from '../controller/docker_container
 import { GetDockerContainerStatusController } from '../controller/docker_container_controller';
 import { ListDockerContainersController } from '../controller/docker_container_controller';
 import { SyncWhatsappContainerController } from '../controller/sync_whatsapp_container_controller';
+import { CheckPairingStatusController } from '../controller/check_pairing_status_controller';
 
 // -- CONSTANTS
 
@@ -17,6 +18,7 @@ const getDockerContainerLogsController = new GetDockerContainerLogsController();
 const getDockerContainerStatusController = new GetDockerContainerStatusController();
 const listDockerContainersController = new ListDockerContainersController();
 const syncWhatsappContainerController = new SyncWhatsappContainerController();
+const checkPairingStatusController = new CheckPairingStatusController();
 
 // -- FUNCTIONS
 
@@ -65,5 +67,11 @@ export async function dockerRoutes(
     fastify.get(
         '/containers/list',
         ( request, response ) => listDockerContainersController.handle( request, response )
+        );
+
+    // Verificar status do pairing code do WhatsApp
+    fastify.get(
+        '/pairing/:churchId/status',
+        ( request, response ) => checkPairingStatusController.handle( request, response )
         );
 } 
